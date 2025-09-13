@@ -19,7 +19,7 @@
   const tabs = ['top100'];
 
   const headers = [
-    { title: '', value: 'rank', sortable: false },
+    { title: '#', value: 'rank', sortable: false },
     { title: 'User', value: User.statistics.fields.userId, sortable: true },
     { title: User.shortLabels.totalCompletedTrades, value: User.statistics.fields.totalCompletedTrades, sortable: true },
     { title: User.shortLabels.totalAcceptedTrades, value: User.statistics.fields.totalAcceptedTrades, sortable: true },
@@ -74,8 +74,7 @@
       throw error;
     }
 
-    const usersData = data.map(record => User.fromDB(record, User.statistics.fields));
-    return usersData;
+    return data.map(record => User.fromDB(record, User.statistics.fields));
   });
 
   watch(error, (value) => {
@@ -91,7 +90,7 @@
   });
 
   // const isWrapped = computed(() => shouldWrap.value ? 12 : 4);
-  const { smAndDown } = useDisplay();
+  const { mdAndUp } = useDisplay();
 
   useHead({ title });
 </script>
@@ -140,27 +139,22 @@
         <v-container class="d-flex flex-column align-center my-5">
           <!-- Podium Section -->
           <v-row
-            class="w-100"
+            class="w-100 ga-5"
             justify="center"
           >
-            <v-row class="d-flex justify-center flex-row">
-              <template
-                v-for="index in [1, 0, 2]"
-                :key="index"
-              >
-                <v-col
-                  :class="smAndDown ? 'px-3' : 'px-5'"
-                  cols="4"
-                >
-                  <leaderboard-podium-card
-                    v-if="top3?.[index]"
-                    :position="(index + 1).toString()"
-                    :style="{ marginTop: index === 0 ? '0' : (index === 1 ? '30px' : '60px') }"
-                    :user="top3[index]"
-                  />
-                </v-col>
-              </template>
-            </v-row>
+            <v-col
+              v-for="index in (mdAndUp ? [1, 0, 2] : [0, 1, 2])"
+              :key="index"
+              cols="12"
+              md="3"
+            >
+              <leaderboard-podium-card
+                v-if="top3?.[index]"
+                :position="(index + 1).toString()"
+                :style="mdAndUp ? { marginTop: index === 0 ? '0' : (index === 1 ? '30px' : '60px') } : {}"
+                :user="top3[index]"
+              />
+            </v-col>
           </v-row>
           <table-data
             ref="table"
