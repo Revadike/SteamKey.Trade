@@ -82,21 +82,8 @@
 
     <!--user statistics panel-->
     <v-card-text class="mr-0 ml-2 pt-8 pb-6 px-0">
-      <span
-        v-if="metaLoadingError"
-        class="text-disabled font-italic error-message"
-      >
-        {{ metaLoadingError?.message }}
-      </span>
-
-      <v-skeleton-loader
-        v-else-if="!user || status === 'pending'"
-        type="text@4"
-      />
-
       <v-row
         v-for="key in Object.keys(attributes)"
-        v-else
         :key="key"
         class="align-center"
       >
