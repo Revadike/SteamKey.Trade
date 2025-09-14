@@ -197,7 +197,7 @@
           </span>
         </v-btn>
         <dialog-user-review
-          v-if="tradesCommon.total"
+          v-if="tradesCommon?.total"
           :user-id="user.id"
           @submit="activeTab = 'Reviews'"
         >
