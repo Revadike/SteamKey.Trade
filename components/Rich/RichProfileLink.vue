@@ -252,9 +252,9 @@
             >
               You traded
               <span class="text-primary font-weight-bold">
-                {{ formatNumber(tradesCommon) }}
+                {{ formatNumber(tradesCommon.total) }}
               </span>
-              {{ tradesCommon === 1 ? 'time' : 'times' }}
+              {{ tradesCommon.total === 1 ? 'time' : 'times' }}
               with this user
             </span>
           </div>

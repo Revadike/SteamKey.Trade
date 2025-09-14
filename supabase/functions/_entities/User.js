@@ -373,7 +373,7 @@ export class User extends Entity {
       throw error;
     }
 
-    return data?.[fields.totalCompletedTrades] || 0;
+    return { total: data?.[fields.totalCompletedTrades] || 0 };
   }
 
   /**
