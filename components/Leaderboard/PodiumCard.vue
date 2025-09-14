@@ -159,7 +159,7 @@
   }
 
   // make avatar loader fill whole space correctly
-  ::v-deep .v-skeleton-loader {
+  ::v-deep(.v-skeleton-loader) {
     .v-skeleton-loader__avatar {
       height: 100%;
       width: 100%;
@@ -170,7 +170,7 @@
     }
   }
 
-  .card-username::v-deep span {
+  .card-username::v-deep(span) {
     color: #dddddd !important;
     font-size: 1rem;
     z-index: 1;
