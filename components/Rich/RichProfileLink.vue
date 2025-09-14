@@ -63,6 +63,7 @@
     if (props.userId === null) {
       return null;
     }
+
     const user = new User(props.userId);
     return user.getStatistics();
   }, {

@@ -312,7 +312,7 @@
 
       // Force returning the count
       const isLastPage = page * itemsPerPage >= totalItems.value;
-      query.headers.Prefer = isLastPage ? 'count=exact' : 'count=estimated';
+      query.headers.append('Prefer', isLastPage ? 'count=exact' : 'count=estimated');
 
       const { data, error, count } = await query.range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
       if (error) {

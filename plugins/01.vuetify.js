@@ -3,7 +3,6 @@ import '@/public/icomoon/style.css';
 import '@/styles/main.scss';
 
 import { createVuetify } from 'vuetify';
-import { VTimePicker } from 'vuetify/labs/components';
 
 const socialColors = {
   steam: '#000000',
@@ -49,9 +48,6 @@ export default defineNuxtPlugin(app => {
           }
         }
       }
-    },
-    components: {
-      VTimePicker
     }
   });
 
