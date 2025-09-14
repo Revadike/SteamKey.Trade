@@ -28,6 +28,13 @@
     }
   });
 
+  const totalTrades = computed(() => stats.value?.totalPendingTrades
+    + stats.value?.totalCompletedTrades
+    + stats.value?.totalDeclinedTrades
+    + stats.value?.totalAcceptedTrades
+    + stats.value?.totalAbortedTrades
+  );
+
   const lastReview = ref(null);
   watch(() => stats.value?.lastReview, async (id) => {
     if (!id) {
@@ -282,6 +289,30 @@
           />
           Trades
         </h2>
+
+        <div class="d-flex flex-row align-center justify-center mb-4">
+          <v-pie
+            v-if="stats"
+            animation
+            :gap="5"
+            hide-slice
+            :inner-cut="75"
+            :items="[
+              ...stats.totalCompletedTrades ? [{ key: 0, title: Trade.labels.completed, value: stats.totalCompletedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.completed}))` }] : [],
+              ...stats.totalPendingTrades ? [{ key: 1, title: Trade.labels.pending, value: stats.totalPendingTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.pending}))` }] : [],
+              ...stats.totalAcceptedTrades ? [{ key: 2, title: Trade.labels.accepted, value: stats.totalAcceptedTrades || 0, color: Trade.colors.accepted }] : [],
+              ...stats.totalDeclinedTrades ? [{ key: 3, title: Trade.labels.declined, value: stats.totalDeclinedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.declined}))` }] : [],
+              ...stats.totalAbortedTrades ? [{ key: 4, title: Trade.labels.aborted, value: stats.totalAbortedTrades || 0, color: Trade.colors.aborted }] : [],
+              ...stats.totalDisputedTrades ? [{ key: 5, title: Trade.labels.disputed, value: stats.totalDisputedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.disputed}))` }] : []
+            ]"
+            :legend="{ position: 'right', textFormat: (s) => `${s.title}: ${formatNumber(s.value)} (${(100 * s.value / totalTrades).toFixed(1)}%)` }"
+            reveal
+            :rounded="2"
+            size="150"
+            :tooltip="{ subtitleFormat: (s) => `${formatNumber(s.value)} trades (${(100 * s.value / totalTrades).toFixed(1)}%)` }"
+          />
+        </div>
+
         <v-table class="mb-4">
           <tbody>
             <tr v-if="lastTrade">
@@ -374,23 +405,6 @@
             </tr>
           </tbody>
         </v-table>
-
-        <v-spacer />
-        <div class="d-flex flex-row align-center justify-center">
-          <s-pie-chart
-            class="elevation-20 rounded-circle"
-            :items="[
-              { title: Trade.labels.completed, value: stats.totalCompletedTrades, color: Trade.colors.completed },
-              { title: Trade.labels.pending, value: stats.totalPendingTrades, color: Trade.colors.pending },
-              { title: Trade.labels.accepted, value: stats.totalAcceptedTrades, color: Trade.colors.accepted },
-              { title: Trade.labels.declined, value: stats.totalDeclinedTrades, color: Trade.colors.declined },
-              { title: Trade.labels.aborted, value: stats.totalAbortedTrades, color: Trade.colors.aborted },
-              { title: Trade.labels.disputed, value: stats.totalDisputedTrades, color: Trade.colors.disputed }
-            ]"
-            size="150"
-            title="Trade Status"
-          />
-        </div>
         <v-spacer />
 
         <v-table v-if="partners?.length">
