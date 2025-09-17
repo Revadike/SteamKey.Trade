@@ -256,7 +256,7 @@
 
                 <v-col
                   cols="12"
-                  md="8"
+                  md="4"
                 >
                   <v-select
                     v-model="user.region"
@@ -265,6 +265,19 @@
                     :items="regions"
                     :label="User.labels.region"
                     persistent-hint
+                  />
+                </v-col>
+
+                <v-col
+                  cols="12"
+                  md="4"
+                >
+                  <v-text-field
+                    v-model="user.discordId"
+                    :hint="User.descriptions.discordId"
+                    :label="User.labels.discordId"
+                    persistent-hint
+                    :rules="[v => !v || (/^\d{17,19}$/.test(v)) || 'Invalid Discord ID']"
                   />
                 </v-col>
 

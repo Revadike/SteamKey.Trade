@@ -12,6 +12,7 @@ export class User extends Entity {
     return Object.freeze({
       id: 'id',
       steamId: 'steam_id',
+      discordId: 'discord_id',
       customUrl: 'custom_url',
       displayName: 'display_name',
       avatar: 'avatar',
@@ -144,6 +145,7 @@ export class User extends Entity {
       properties: {
         id: { type: 'string', format: 'uuid', title: 'ID', description: 'The unique identifier of the user.' },
         steamId: { type: 'string', title: 'Steam ID', description: 'The SteamID64 of the linked Steam account.' },
+        discordId: { type: 'string', nullable: true, title: 'Discord ID', description: 'The User ID of the linked Discord account.' },
         customUrl: { type: 'string', nullable: true, title: 'Custom URL', description: 'Your unique profile URL.' },
         displayName: { type: 'string', nullable: true, title: 'Display Name', description: 'The name that will be displayed to other users.' },
         avatar: { type: 'string', nullable: true, title: 'Avatar', description: 'Set a custom avatar, or leave blank to use your Steam avatar.' },

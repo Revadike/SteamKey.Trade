@@ -23,6 +23,12 @@ create type country_code as enum (
 create table users (
   id uuid primary key references auth.users(id) on delete cascade,
   steam_id text not null unique,
+  discord_id text default null unique check (
+    -- Discord ID must be numeric
+    (discord_id ~ '^\d{17,19}$')
+    -- Discord ID must be between 17 and 19 characters
+    and (discord_id is null or length(discord_id) between 17 and 19)
+  ),
   custom_url text default null unique check (
     -- Custom URL must be alphanumeric
     (custom_url ~ '^[a-zA-Z0-9]+$')

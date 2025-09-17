@@ -216,6 +216,7 @@
     :theme="isDark ? 'dark' : 'light'"
   >
     <s-snackbar />
+    <dialog-connect-discord />
     <v-app-bar
       class="border"
       elevation="0"

@@ -212,6 +212,87 @@ begin
 end;
 $$ language plpgsql security invoker;
 
+-- Create function to send Discord notifications for trades
+create or replace function send_discord_notification(p_trade public.trades, p_notification_type text)
+returns void
+set search_path = ''
+as $$
+declare
+  target_user record;
+  other_user record;
+  discord_config record;
+  message_text text;
+  user_link text;
+begin
+  -- Only handle new_trade and accepted_trade
+  if p_notification_type not in ('new_trade', 'accepted_trade') then
+    return;
+  end if;
+
+  -- Get target user (who receives the Discord notification) and other user data
+  if p_notification_type = 'new_trade' then
+    select discord_id into target_user from public.users where id = p_trade.receiver_id;
+    select display_name, steam_id, custom_url into other_user from public.users where id = p_trade.sender_id;
+  else -- accepted_trade
+    select discord_id into target_user from public.users where id = p_trade.sender_id;
+    select display_name, steam_id, custom_url into other_user from public.users where id = p_trade.receiver_id;
+  end if;
+
+  -- If target user doesn't have Discord ID set, end function
+  if target_user.discord_id is null then
+    return;
+  end if;
+
+  -- Construct user link (prefer custom_url, fallback to steam_id)
+  user_link := format('https://steamkey.trade/user/%s', 
+    coalesce(other_user.custom_url, other_user.steam_id));
+
+  -- Construct message based on notification type
+  if p_notification_type = 'new_trade' then
+    message_text := format('<@%s> received a **new** [trade](https://steamkey.trade/trade/%s) from [%s](<%s>)',
+      target_user.discord_id,
+      p_trade.id,
+      coalesce(other_user.display_name, 'Unknown User'),
+      user_link
+    );
+  else -- accepted_trade
+    message_text := format('[%s](<%s>) **accepted** the [trade](https://steamkey.trade/trade/%s) from <@%s>',
+      coalesce(other_user.display_name, 'Unknown User'),
+      user_link,
+      p_trade.id,
+      target_user.discord_id
+    );
+  end if;
+
+  -- Retrieve Discord credentials from vault
+  select 
+    (select decrypted_secret from vault.decrypted_secrets where name = 'discord_token' limit 1) as token,
+    (select decrypted_secret from vault.decrypted_secrets where name = 'discord_channel' limit 1) as channel
+  into discord_config;
+
+  -- If Discord credentials are not available, end function
+  if discord_config.token is null or discord_config.channel is null then
+    return;
+  end if;
+
+  -- Send the HTTP POST request via pg_net
+  perform net.http_post(
+    url := format('https://discord.com/api/v10/channels/%s/messages', discord_config.channel),
+    body := jsonb_build_object('content', message_text),
+    headers := jsonb_build_object(
+      'Authorization', format('Bot %s', discord_config.token),
+      'Content-Type', 'application/json'
+    ),
+    timeout_milliseconds := 10000
+  );
+
+exception
+  when others then
+    -- Silently ignore errors to prevent breaking the main trade flow
+    null;
+end;
+$$ language plpgsql security definer;
+
 -- Create trigger function to handle notifications for trades
 create or replace function trades_handle_notifications()
 returns trigger
@@ -228,6 +309,9 @@ begin
     ) then
       insert into public.notifications (user_id, type, link)
       values (new.receiver_id, 'new_trade', '/trade/' || new.id);
+      
+      -- Send Discord notification
+      perform public.send_discord_notification(new, 'new_trade');
     end if;
   end if;
 
@@ -241,6 +325,9 @@ begin
     ) then
       insert into public.notifications (user_id, type, link)
       values (new.sender_id, 'accepted_trade', '/trade/' || new.id);
+      
+      -- Send Discord notification
+      perform public.send_discord_notification(new, 'accepted_trade');
     end if;
   end if;
   
