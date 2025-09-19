@@ -370,6 +370,3 @@ entrypoint = './functions/steamdeck-compatibility-report/index.js'
 
 [functions.thirdparty-import]
 entrypoint = './functions/thirdparty-import/index.js'
-
-[functions.steam-notify]
-entrypoint = './functions/steam-notify/index.js'
