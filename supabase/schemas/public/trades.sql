@@ -293,6 +293,25 @@ exception
 end;
 $$ language plpgsql security definer;
 
+-- Create function to send Steam notifications for trades
+create or replace function send_steam_notification(p_trade_id uuid)
+returns void
+set search_path = ''
+as $$
+begin
+  -- Call the Steam notification edge function
+  perform public.call_edge_function(
+    'steam-notify',
+    jsonb_build_object('tradeId', p_trade_id)
+  );
+
+exception
+  when others then
+    -- Silently ignore errors to prevent breaking the main trade flow
+    null;
+end;
+$$ language plpgsql security definer;
+
 -- Create trigger function to handle notifications for trades
 create or replace function trades_handle_notifications()
 returns trigger
@@ -312,6 +331,9 @@ begin
       
       -- Send Discord notification
       perform public.send_discord_notification(new, 'new_trade');
+      
+      -- Send Steam notification
+      perform public.send_steam_notification(new.id);
     end if;
   end if;
 
@@ -328,6 +350,9 @@ begin
       
       -- Send Discord notification
       perform public.send_discord_notification(new, 'accepted_trade');
+      
+      -- Send Steam notification
+      perform public.send_steam_notification(new.id);
     end if;
   end if;
   

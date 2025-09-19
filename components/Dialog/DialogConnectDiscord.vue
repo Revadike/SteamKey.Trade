@@ -106,7 +106,10 @@
               target="_blank"
             >
               {{ 'Discord server' }}
-            </a> for new and accepted trade offers.
+            </a> for new and accepted trade offers. Alternatively, receive notifications via the <a href="steam://friends/joinchat/103582791474397691">group chat</a> of our <a
+              href="https://steamcommunity.com/groups/SteamKeyTrade"
+              target="_blank"
+            >Steam group</a>.
           </p>
           <p class="mt-2 mb-6">
             You can always add or change your Discord ID later in your <nuxt-link to="/settings">
