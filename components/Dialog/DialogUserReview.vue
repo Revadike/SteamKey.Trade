@@ -95,7 +95,7 @@
         </v-card-title>
         <v-card-text v-if="review">
           <p class="mb-8">
-            Rate your experience with this user.
+            Rate your <strong>honest</strong> experience with this user.
           </p>
           <v-row
             v-for="key in Review.enums.metric"
