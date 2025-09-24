@@ -290,7 +290,10 @@
           Trades
         </h2>
 
-        <div class="d-flex flex-row align-center justify-center mb-4">
+        <div
+          v-if="totalTrades"
+          class="d-flex flex-row align-center justify-center mb-4"
+        >
           <v-pie
             v-if="stats"
             animation
