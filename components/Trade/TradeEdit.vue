@@ -422,7 +422,7 @@
     { title: isNew ? 'New' : 'Edit', disabled: true }
   ];
 
-  useHead({ title });
+  useSeoMeta({ title, ogTitle: title });
 </script>
 
 <template>

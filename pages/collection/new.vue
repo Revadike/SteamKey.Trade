@@ -1,5 +1,5 @@
 <script setup>
-  useHead({
+  useSeoMeta({
     title: 'New collection'
   });
 

@@ -293,13 +293,19 @@
   });
 
   const title = computed(() => `${Trade.labels[trade.value?.status] || 'Loading'} trade`);
+  const description = computed(() => `Trade offering ${trade.value?.senderTotal || 0} ${trade.value?.senderTotal === 1 ? 'app' : 'apps'} in exchange for ${trade.value?.receiverTotal || 0} ${trade.value?.receiverTotal === 1 ? 'app' : 'apps'}`);
   const breadcrumbs = computed(() => [
     { title: 'Home', to: '/' },
     { title: 'Trades', to: '/trades' },
     { title: title.value, disabled: true }
   ]);
 
-  useHead({ title });
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description
+  });
 </script>
 
 <template>

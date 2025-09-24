@@ -150,23 +150,23 @@
     return User.login(supabase, null, steamId);
   };
 
+  const { public: { siteName } } = useRuntimeConfig();
   const title = computed(() => user?.displayName || slug || 'Unknown user');
+  const description = computed(() => user?.bio || `View ${title.value} on ${siteName}`);
+  const image = computed(() => user?.avatar);
   const breadcrumbs = computed(() => [
-    {
-      title: 'Home',
-      to: '/'
-    },
-    {
-      title: 'Users',
-      to: '/users'
-    },
-    {
-      title: title.value,
-      disabled: true
-    }
+    { title: 'Home', to: '/' },
+    { title: 'Users', to: '/users' },
+    { title: title.value, disabled: true }
   ]);
 
-  useHead({ title });
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description,
+    ogImage: image
+  });
 </script>
 
 <template>

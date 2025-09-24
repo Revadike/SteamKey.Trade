@@ -22,8 +22,13 @@
     });
   };
 
-  useHead({
-    title: `${error.value.statusCode } - ${ error.value.statusMessage || statusMessage }`
+  const title = computed(() => `${error.value.statusCode } - ${ error.value.statusMessage || statusMessage }`);
+  const description = computed(() => error.value.message || statusMessage);
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description
   });
 </script>
 

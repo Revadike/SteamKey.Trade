@@ -41,10 +41,8 @@
     }
   });
 
-  useHead({
-    title: 'Login'
-  });
-
+  const title = 'Login';
+  useSeoMeta({ title, ogTitle: title });
   definePageMeta({
     layout: 'empty',
     middleware: 'anonymous'

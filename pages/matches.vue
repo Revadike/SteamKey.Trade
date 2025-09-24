@@ -226,7 +226,7 @@
     { title, disabled: true }
   ];
 
-  useHead({ title });
+  useSeoMeta({ title, ogTitle: title });
 
   definePageMeta({
     middleware: 'authenticated'

@@ -291,8 +291,9 @@
     { title: 'Import', disabled: true }
   ];
 
-  useHead({
-    title: 'Vault Import'
+  useSeoMeta({
+    title: 'Vault Import',
+    ogTitle: 'Vault Import'
   });
 
   definePageMeta({

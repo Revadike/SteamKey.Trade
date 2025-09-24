@@ -161,14 +161,15 @@
     }
   };
 
+  const title = 'Settings';
   const breadcrumbs = computed(() => [
     { title: 'Home', to: '/' },
     { title: 'Users', to: '/users' },
     { title: user.value?.displayName || 'Profile', to: `/user/${user.value?.customUrl || authUser.id}` },
-    { title: 'Settings', disabled: true }
+    { title, disabled: true }
   ]);
 
-  useHead({ title: 'Profile Settings' });
+  useSeoMeta({ title, ogTitle: title });
 </script>
 
 <template>

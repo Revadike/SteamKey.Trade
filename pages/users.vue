@@ -36,7 +36,7 @@
     { title, disabled: true }
   ];
 
-  useHead({ title });
+  useSeoMeta({ title, ogTitle: title });
 </script>
 
 <template>

@@ -10,10 +10,8 @@
 
   const timeoutId = setTimeout(logout, 500);
 
-  useHead({
-    title: 'Logging out...'
-  });
-
+  const title = 'Logging out...';
+  useSeoMeta({ title, ogTitle: title });
   definePageMeta({
     layout: 'empty',
     middleware: 'authenticated'

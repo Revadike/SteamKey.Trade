@@ -131,14 +131,23 @@
     }
   };
 
+  const { public: { siteName } } = useRuntimeConfig();
   const title = computed(() => app.value?.title ?? `Unknown App ${appid}`);
+  const description = computed(() => decodeHtml(app.value?.description || `View ${title.value} on ${siteName}`));
+  const image = computed(() => app?.header || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appid}/header.jpg`);
   const breadcrumbs = computed(() => [
     { title: 'Home', to: '/' },
     { title: 'Apps', to: '/apps' },
     { title: title.value, disabled: true }
   ]);
 
-  useHead({ title });
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description,
+    ogImage: image
+  });
 </script>
 
 <template>

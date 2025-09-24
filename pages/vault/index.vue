@@ -216,15 +216,13 @@
     exporting.value = false;
   };
 
+  const title = 'Vault';
   const breadcrumbs = [
     { title: 'Home', href: '/' },
-    { title: 'Vault', disabled: true }
+    { title, disabled: true }
   ];
 
-  useHead({
-    title: 'Vault'
-  });
-
+  useSeoMeta({ title, ogTitle: title });
   definePageMeta({
     middleware: 'authenticated'
   });

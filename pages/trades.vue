@@ -102,7 +102,7 @@
     { title: 'Trades', disabled: true }
   ];
 
-  useHead({
+  useSeoMeta({
     title: 'Trades'
   });
 </script>

@@ -81,14 +81,21 @@
     syncing.value = false;
   };
 
+  const { public: { siteName } } = useRuntimeConfig();
   const title = computed(() => collection.value?.title || `Collection ${props.id}`);
+  const description = computed(() => collection.value?.description || `View ${Collection.labels[collection.value?.type]?.toLowerCase() || 'collection'} on ${siteName}`);
   const breadcrumbs = computed(() => [
     { title: 'Home', to: '/' },
     { title: 'Collections', to: '/collections' },
     { title: title.value, disabled: true }
   ]);
 
-  useHead({ title });
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description
+  });
 </script>
 
 <template>

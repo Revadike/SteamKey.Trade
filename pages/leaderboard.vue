@@ -92,7 +92,7 @@
   // const isWrapped = computed(() => shouldWrap.value ? 12 : 4);
   const { mdAndUp } = useDisplay();
 
-  useHead({ title });
+  useSeoMeta({ title, ogTitle: title });
 </script>
 
 <template>
