@@ -241,21 +241,35 @@
             </span>
 
             <span
-              v-if="user.id === authUser?.id"
+              v-if="stats?.lastActiveAt || (authUser && user.id && !isMe && tradesCommon?.total)"
               class="text-caption text-disabled"
             >
-              This is you <v-icon icon="mdi-emoticon-outline" />
-            </span>
-            <span
-              v-else-if="authUser && user.id"
-              class="text-caption text-disabled"
-            >
-              You traded
-              <span class="text-primary font-weight-bold">
-                {{ formatNumber(tradesCommon?.total) }}
-              </span>
-              {{ tradesCommon?.total === 1 ? 'time' : 'times' }}
-              with this user
+              <template v-if="stats?.lastActiveAt">
+                Last seen
+                <rich-date
+                  v-if="Date.now() - new Date(stats.lastActiveAt) > 60 * 60 * 1000"
+                  class="text-primary font-weight-bold"
+                  :date="stats.lastActiveAt"
+                />
+                <span
+                  v-else
+                  class="text-primary font-weight-bold"
+                >
+                  recently
+                </span>
+              </template>
+              <template v-if="stats?.lastActiveAt && (authUser && user.id && !isMe && tradesCommon?.total)">
+                ,
+              </template>
+              <template v-if="authUser && user.id && !isMe && tradesCommon?.total">
+                <span v-if="stats?.lastActiveAt">and traded</span>
+                <span v-else>Traded</span>
+                with you
+                <span class="text-primary font-weight-bold">
+                  {{ formatNumber(tradesCommon?.total) }}
+                </span>
+                {{ tradesCommon?.total === 1 ? 'time' : 'times' }}
+              </template>
             </span>
           </div>
         </v-card-title>

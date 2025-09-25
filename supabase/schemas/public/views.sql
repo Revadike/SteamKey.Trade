@@ -176,7 +176,14 @@ with user_completed_trades as (
 )
 select
   u.id as user_id,
-  
+
+  -- last session refresh (proxy for "last active")
+  (
+    select max(s.refreshed_at)
+    from auth.sessions s
+    where s.user_id = u.id
+  ) as last_active_at,
+
   -- master wishlist apps (recursive: master collection with master=true and type 'wishlist' and all its descendants)
   (
     select count(*)

@@ -74,6 +74,7 @@ export class User extends Entity {
       table: 'user_statistics',
       fields: Object.freeze({
         userId: 'user_id',
+        lastActiveAt: 'last_active_at',
         avgCommunication: 'avg_communication',
         avgFairness: 'avg_fairness',
         avgHelpfulness: 'avg_helpfulness',

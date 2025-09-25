@@ -98,6 +98,24 @@
         </h2>
         <v-table class="mb-4">
           <tbody>
+            <tr v-if="stats.lastActiveAt">
+              <td class="text-overline">
+                Last Seen
+              </td>
+              <td>
+                <rich-date
+                  v-if="Date.now() - new Date(stats.lastActiveAt) > 60 * 60 * 1000"
+                  class="text-disabled"
+                  :date="stats.lastActiveAt"
+                />
+                <span
+                  v-else
+                  class="text-success"
+                >
+                  Recently
+                </span>
+              </td>
+            </tr>
             <tr>
               <td class="text-overline">
                 User ID

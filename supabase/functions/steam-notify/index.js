@@ -51,7 +51,6 @@ class SteamNotifyBot {
         console.log('Steam bot logged in successfully');
         clearTimeout(timeout);
         this.isConnected = true;
-        this.steamClient.setPersona(SteamUser.EPersonaState.Online);
         this.steamClient.setPersona(SteamUser.EPersonaState.LookingToTrade);
         this.steamClient.setUIMode(SteamUser.EClientUIMode.BigPicture);
         resolve();
