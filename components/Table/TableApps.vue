@@ -704,7 +704,13 @@
                     v-tooltip:top="item[App.fields.title] || `Unknown App ${item.id}`"
                     class="font-weight-bold"
                   >
-                    {{ item[App.fields.title] || `Unknown App ${item.id}` }}
+                    <nuxt-link
+                      class="text-decoration-none"
+                      target="_blank"
+                      :to="`/app/${item.id}`"
+                    >
+                      {{ item[App.fields.title] || `Unknown App ${item.id}` }}
+                    </nuxt-link>
                   </v-list-item-title>
                   <v-list-item-subtitle
                     v-if="item[App.fields.altTitles]?.length"
