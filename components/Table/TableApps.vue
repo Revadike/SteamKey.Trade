@@ -705,7 +705,15 @@
                     class="font-weight-bold"
                   >
                     <nuxt-link
-                      class="text-decoration-none"
+                      :class="{
+                        'text-decoration-none': true,
+                        'text-primary': true,
+                        'text-success': inLibrary(item.id) && !inWishlist(item.id) && !inTradelist(item.id),
+                        'text-error': !inLibrary(item.id) && inWishlist(item.id) && !inTradelist(item.id),
+                        'text-warning': inWishlist(item.id) && inLibrary(item.id) && !inTradelist(item.id),
+                        'text-info': inTradelist(item.id) && !inWishlist(item.id),
+                        'text-purple': inTradelist(item.id) && inWishlist(item.id) && !inLibrary(item.id),
+                      }"
                       target="_blank"
                       :to="`/app/${item.id}`"
                     >
