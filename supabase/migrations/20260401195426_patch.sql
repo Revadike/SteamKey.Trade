@@ -1,0 +1,9 @@
+CREATE INDEX IF NOT EXISTS apps_title_idx ON public.apps USING btree (title);
+CREATE INDEX IF NOT EXISTS collections_user_id_idx ON public.collections USING btree (user_id);
+CREATE INDEX IF NOT EXISTS vault_entries_user_id_idx ON public.vault_entries USING btree (user_id);
+CREATE INDEX IF NOT EXISTS vault_entries_app_id_idx ON public.vault_entries USING btree (app_id);
+CREATE INDEX IF NOT EXISTS trades_receiver_id_idx ON public.trades USING btree (receiver_id);
+CREATE INDEX IF NOT EXISTS trades_sender_id_idx ON public.trades USING btree (sender_id);
+CREATE INDEX IF NOT EXISTS trade_partners_user_id_idx ON public.trade_partners USING btree (user_id);
+CREATE INDEX IF NOT EXISTS trade_partners_partner_id_idx ON public.trade_partners USING btree (partner_id);
+CREATE INDEX IF NOT EXISTS trade_apps_app_id_idx ON public.trade_apps USING btree (app_id);
