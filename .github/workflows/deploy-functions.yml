@@ -38,6 +38,11 @@ jobs:
           # API Keys
           SECRET_API_HOST=${{ secrets.SECRET_API_HOST }}
           GGDEALS_API_KEY=${{ secrets.GGDEALS_API_KEY }}
+
+          # Supabase Configuration
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
           EOF
 
       - name: Deploy functions to VPS
