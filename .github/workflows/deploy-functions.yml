@@ -47,7 +47,10 @@ jobs:
 
       - name: Package functions
         run: |
-          tar -cf functions.tar -C ./supabase/functions .
+          cd ./supabase/functions
+          shopt -s dotglob nullglob
+          files=(*)
+          tar -cf ../../functions.tar "${files[@]}"
 
       - name: Upload archive to VPS
         run: |
@@ -59,7 +62,7 @@ jobs:
         run: |
           ssh -p ${{ secrets.VPS_SSH_PORT }} \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "cd '${{ secrets.VPS_FUNCTIONS_FOLDER }}' && tar -xf functions.tar && rm -f functions.tar"
+            "cd '${{ secrets.VPS_FUNCTIONS_FOLDER }}' && tar --no-same-owner --no-same-permissions --no-overwrite-dir --touch -xf functions.tar && rm -f functions.tar"
 
       - name: Cleanup
         if: always()
