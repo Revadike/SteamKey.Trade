@@ -1,6 +1,5 @@
 name: Deploy Supabase Functions
 
-# Trigger this workflow on push or manually
 on:
   push:
     branches:
@@ -46,12 +45,26 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           EOF
 
-      - name: Deploy functions to VPS
+      - name: Package functions
         run: |
-          tar czf - -C ./supabase functions | ssh -i ~/.ssh/id_rsa -p ${{ secrets.VPS_SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "tar xzf - -C ${{ secrets.VPS_FUNCTIONS_FOLDER }}"
+          tar -cf functions.tar -C ./supabase/functions .
+
+      - name: Upload archive to VPS
+        run: |
+          scp -p -P ${{ secrets.VPS_SSH_PORT }} \
+            functions.tar \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:"${{ secrets.VPS_FUNCTIONS_FOLDER }}/functions.tar"
+
+      - name: Extract archive on VPS
+        run: |
+          ssh -p ${{ secrets.VPS_SSH_PORT }} \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd '${{ secrets.VPS_FUNCTIONS_FOLDER }}' && tar -xf functions.tar && rm -f functions.tar"
 
       - name: Cleanup
         if: always()
         run: |
           rm -f ~/.ssh/id_rsa
           rm -f ./supabase/functions/.env
+          rm -f functions.tar
+
