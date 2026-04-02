@@ -64,7 +64,7 @@ begin
       and not a.attisdropped;
 
     if r_column_type is null then
-      raise exception 'bulk_upsert: column "%" not found in table "%.%": variant or typo?', 
+      raise exception 'bulk_upsert: column "%" not found in table "%.%": variant or typo?',
         v_all_fields[i], v_schema_name, v_table_name;
     end if;
 
@@ -84,7 +84,7 @@ begin
       from unnest(p_conflict_fields) as c
     ), ', ');
   if v_conflict_target = '' then
-    raise exception 'bulk_upsert: conflict_target ended up empty; inputs: %', 
+    raise exception 'bulk_upsert: conflict_target ended up empty; inputs: %',
       array_to_string(p_conflict_fields, ', ');
   end if;
   raise notice 'bulk_upsert: conflict_target = %', v_conflict_target;
@@ -248,43 +248,8 @@ begin
 end
 $$ language plpgsql strict immutable security invoker;
 
--- Function to call a Supabase Edge Function (JWT verification disabled)
-create or replace function call_edge_function(
-  p_name text,
-  p_body jsonb default '{}'::jsonb
-)
-returns void
-set search_path = ''
-as $$
-declare
-  project_id text;
-  function_url text;
-begin
-  select decrypted_secret 
-  into project_id
-  from vault.decrypted_secrets
-  where name = 'project_id'
-  limit 1;
-  
-  if project_id is null then
-    function_url := 'http://host.docker.internal:54321/functions/v1/' || p_name;
-  else
-    function_url := 'https://' || project_id || '.supabase.co/functions/v1/' || p_name;
-  end if;
-  
-  perform net.http_post(
-    url := function_url,
-    body := p_body,
-    headers := '{"content-type":"application/json"}'::jsonb,
-    timeout_milliseconds := 3600000
-  );
-  
-  return;
-end;
-$$ language plpgsql security definer;
-
 -- Function to check if url host is allowed
-create or replace function is_allowed_host(url text, allowed_hosts text[]) 
+create or replace function is_allowed_host(url text, allowed_hosts text[])
 returns boolean
 set search_path = ''
 as $$

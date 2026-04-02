@@ -65,7 +65,6 @@
     "@nuxt/eslint": "^1.9.0",
     "@nuxt/types": "^2.18.1",
     "@nuxtjs/google-fonts": "^3.2.0",
-    "dotenv": "^17.2.2",
     "eslint": "^9.35.0",
     "eslint-config-vuetify": "^4.2.0",
     "eslint-plugin-vue": "^10.4.0",

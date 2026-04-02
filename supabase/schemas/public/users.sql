@@ -43,14 +43,18 @@ create table users (
       'localhost',
       '127.0.0.1',
       'avatars.steamstatic.com',
-      '*.supabase.co'
+      '*.supabase.co',
+      'steamkey.trade',
+      'supabase.steamkey.trade'
     ])
   ),
   background text default null check (
     background is null or is_allowed_host(background, array[
       'localhost',
       '127.0.0.1',
-      '*.supabase.co'
+      '*.supabase.co',
+      'steamkey.trade',
+      'supabase.steamkey.trade'
     ])
   ),
   bio text default null,
