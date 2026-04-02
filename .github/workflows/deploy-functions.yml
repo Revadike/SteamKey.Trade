@@ -1,12 +1,13 @@
 name: Deploy Supabase Functions
 
-# Trigger this workflow when changes are pushed to master in the functions folder
+# Trigger this workflow on push or manually
 on:
   push:
     branches:
       - master
     paths:
       - 'supabase/functions/**'
+  workflow_dispatch: {}
 
 jobs:
   deploy:
