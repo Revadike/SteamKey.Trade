@@ -11,42 +11,42 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-      
+
       - name: Create .env file for functions
         run: |
           cat > ./supabase/functions/.env << 'EOF'
           # Steam API Configuration
           STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}
-          
+
           # Steam Bot Configuration for Notifications
           STEAM_USERNAME=${{ secrets.STEAM_USERNAME }}
           STEAM_PASSWORD=${{ secrets.STEAM_PASSWORD }}
           STEAM_GROUP_ID=${{ secrets.STEAM_GROUP_ID }}
           STEAM_CHAT_ID=${{ secrets.STEAM_CHAT_ID }}
-          
+
           # API Keys
           SECRET_API_HOST=${{ secrets.SECRET_API_HOST }}
           GGDEALS_API_KEY=${{ secrets.GGDEALS_API_KEY }}
           EOF
-      
+
       - name: Deploy functions to VPS
         run: |
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_rsa -p ${{ secrets.VPS_SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./supabase/functions/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_FUNCTIONS_FOLDER }}/
-      
+
       - name: Cleanup
         if: always()
         run: |
