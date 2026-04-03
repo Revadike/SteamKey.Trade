@@ -7,28 +7,32 @@
  *   type: string
  * }>}
  */
-export const useSnackbarStore = defineStore('snackbar', {
-  state: () => ({
-    visible: false,
-    message: '',
-    type: 'info',
-    timeout: null
-  }),
+export const useSnackbarStore = defineStore('snackbar', () => {
+  const visible = ref(false);
+  const message = ref('');
+  const type = ref('info');
+  const timeout = ref(null);
 
-  actions: {
-    /**
-     * Set the snackbar message and type.
-     *
-     * @param {string} type - The type of the snackbar (e.g., 'info', 'success', 'error').
-     * @param {string} message - The message to display in the snackbar.
-     * @param {number|null} timeout - The duration in milliseconds before the snackbar disappears. If null, it will not disappear automatically.
-     */
-    set(type = 'info', message = '', timeout = null) {
-      this.visible = false;
-      this.message = message;
-      this.type = type;
-      this.visible = true;
-      this.timeout = parseInt(timeout) || null;
-    }
+  /**
+   * Set the snackbar message and type.
+   *
+   * @param {string} snackbarType - The type of the snackbar (e.g., 'info', 'success', 'error').
+   * @param {string} snackbarMessage - The message to display in the snackbar.
+   * @param {number|null} snackbarTimeout - The duration in milliseconds before the snackbar disappears. If null, it will not disappear automatically.
+   */
+  function set(snackbarType = 'info', snackbarMessage = '', snackbarTimeout = null) {
+    visible.value = false;
+    message.value = snackbarMessage;
+    type.value = snackbarType;
+    visible.value = true;
+    timeout.value = parseInt(snackbarTimeout) || null;
   }
+
+  return {
+    visible,
+    message,
+    type,
+    timeout,
+    set
+  };
 });
