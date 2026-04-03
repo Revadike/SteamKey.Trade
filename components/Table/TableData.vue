@@ -21,9 +21,10 @@
       type: Array,
       default: () => []
     },
-    sortDescFirst: {
-      type: Boolean,
-      default: false
+    initialSortOrder: {
+      type: String,
+      default: 'asc',
+      validator: value => ['asc', 'desc'].includes(value)
     },
     mustSort: {
       type: Boolean,
@@ -187,33 +188,6 @@
     refresh();
   };
 
-  // Workaround until this is implemented: https://github.com/vuetifyjs/vuetify/issues/11117
-  watch(() => sortBy.value, (newValue, oldValue) => {
-    if (props.sortDescFirst) {
-      for (let i = 0; i < sortBy.value.length; i++) {
-        const isNew = !oldValue.find(({ key }) => key === sortBy.value[i].key) && !route.query.sort && !route.query.order;
-        if (isNew) {
-          sortBy.value[i].order = 'desc';
-        }
-      }
-      if (!props.mustSort) {
-        for (let i = 0; i < oldValue.length; i++) {
-          const isRemoved = !sortBy.value.find(({ key }) => key === oldValue[i].key);
-          if (isRemoved && oldValue[i].order === 'desc') {
-            sortBy.value.splice(0, i, { key: oldValue[i].key, order: 'asc' });
-          }
-        }
-        for (let i = 0; i < sortBy.value.length; i++) {
-          const old = oldValue.find(({ key }) => key === sortBy.value[i].key);
-          if (old && old.order === 'asc' && sortBy.value[i].order === 'desc') {
-            // Bugged with multisort for some reason :/
-            sortBy.value.splice(i, 1);
-          }
-        }
-      }
-    }
-  });
-
   const itemsPerPageOptions = computed(() => {
     return [1, 5, 10, 25, 50, 100, 250, 500, 1000].filter(item => item <= totalItems.value).concat(
       totalItems.value > 1000 ? [] : [{ title: 'All', value: totalItems.value }]
@@ -348,12 +322,13 @@
     v-model="selected"
     v-model:items-per-page="itemsPerPage"
     v-model:sort-by="sortBy"
-    :class="['data-table', { 'desc-first': sortDescFirst }]"
+    class="data-table"
     fixed-header
     :header-props="{ class: 'text-overline', style: { lineHeight: 1.5 } }"
     :headers="activeHeaders"
     :hide-default-footer="totalItems <= itemsPerPage"
     hover
+    :initial-sort-order="initialSortOrder"
     :items="serverItems"
     :items-length="totalItems"
     :items-per-page-options="itemsPerPageOptions"
@@ -487,10 +462,6 @@
 
     ::v-deep(.v-data-table__td) {
       max-width: 300px;
-    }
-
-    &.desc-first ::v-deep(.v-data-table__th--sortable:not(.v-data-table__th--sorted) .v-icon) {
-      transform: rotate(180deg);
     }
   }
 </style>

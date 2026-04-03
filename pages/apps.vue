@@ -13,7 +13,7 @@
     <v-card class="d-flex fill-height">
       <table-apps
         filters-in-url
-        sort-desc-first
+        initial-sort-order="desc"
         sort-in-url
       />
     </v-card>
