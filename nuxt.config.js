@@ -8,8 +8,6 @@ const siteDescription = process.env.SITE_DESCRIPTION || 'SteamKey.Trade is a com
 const ogImage = '/opengraph.png';
 
 export default {
-  devtools: { enabled: !isProduction },
-
   ssr: false,
 
   nitro: {
@@ -84,7 +82,7 @@ export default {
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/eslint',
-    '@nuxtjs/google-fonts'
+    '@nuxt/fonts'
   ],
 
   supabase: {
@@ -128,20 +126,13 @@ export default {
         // Image cropping
         'cropperjs/dist/cropper.esm'
       ]
-    },
-    resolve: {
-      alias: {
-        '@': __dirname,
-        '~': __dirname
-      }
     }
   },
 
-  googleFonts: {
-    preconnect: true,
-    display: 'swap',
-    families: {
-      Roboto: [400, 500, 700]
+  fonts: {
+    defaults: {
+      weights: [400, 500, 700],
+      styles: ['normal']
     }
   },
 

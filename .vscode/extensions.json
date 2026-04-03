@@ -4,7 +4,6 @@
     "supabase.vscode-supabase-extension",
     "dbaeumer.vscode-eslint",
     "tamasfe.even-better-toml",
-    "github.copilot",
     "github.copilot-chat",
     "vue.volar"
   ]
