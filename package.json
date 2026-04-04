@@ -30,7 +30,7 @@
     "supabase:push": "supabase db push --local",
     "supabase:deploy": "supabase functions deploy && supabase secrets set --env-file ./supabase/.env.prod && supabase db push",
     "supabase:dump": "supabase db dump -f supabase/seed.sql --data-only && supabase db dump -f supabase/schema.sql -s public --keep-comments --local",
-    "supabase:populate": "deno run --env-file=\".env.local\" --env-file=\"./supabase/.env.local\" --allow-all --unstable-detect-cjs --import-map=\"./supabase/functions/deno.json\" \"./supabase/functions/database-update/index.js\"",
+    "supabase:types": "supabase gen types typescript --local > types/database.types.ts",
     "cache:clear": "node -e \"['.nuxt','node_modules/.cache'].forEach(p=>require('fs').rmSync(p,{recursive:true,force:true}))\"",
     "git:merge": "git checkout master && git pull origin master && git merge develop && git push origin master && git checkout develop",
     "lint": "eslint . && supabase db lint",

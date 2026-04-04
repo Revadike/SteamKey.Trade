@@ -3,7 +3,7 @@ import '@/public/icomoon/style.css';
 import '@/styles/main.scss';
 
 import { createVuetify } from 'vuetify';
-import { VPie } from 'vuetify/labs/components';
+import { VPie, VAvatarGroup } from 'vuetify/labs/components';
 
 const socialColors = {
   steam: '#000000',
@@ -51,7 +51,8 @@ export default defineNuxtPlugin(app => {
       }
     },
     components: {
-      VPie
+      VPie,
+      VAvatarGroup
     }
   });
 

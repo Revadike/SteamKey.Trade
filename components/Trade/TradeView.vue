@@ -68,6 +68,17 @@
     return instance.getViews(true);
   });
 
+  const avatarGroupItems = computed(() => {
+    if (!tradeViews.value) {
+      return [];
+    }
+    return tradeViews.value.map(view => ({
+      image: view.user?.avatar || undefined,
+      icon: view.user?.avatar ? undefined : 'mdi-account',
+      _raw: view // Store the original data
+    }));
+  });
+
   onMounted(async () => {
     if (!isLoggedIn) {
       return;
@@ -368,47 +379,59 @@
                 )
               </span>
 
-              <nuxt-link
-                v-for="item in (tradeViews || []).slice(0, 3)"
-                :key="item.userId"
-                :to="`/user/${item.user.customUrl || item.user.steamId}`"
-              >
-                <v-avatar
-                  v-ripple
-                  v-tooltip="`Viewed by ${item.user.displayName || item.user.steamId} ${relativeDate(item.updatedAt || item.createdAt)}`"
-                  class="ml-2"
-                  :icon="item.user?.avatar ? undefined : 'mdi-account'"
-                  :image="item.user?.avatar ? item.user.avatar : undefined"
-                  size="24"
-                />
-              </nuxt-link>
-
-              <v-tooltip
-                v-if="tradeViews?.length > 3"
-                location="bottom"
-                open-on-click
-              >
-                <template #activator="attrs">
-                  <span
-                    class="cursor-pointer ml-2 text-disabled"
-                    v-bind="attrs.props"
-                  >
-                    +{{ tradeViews.length - 3 }}</span>
-                </template>
-                <p class="text-center font-weight-bold">
-                  Viewers
-                </p>
-                <p
-                  v-for="item in tradeViews.slice(3)"
-                  :key="item.userId"
-                  class="text-no-wrap d-flex align-center"
-                >
-                  {{ item.user.displayName || item.user.steamId }}
-                  <v-spacer class="mx-1" />
-                  <rich-date :date="item.updatedAt || item.createdAt" />
-                </p>
-              </v-tooltip>
               <v-spacer class="my-1" />
+
+              <v-avatar-group
+                v-if="avatarGroupItems?.length"
+                class="ml-2"
+                :items="avatarGroupItems"
+                :limit="6"
+                size="34"
+              >
+                <template #item="{ props: avatarProps, index }">
+                  <nuxt-link :to="`/user/${tradeViews[index].user.customUrl || tradeViews[index].user.steamId}`">
+                    <v-avatar
+                      v-ripple
+                      v-tooltip="`Viewed by ${tradeViews[index].user.displayName || tradeViews[index].user.steamId} ${relativeDate(tradeViews[index].updatedAt || tradeViews[index].createdAt)}`"
+                      class="trade-view-avatar"
+                      color="secondary"
+                      v-bind="avatarProps"
+                    />
+                  </nuxt-link>
+                </template>
+
+                <template #overflow="{ overflow }">
+                  <div>
+                    <v-tooltip
+                      location="bottom"
+                      open-on-click
+                    >
+                      <template #activator="attrs">
+                        <v-avatar
+                          class="trade-view-avatar text-disabled text-caption"
+                          color="secondary"
+                          v-bind="attrs.props"
+                        >
+                          +{{ overflow }}
+                        </v-avatar>
+                      </template>
+                      <p class="text-center font-weight-bold">
+                        Viewers
+                      </p>
+                      <p
+                        v-for="view in tradeViews.slice(6)"
+                        :key="view.userId"
+                        class="text-no-wrap d-flex align-center"
+                      >
+                        {{ view.user.displayName || view.user.steamId }}
+                        <v-spacer class="mx-1" />
+                        <rich-date :date="view.updatedAt || view.createdAt" />
+                      </p>
+                    </v-tooltip>
+                  </div>
+                </template>
+              </v-avatar-group>
+
               <v-chip
                 v-if="isDisputed"
                 class="ml-4"
@@ -729,3 +752,19 @@
     </v-form>
   </s-page-content>
 </template>
+
+<style lang="scss" scoped>
+  .trade-view-avatar {
+    border-width: 4px !important;
+    border-style: solid !important;
+    border-color: rgb(var(--v-theme-surface)) !important;
+    margin-right: -8px;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      z-index: 1;
+      transform: scale(1.25);
+      transition: transform 0.2s ease-in-out;
+    }
+  }
+</style>

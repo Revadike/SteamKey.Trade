@@ -109,27 +109,27 @@ entrypoint = './functions/my-function/index.js'
 
 ## NPM Scripts
 
-| Command                         | Description                                                                                               |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **`npm run dev:local`**         | Starts the Supabase functions watcher and Nuxt development server.                                        |
-| **`npm run dev:prod`**          | Starts the Nuxt development server using the live database (be careful).                                  |
-| **`npm run supabase:start`**    | Starts the local Supabase stack.                                                                          |
-| **`npm run supabase:stop`**     | Stops the local Supabase stack.                                                                           |
-| **`npm run supabase:status`**   | Checks the status of the local Supabase server.                                                           |
-| **`npm run supabase:reset`**    | Resets the local Supabase database, applying the migrations and seeding data.                             |
-| **`npm run supabase:pull`**     | Pulls schema changes from local database and generates migrations.                                        |
-| **`npm run supabase:diff`**     | Diffs schema changes from your schema definitions in `supabase/schemas` and generates migrations.         |
-| **`npm run supabase:push`**     | Applies new migrations to local database.                                                                 |
-| **`npm run supabase:deploy`**   | Deploys edge functions and the migrations to the remote Supabase database.                                |
-| **`npm run supabase:dump`**     | Dumps the remote database data to `supabase/seed.sql` and local database schema to `supabase/schema.sql`. |
-| **`npm run supabase:populate`** | Run the database update script.                                                                           |
-| **`npm run cache:clear`**       | Clears the Nuxt and node_modules cache.                                                                   |
-| **`npm run git:merge`**         | Merges the development branch into the master branch.                                                     |
-| **`npm run lint`**              | Runs ESLint and Supabase Lint to check for linting errors.                                                |
-| **`npm run lint:fix`**          | Runs ESLint and automatically fixes linting errors.                                                       |
-| **`npm run build`**             | Builds the Nuxt application for production.                                                               |
-| **`npm run start`**             | Starts the Nuxt application in production mode.                                                           |
-| **`npm run generate`**          | Generates a static version of the Nuxt application.                                                       |
-| **`npm run preview`**           | Previews the generated static application.                                                                |
-| **`npm run postinstall`**       | Runs Nuxt prepare after installing dependencies.                                                          |
-| **`npm run deploy`**            | Runs `git:merge` and `supabase:deploy`, which deploys new changes to production.                          |
+| Command                       | Description                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **`npm run dev:local`**       | Starts the Supabase functions watcher and Nuxt development server.                                        |
+| **`npm run dev:prod`**        | Starts the Nuxt development server using the live database (be careful).                                  |
+| **`npm run supabase:start`**  | Starts the local Supabase stack.                                                                          |
+| **`npm run supabase:stop`**   | Stops the local Supabase stack.                                                                           |
+| **`npm run supabase:status`** | Checks the status of the local Supabase server.                                                           |
+| **`npm run supabase:reset`**  | Resets the local Supabase database, applying the migrations and seeding data.                             |
+| **`npm run supabase:pull`**   | Pulls schema changes from local database and generates migrations.                                        |
+| **`npm run supabase:diff`**   | Diffs schema changes from your schema definitions in `supabase/schemas` and generates migrations.         |
+| **`npm run supabase:push`**   | Applies new migrations to local database.                                                                 |
+| **`npm run supabase:deploy`** | Deploys edge functions and the migrations to the remote Supabase database.                                |
+| **`npm run supabase:dump`**   | Dumps the remote database data to `supabase/seed.sql` and local database schema to `supabase/schema.sql`. |
+| **`npm run supabase:types`**  | Generates TypeScript types for the Supabase database.                                                     |
+| **`npm run cache:clear`**     | Clears the Nuxt and node_modules cache.                                                                   |
+| **`npm run git:merge`**       | Merges the development branch into the master branch.                                                     |
+| **`npm run lint`**            | Runs ESLint and Supabase Lint to check for linting errors.                                                |
+| **`npm run lint:fix`**        | Runs ESLint and automatically fixes linting errors.                                                       |
+| **`npm run build`**           | Builds the Nuxt application for production.                                                               |
+| **`npm run start`**           | Starts the Nuxt application in production mode.                                                           |
+| **`npm run generate`**        | Generates a static version of the Nuxt application.                                                       |
+| **`npm run preview`**         | Previews the generated static application.                                                                |
+| **`npm run postinstall`**     | Runs Nuxt prepare after installing dependencies.                                                          |
+| **`npm run deploy`**          | Runs `git:merge` and `supabase:deploy`, which deploys new changes to production.                          |
