@@ -55,7 +55,7 @@
     must-sort
     no-data-text="No trades yet"
     :query-getter="queryGetter"
-    @click:row="(item) => navigateTo(`/trade/${item.id}`)"
+    :row-link="(item) => `/trade/${item.id}`"
   >
     <template #[`item.${Trade.fields.status}`]="{ item }">
       <span

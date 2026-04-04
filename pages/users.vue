@@ -49,9 +49,9 @@
         :headers="headers"
         no-data-text="No users found"
         :query-getter="queryGetter"
+        :row-link="(item) => `/user/${item[User.fields.customUrl] || item[User.fields.steamId]}`"
         :search-field="User.fields.displayName"
         sort-in-url
-        @click:row="(item) => navigateTo(`/user/${item[User.fields.customUrl] || item[User.fields.steamId]}`)"
       >
         <template #[`item.avatar`]="{ item }">
           <v-avatar

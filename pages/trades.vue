@@ -200,8 +200,8 @@
             :map-item="mapItem"
             :no-data-text="isLoggedIn ? `No ${tab} trades` : 'No trades found'"
             :query-getter="queryGetter"
+            :row-link="(item) => `/trade/${item.id}`"
             sort-in-url
-            @click:row="(item) => navigateTo(`/trade/${item.id}`)"
           >
             <template #[`item.${Trade.fields.status}`]="{ item }">
               <span :class="`text-${Trade.colors[item[Trade.fields.status]]} text-no-wrap`">

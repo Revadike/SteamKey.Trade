@@ -61,6 +61,10 @@
     defaultSortBy: {
       type: Array,
       default: () => []
+    },
+    rowLink: {
+      type: [String, Object, Function],
+      default: null
     }
   });
 
@@ -189,6 +193,7 @@
       mustSort: true,
       noDataText: 'No collections found',
       returnObject: true,
+      rowLink: rowLinkGetter.value,
       simple: props.simple,
       showSelect: props.showSelect,
       sortBy: [{ key: Collection.fields.updatedAt, order: 'desc' }],
@@ -216,15 +221,39 @@
     }
   });
 
-  const clickRow = (item) => {
-    if (props.showSelect) {
-      return;
+  const rowLinkGetter = computed(() => {
+    if (props.rowLink) {
+      return props.rowLink;
     }
-    return navigateTo(`/collection/${item.id}`);
+    if (props.showSelect) {
+      return null;
+    }
+    return (item) => `/collection/${item.id}`;
+  });
+
+  const toggleSelected = (item) => {
+    const modelValue = Array.isArray(attrs.modelValue) ? [...attrs.modelValue] : [];
+    const index = modelValue.findIndex(entry => (entry?.id || entry) === item.id);
+
+    if (index >= 0) {
+      modelValue.splice(index, 1);
+    } else {
+      modelValue.push(item);
+    }
+
+    const updateModel = attrs['onUpdate:modelValue'];
+    if (typeof updateModel === 'function') {
+      updateModel(modelValue);
+    }
   };
 
   const tableEvents = computed(() => {
-    return props.items ? { 'click:row': (_, { item }) => clickRow(toRaw(item)) } : { 'click:row': clickRow };
+    if (props.showSelect && !props.rowLink) {
+      return props.items
+        ? { 'click:row': (_, { item }) => toggleSelected(toRaw(item)) }
+        : { 'click:row': (item) => toggleSelected(item) };
+    }
+    return {};
   });
 
   const deleteCollection = async (item) => {

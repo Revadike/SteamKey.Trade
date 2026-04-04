@@ -17,6 +17,6 @@
       order: 'desc'
     }]"
     :only-apps="[appid]"
-    @click:row="(item) => navigateTo(`/collection/${item.id}`)"
+    :row-link="(item) => `/collection/${item.id}`"
   />
 </template>
