@@ -399,7 +399,10 @@
 
             <v-divider />
 
-            <v-card-text class="flex-grow-1 d-flex flex-column align-center justify-center pa-0">
+            <v-card-text
+              class="flex-grow-1 d-flex flex-column align-center justify-center pa-0"
+              style="min-height: 100px;"
+            >
               <table-data
                 v-if="activeApp"
                 ref="table"
@@ -473,7 +476,7 @@
                     <v-btn
                       v-if="item[VaultEntry.table][VaultEntry.fields.tradeId]"
                       v-tooltip:top="'View trade'"
-                      icon="mdi-open-in-new"
+                      icon="mdi-swap-horizontal"
                       size="small"
                       variant="plain"
                       @click.stop="() => navigateTo(`/trade/${item[VaultEntry.table][VaultEntry.fields.tradeId]}`, { open: { target: '_blank' } })"
