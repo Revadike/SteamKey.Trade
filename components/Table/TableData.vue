@@ -3,6 +3,7 @@
   import { decodeFromQuery } from '~/assets/js/url';
 
   const snackbarStore = useSnackbarStore();
+  const tablesStore = useTablesStore();
   const slots = useSlots();
   const route = useRoute();
   const router = useRouter();
@@ -78,6 +79,14 @@
     filtersInUrl: {
       type: Boolean,
       default: false
+    },
+    rowLink: {
+      type: [String, Object, Function],
+      default: null
+    },
+    tableId: {
+      type: String,
+      default: null
     }
   });
 
@@ -117,7 +126,17 @@
     }
   });
 
-  const sortBy = ref([...props.defaultSortBy]);
+  const resolvedTableId = computed(() => {
+    if (props.tableId) {
+      return props.tableId;
+    }
+    const headerSignature = (props.headers || []).map(header => header?.value).filter(Boolean).join('|');
+    return `${route.path}::${headerSignature}`;
+  });
+
+  // Load sort from store if available, otherwise use default
+  const storedSort = computed(() => tablesStore.getPreferences(resolvedTableId.value)?.sortBy || null);
+  const sortBy = ref(storedSort.value?.length ? [...storedSort.value] : [...props.defaultSortBy]);
 
   const syncSortWithUrl = () => {
     if (!props.sortInUrl) {
@@ -166,26 +185,44 @@
     loadSortFromUrl();
     loadFiltersFromUrl();
   }, { immediate: true });
-  watch(sortBy, () => syncSortWithUrl(), { deep: true });
+  watch(sortBy, () => {
+    currentPage.value = 1;
+    tablesStore.setSortBy(resolvedTableId.value, sortBy.value);
+    syncSortWithUrl();
+  }, { deep: true });
 
-  const itemsPerPage = ref(props.defaultItemsPerPage * 1);
+  const storedItemsPerPage = computed(() => tablesStore.getPreferences(resolvedTableId.value)?.itemsPerPage);
+  const itemsPerPage = ref(storedItemsPerPage.value ?? Number(props.defaultItemsPerPage));
   const loading = ref(false);
   const currentPage = ref(1);
   const search = useDebouncedRef('', 600);
   const totalItems = ref(0);
   const serverItems = ref([]);
   let queryResults = [];
+  let abortController = null;
+  let activeRequestId = 0;
+
+  // Watch itemsPerPage to save to store
+  watch(itemsPerPage, (newValue) => {
+    tablesStore.setItemsPerPage(resolvedTableId.value, newValue);
+  });
+
+  onBeforeUnmount(() => {
+    if (abortController) {
+      abortController.abort();
+    }
+  });
 
   const applyFilters = (filters) => {
     activeFilters.value = filters;
     waitingForUrlFilters.value = false;
-    refresh();
+    loadItems({ itemsPerPage: itemsPerPage.value, page: 1, search: search.value, sortBy: sortBy.value });
   };
 
   const clearFilters = () => {
     activeFilters.value = [];
     waitingForUrlFilters.value = false;
-    refresh();
+    loadItems({ itemsPerPage: itemsPerPage.value, page: 1, search: search.value, sortBy: sortBy.value });
   };
 
   const itemsPerPageOptions = computed(() => {
@@ -208,10 +245,15 @@
       return;
     }
 
-    // Skip loading if already loading
-    if (loading.value) {
-      return;
+    // Abort previous request if it's still running
+    if (abortController) {
+      abortController.abort();
     }
+
+    // Create new abort controller for this request
+    abortController = new AbortController();
+    const signal = abortController.signal;
+    const requestId = ++activeRequestId;
 
     loading.value = true;
     currentPage.value = page;
@@ -288,7 +330,13 @@
       const isLastPage = page * itemsPerPage >= totalItems.value;
       query.headers.append('Prefer', isLastPage ? 'count=exact' : 'count=estimated');
 
-      const { data, error, count } = await query.range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
+      const { data, error, count } = await query.abortSignal(signal).range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
+
+      // Check if request was aborted
+      if (signal.aborted || requestId !== activeRequestId) {
+        return;
+      }
+
       if (error) {
         throw error;
       }
@@ -297,14 +345,48 @@
       await remap();
       totalItems.value = count;
     } catch (error) {
-      console.error(error);
-      snackbarStore.set('error', 'Something went wrong while fetching the data');
+      if (error?.name !== 'AbortError') {
+        console.error(error);
+        snackbarStore.set('error', 'Something went wrong while fetching the data');
+      }
+    } finally {
+      if (requestId === activeRequestId) {
+        loading.value = false;
+      }
     }
-
-    loading.value = false;
   };
 
   const refresh = () => loadItems({ itemsPerPage: itemsPerPage.value, page: currentPage.value, search: search.value, sortBy: sortBy.value });
+
+  const handleRowClick = (event, item) => {
+    if (!props.rowLink) {
+      emit('click:row', item);
+      return;
+    }
+
+    // Get the link URL
+    let linkUrl = props.rowLink;
+    if (typeof props.rowLink === 'function') {
+      linkUrl = props.rowLink(item);
+    }
+
+    // Convert object to string if needed
+    if (typeof linkUrl === 'object') {
+      linkUrl = linkUrl.path || linkUrl.href || String(linkUrl);
+    }
+
+    // Handle different click types
+    if (event.ctrlKey || event.metaKey || event.button === 1) {
+      // Ctrl+click or middle-click: open in new tab
+      window.open(linkUrl, '_blank');
+    } else if (event.shiftKey) {
+      // Shift+click: open in new window
+      window.open(linkUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // Normal click: use navigateTo
+      navigateTo(linkUrl);
+    }
+  };
 
   defineExpose({
     loading,
@@ -321,6 +403,7 @@
     v-bind="$attrs"
     v-model="selected"
     v-model:items-per-page="itemsPerPage"
+    v-model:page="currentPage"
     v-model:sort-by="sortBy"
     class="data-table"
     fixed-header
@@ -336,7 +419,7 @@
     :must-sort="mustSort"
     :search="search"
     :show-select="showSelect"
-    @click:row="(_, { item }) => emit('click:row', toRaw(item))"
+    @click:row="(event, { item }) => handleRowClick(event, toRaw(item))"
     @update:options="loadItems"
   >
     <template #no-data>
