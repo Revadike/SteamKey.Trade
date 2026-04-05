@@ -267,7 +267,10 @@
                   v-for="(tab, i) in tabs"
                   :key="tab.name"
                 >
-                  <v-tab :width="`${(100 / tabs.length).toFixed(1)}%`">
+                  <v-tab
+                    :value="tab.name"
+                    :width="`${(100 / tabs.length).toFixed(1)}%`"
+                  >
                     <v-icon
                       class="mr-1"
                       :icon="tab.icon"
