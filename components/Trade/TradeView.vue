@@ -375,7 +375,7 @@
                   <nuxt-link :to="`/user/${tradeViews[index].user.customUrl || tradeViews[index].user.steamId}`">
                     <v-avatar
                       v-ripple
-                      v-tooltip="`Viewed by ${tradeViews[index].user.displayName || tradeViews[index].user.steamId} ${relativeDate(tradeViews[index].updatedAt || tradeViews[index].createdAt)}`"
+                      v-tooltip:top="`Viewed by ${tradeViews[index].user.displayName || tradeViews[index].user.steamId} ${relativeDate(tradeViews[index].updatedAt || tradeViews[index].createdAt)}`"
                       class="trade-view-avatar"
                       color="secondary"
                       v-bind="avatarProps"
