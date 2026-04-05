@@ -48,20 +48,12 @@
 
   const isMe = computed(() => authUser?.id === user.id);
 
-  const { data: stats, /* status: statsStatus, */ error: statsError } = useLazyAsyncData(`user-stats-${user.id}`, () => {
-    return user.getStatistics();
-  });
+  const { data: stats, /* status: statsStatus, */ error: statsError } = useSupabaseData('user-stats', { id: user.id });
 
-  const { data: tradesCommon, status: tradesStatus, error: tradesError } = useLazyAsyncData(`user-trades-with-${user.id}`, () => {
-    if (!isLoggedIn || isMe.value) {
-      return null;
-    }
-    return user.getTotalTradesWithUser(authUser.id);
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: tradesCommon, status: tradesStatus, error: tradesError } = useSupabaseData(
+    'user-trades-with-partner',
+    { partnerId: isMe.value ? null : user.id }
+  );
 
   const isLoading = computed(() => {
     return /* statsStatus.value === 'pending' || */ tradesStatus.value === 'pending';

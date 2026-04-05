@@ -13,20 +13,10 @@
     }
   });
 
-  const { User, Review, Trade } = useORM();
+  const { Review, Trade } = useORM();
 
-  const { data: stats, error: statsError } = await useLazyAsyncData(`user-stats-${props.user.id}`, () => {
-    if (!props.stats) {
-      return props.stats;
-    }
-
-    const user = new User(props.user);
-    return user.getStatistics();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: fetchedStats } = useSupabaseData('user-stats', { id: props.user.id });
+  const stats = computed(() => props.stats || fetchedStats.value);
 
   const totalTrades = computed(() => stats.value?.totalPendingTrades
     + stats.value?.totalCompletedTrades
@@ -61,14 +51,7 @@
     immediate: true
   });
 
-  const { data: partners, error: partnersError } = await useLazyAsyncData(`user-partners-${props.user.id}`, async () => {
-    const user = new User(props.user);
-    return user.getTradePartners();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: partners } = useSupabaseData('user-partners', { id: props.user.id });
 
   const snackbarStore = useSnackbarStore();
   const copy = value => {

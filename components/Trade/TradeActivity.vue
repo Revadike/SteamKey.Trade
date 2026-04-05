@@ -25,26 +25,7 @@
   let channel;
   const emit = defineEmits(['update']);
 
-  const { data: trades, refresh } = await useLazyAsyncData('my-recent-trades', async () => {
-    if (!isLoggedIn.value) {
-      return [];
-    }
-
-    return Trade.query(supabase, [
-      {
-        filter: 'or',
-        params: [
-          `${Trade.fields.senderId}.eq.${user.value.id},${Trade.fields.receiverId}.eq.${user.value.id}`
-        ]
-      },
-      { filter: 'order', params: [Trade.fields.createdAt, { ascending: false }] },
-      { filter: 'limit', params: [10] }
-    ]);
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: trades, refresh } = useSupabaseData('my-recent-trades');
 
   // Fetch activities using useLazyAsyncData
   const dataKey = props.tradeId

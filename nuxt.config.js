@@ -141,12 +141,7 @@ export default {
   },
 
   experimental: {
-    purgeCachedData: false,
-    defaults: {
-      useAsyncData: {
-        deep: true
-      }
-    }
+    purgeCachedData: false
   },
 
   compatibilityDate: '2024-08-13'

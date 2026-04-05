@@ -12,28 +12,11 @@
     type: Boolean,
     default: false
   });
-  const supabase = useSupabaseClient();
   const { Review } = useORM();
-  const { user } = useAuthStore();
   const loading = ref(false);
   const valid = ref(true);
 
-  const { data: review, status, error } = useLazyAsyncData(`user-review-${props.userId}`, async () => {
-    const reviews = await Review.query(supabase, [
-      { filter: 'eq', params: [Review.fields.subjectId, props.userId] },
-      { filter: 'eq', params: [Review.fields.userId, user.id] }
-    ]);
-
-    if (reviews.length) {
-      return reviews[0].toObject();
-    }
-
-    return {
-      ...new Review().toObject(),
-      userId: user.id,
-      subjectId: props.userId
-    };
-  });
+  const { data: review, status, error } = useSupabaseData('user-review', { subjectId: props.userId });
 
   const snackbarStore = useSnackbarStore();
   watch(() => error.value, error => {

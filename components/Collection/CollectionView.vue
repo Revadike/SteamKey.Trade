@@ -15,36 +15,10 @@
   const loading = ref(false);
   const activeTab = ref('apps');
 
-  const { data: collection, status, error } = useLazyAsyncData(`collection-${props.id}`, async () => {
-    try {
-      const instance = new Collection(props.id);
-      await instance.load();
-      return instance.toObject();
-    } catch (err) {
-      if (err.code === 'PGRST116') {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'Collection not found',
-          message: 'The collection you are looking for does not exist',
-          fatal: true
-        });
-      } else {
-        throw createError({
-          statusCode: 500,
-          statusMessage: 'Internal Server Error',
-          message: 'An error occurred while loading the collection',
-          fatal: true
-        });
-      }
-    }
-  });
+  const { data: collection, status, error } = useSupabaseData('collection', { id: props.id });
+  const { data: fetchedSubcollections, error: subcollectionsError } = useSupabaseData('collection-subcollections', { id: props.id });
 
-  const { data: subcollections, error: subcollectionsError } = useLazyAsyncData(`collection-subcollections-${props.id}`, async () => {
-    const instance = new Collection(props.id);
-    return instance.getSubcollections().then(subcollections => {
-      return subcollections.map((instance) => instance.id);
-    });
-  });
+  const subcollections = computed(() => (fetchedSubcollections.value || []).map(sc => sc.id));
 
   watch([
     () => error.value,

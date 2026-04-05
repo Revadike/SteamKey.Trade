@@ -23,33 +23,8 @@
   const snackbarStore = useSnackbarStore();
   const supabase = useSupabaseClient();
 
-  const { data: trade, status: tradeStatus, error: tradeError, refresh: tradeRefresh } = useLazyAsyncData(`trade-${props.id}`, async () => {
-    try {
-      const instance = new Trade(props.id);
-      await instance.load();
-      return instance.toObject();
-    } catch (err) {
-      if (err.code === 'PGRST116') {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'Trade not found',
-          message: 'The trade you are looking for does not exist',
-          fatal: true
-        });
-      }
-      throw err;
-    }
-  });
-
-  const { data: tradeApps, status: appsStatus, error: appsError, refresh: appsRefresh } = useLazyAsyncData(`trade-apps-${props.id}`, async () => {
-    const instance = new Trade(props.id);
-    const apps = await instance.getApps(true);
-
-    return {
-      sender: apps.filter(app => app.trade.senderId === app.userId),
-      receiver: apps.filter(app => app.trade.receiverId === app.userId)
-    };
-  });
+  const { data: trade, status: tradeStatus, error: tradeError, refresh: tradeRefresh } = useSupabaseData('trade', { id: props.id });
+  const { data: tradeApps, status: appsStatus, error: appsError, refresh: appsRefresh } = useSupabaseData('trade-apps', { id: props.id });
 
   watch(() => tradeError.value || appsError.value, (error) => {
     if (error) {
@@ -63,10 +38,7 @@
     appsRefresh()
   ]);
 
-  const { data: tradeViews } = useLazyAsyncData(`trade-views-${props.id}`, async () => {
-    const instance = new Trade(props.id);
-    return instance.getViews(true);
-  });
+  const { data: tradeViews } = useSupabaseData('trade-views', { id: props.id });
 
   const avatarGroupItems = computed(() => {
     if (!tradeViews.value) {

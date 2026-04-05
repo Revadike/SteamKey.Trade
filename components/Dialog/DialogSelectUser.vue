@@ -23,14 +23,7 @@
   const suggestions = ref([]);
   const loading = ref(false);
 
-  const { data: partners } = await useLazyAsyncData(`user-partners-${authUser.id}`, async () => {
-    const user = new User(authUser.id);
-    return user.getTradePartners();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: partners } = await useSupabaseData('user-partners', { id: authUser.id });
 
   const fetchSuggestions = async query => {
     if (!query || suggestions.value.find(({ title }) => title === query)) {

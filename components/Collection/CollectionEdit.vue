@@ -18,50 +18,21 @@
   const isNew = !props.id;
   const onlyCollections = isNew ? [] : [props.id];
 
-  const { data: collection, status: collectionStatus, error: collectionError } = useLazyAsyncData(`collection-${props.id || 'new'}`, async () => {
-    if (isNew) {
-      const data = (new Collection()).toObject();
-      return {
-        ...data,
-        title: 'My collection',
-        userId: user.id,
-        private: true,
-        master: false,
-        type: Collection.enums.type.custom,
-        links: []
-      };
-    }
-
-    try {
-      const instance = new Collection(props.id);
-      await instance.load();
-
-      return instance.toObject();
-    } catch (err) {
-      if (err.code === 'PGRST116') {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'Collection not found',
-          message: 'The collection you are looking for does not exist',
-          fatal: true
-        });
-      }
-      throw err;
-    }
+  const newCollectionData = () => ({
+    ...new Collection().toObject(),
+    title: 'My collection',
+    userId: user.id,
+    private: true,
+    master: false,
+    type: Collection.enums.type.custom,
+    links: []
   });
 
-  const { data: subcollections, status: subStatus, error: subError } = useLazyAsyncData(
-    `collection-subcollections-${props.id || 'new'}`,
-    async () => {
-      if (isNew) { return []; }
+  const { data: fetchedCollection, status: collectionStatus, error: collectionError } = useSupabaseData('collection', { id: props.id });
+  const { data: fetchedSubcollections, status: subStatus, error: subError } = useSupabaseData('collection-subcollections', { id: props.id });
 
-      const instance = new Collection(props.id);
-      return instance.getSubcollections().then(collections => {
-        return collections.map(instance => instance.toObject());
-      });
-    }, {
-      default: () => []
-    });
+  const collection = computed(() => isNew ? newCollectionData() : fetchedCollection.value);
+  const subcollections = computed(() => isNew ? [] : (fetchedSubcollections.value || []).map(({ id }) => id));
 
   // Watch for loading errors
   watch([

@@ -6,7 +6,7 @@
   const snackbarStore = useSnackbarStore();
   const { user, password } = storeToRefs(useAuthStore());
   const { decrypt } = useVaultSecurity();
-  const { App, VaultEntry, Trade } = useORM();
+  const { VaultEntry, Trade } = useORM();
 
   const route = useRoute();
   const supabase = useSupabaseClient();
@@ -21,52 +21,7 @@
     activeApp.value = null;
   });
 
-  // TODO: Use vault entry count instead of app count
-  const { data: counts, refresh } = useLazyAsyncData('vault-counts', async () => {
-    // Same query as TableApps
-    const baseQuery = () => supabase
-      .from(App.table)
-      .select(`*,
-        ${VaultEntry.table}!inner(
-          ${VaultEntry.fields.userId},
-          ${VaultEntry.fields.tradeId}
-        ),
-        ${Trade.apps.table}!inner(
-          ${Trade.apps.fields.appId},
-          ${Trade.apps.fields.tradeId},
-          ${Trade.apps.fields.selected},
-          ${Trade.apps.fields.userId}
-        )
-      `, { count: 'exact', head: true })
-      // Only our vault apps (we don't have access to other's vault items anyway)
-      .eq(`${VaultEntry.table}.${VaultEntry.fields.userId}`, user.value.id);
-
-    const [unsent, sent, received] = await Promise.all([
-      baseQuery()
-        // Only unsent vault items
-        .is(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, null),
-      baseQuery()
-        // Only sent vault items
-        .not(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, 'is', null)
-        // Only those that were selected in a trade
-        .eq(`${Trade.apps.table}.${Trade.apps.fields.selected}`, true)
-        // Only items that came from me
-        .eq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id),
-      baseQuery()
-        // Only sent vault items
-        .not(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, 'is', null)
-        // Only those that were selected in a trade
-        .eq(`${Trade.apps.table}.${Trade.apps.fields.selected}`, true)
-        // Only items that came from the other user
-        .neq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id)
-    ]);
-
-    return {
-      unsent: unsent.count || 0,
-      sent: sent.count || 0,
-      received: received.count || 0
-    };
-  });
+  const { data: counts, refresh } = useSupabaseData('vault-counts');
 
   const headers = computed(() => [
     { title: VaultEntry.labels.createdAt, value: VaultEntry.fields.createdAt, sortable: true },

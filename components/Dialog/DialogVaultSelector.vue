@@ -23,18 +23,10 @@
   const validPassword = ref(!!password.value);
   const snackbarStore = useSnackbarStore();
   const supabase = useSupabaseClient();
-  const { User, VaultEntry } = useORM();
+  const { VaultEntry } = useORM();
   const loading = ref(false);
 
-  const { data: user, error: userError } = useLazyAsyncData(`user-${props.userId}`, async () => {
-    const user = new User(props.userId);
-    await user.load();
-    return user.toObject();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const { data: user, error: userError } = useSupabaseData('user', { id: props.userId });
 
   watch(() => userError.value, error => {
     if (error) {

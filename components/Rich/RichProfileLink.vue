@@ -1,7 +1,6 @@
 <script setup>
   import { formatNumber } from '~/assets/js/format';
 
-  const { User } = useORM();
   const { user: authUser, isLoggedIn } = useAuthStore();
 
   const isMe = computed(() => isLoggedIn && authUser.id === props.userId);
@@ -37,7 +36,17 @@
     }
   });
 
-  const { data: user, status: userStatus, error: userError } = useLazyAsyncData(`user-${props.userId}`, async () => {
+  // Fetch user data only if not provided via props
+  const { data: fetchedUser, status: userStatus, error: userError } = useSupabaseData('user', { id: props.userId });
+  const { data: fetchedStats, status: statsStatus, error: statsError } = useSupabaseData('user-stats', { id: props.userId });
+  const { data: tradesCommon, status: tradesStatus, error: tradesError } = useSupabaseData('user-trades-with-partner', { partnerId: props.userId });
+
+  const { User } = useORM();
+  const user = computed(() => {
+    if (props.userData) {
+      return props.userData;
+    }
+
     if (props.userId === null) {
       const user = new User({
         displayName: 'System',
@@ -46,44 +55,9 @@
       return user.toObject();
     }
 
-    if (props.userData) {
-      return props.userData;
-    }
-
-    const user = new User(props.userId);
-    await user.load();
-    return user.toObject();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
+    return fetchedUser.value;
   });
-
-  const { data: stats, status: statsStatus, error: statsError } = useLazyAsyncData(`user-stats-${props.userId}`, () => {
-    if (props.userId === null) {
-      return null;
-    }
-
-    const user = new User(props.userId);
-    return user.getStatistics();
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
-
-  const { data: tradesCommon, status: tradesStatus, error: tradesError } = useLazyAsyncData(`user-trades-with-${props.userId}`, () => {
-    if (!isLoggedIn || isMe.value || props.userId === null) {
-      return null;
-    }
-
-    const user = new User(authUser.id);
-    return user.getTotalTradesWithUser(props.userId);
-  }, {
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
-  });
+  const stats = computed(() => fetchedStats.value);
 
   const isLoading = computed(() => {
     return userStatus.value === 'pending' || statsStatus.value === 'pending' || tradesStatus.value === 'pending';

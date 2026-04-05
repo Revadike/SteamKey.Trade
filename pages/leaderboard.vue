@@ -55,27 +55,7 @@
     order: 'desc'
   }];
 
-  const { data: top3, status, error } = useLazyAsyncData(`top-3-${mainStat}`, async () => {
-    const { data, error } = await supabase
-      .from(User.statistics.table)
-      .select(`
-        ${User.statistics.fields.userId},
-        ${mainStat},
-        ${User.statistics.fields.totalUniqueTrades},
-        ${User.statistics.fields.totalDeclinedTrades},
-        ${User.statistics.fields.totalReviewsReceived},
-        ${User.statistics.fields.avgSpeed}
-      `)
-      .order(mainStat, { ascending: false, nullsFirst: false })
-      .order(`${User.statistics.fields.totalUniqueTrades}`, { ascending: false, nullsFirst: false })
-      .limit(3);
-
-    if (error) {
-      throw error;
-    }
-
-    return data.map(record => User.fromDB(record, User.statistics.fields));
-  });
+  const { data: top3, status, error } = useSupabaseData('leaderboard-top3', { stat: mainStat });
 
   watch(error, (value) => {
     if (value) {

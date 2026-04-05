@@ -24,21 +24,17 @@
   }));
 
   const enabledNotifications = ref(preferences.enabledNotifications || []);
-  const { data: user, status, error } = useLazyAsyncData(`user-${authUser.id}`, async () => {
-    const user = new User(authUser.id);
-    await user.load();
-    const data = user.toObject();
+  const { data: user, status, error } = useSupabaseData('user', { id: authUser.id });
 
-    if (data.avatar) {
+  // Set avatar and background refs when user data loads
+  watch(() => user.value, data => {
+    if (data?.avatar) {
       avatar.value = { url: data.avatar };
     }
-
-    if (data.background) {
+    if (data?.background) {
       background.value = { url: data.background };
     }
-
-    return data;
-  });
+  }, { immediate: true });
 
   watch(() => error.value, error => {
     if (error) {

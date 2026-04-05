@@ -5,31 +5,13 @@
 
   import { formatDate, formatNumber, slugify } from '~/assets/js/format';
 
-  const { App, Collection, User } = useORM();
+  const { App, Collection } = useORM();
   const { user: authUser, isLoggedIn, updateUserCollections } = useAuthStore();
   const { inLibrary, inWishlist, inBlacklist, inTradelist } = storeToRefs(useCollectionsStore());
   const route = useRoute();
   const appid = route.params.id;
 
-  const { data: app, status, error } = useLazyAsyncData(`app-${appid}`, async () => {
-    const instance = new App(appid);
-    try {
-      await instance.load();
-      return instance.toObject();
-    } catch (err) {
-      // If the app is not found, return an empty App object
-      if (err.code === 'PGRST116') {
-        return instance.toObject();
-      } else {
-        throw createError({
-          statusCode: 500,
-          statusMessage: 'Internal Server Error',
-          message: 'An error occurred while loading the app',
-          fatal: true
-        });
-      }
-    }
-  });
+  const { data: app, status, error } = useSupabaseData('app', { id: appid });
 
   watch(() => error.value, error => {
     if (error) {
@@ -37,14 +19,7 @@
     }
   }, { immediate: true });
 
-  const supabase = useSupabaseClient();
-  const { data: totalUsers } = useLazyAsyncData('total-users', async () => {
-    const { count } = await supabase
-      .from(User.table)
-      .select('', { count: 'exact', head: true });
-
-    return count;
-  });
+  const { data: totalUsers } = useSupabaseData('total-users');
 
   const snackbarStore = useSnackbarStore();
   const addToCollections = async collections => {
@@ -119,6 +94,7 @@
     return txt.value;
   };
 
+  const supabase = useSupabaseClient();
   const removeFromMasterCollection = async (type) => {
     try {
       const instance = await Collection.getMasterCollection(supabase, authUser.id, type);

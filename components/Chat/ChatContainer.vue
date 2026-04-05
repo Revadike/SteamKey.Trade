@@ -15,13 +15,7 @@
   const editingMessage = ref(null);
   const body = ref('');
 
-  const { data: messages, status, error } = useLazyAsyncData(`messages-${props.tradeId}`, () => {
-    // TODO: Add pagination
-    return TradeMessage.query(supabase, [
-      { filter: 'eq', params: [TradeMessage.fields.tradeId, props.tradeId] },
-      { filter: 'order', params: [TradeMessage.fields.createdAt, { ascending: true }] }
-    ]);
-  });
+  const { data: messages, status, error } = useSupabaseData('messages', { tradeId: props.tradeId });
 
   const scrollToBottom = () => {
     const chatMessages = document.querySelector('.chat-messages');

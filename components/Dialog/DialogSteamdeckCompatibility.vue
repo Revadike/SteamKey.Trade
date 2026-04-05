@@ -89,31 +89,14 @@
     }
   });
 
-  const supabase = useSupabaseClient();
   const internalValue = ref(false);
   const loaded = ref(false);
 
-  const { data: report, status, error } = useLazyAsyncData(`steamdeck-compatibility-${props.appid}`, async () => {
-    const { error, data } = await supabase.functions.invoke('steamdeck-compatibility-report', {
-      body: {
-        appid: props.appid
-      }
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  }, {
-    immediate: false,
+  const { data: report, status, error } = useSupabaseData('steamdeck-compatibility', { appid: props.appid }, {
     watch: [
       () => internalValue.value || loaded.value,
       () => props.appid
-    ],
-    getCachedData: (key, nuxtApp) => {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
+    ]
   });
 
   watch(() => report.value, report => {
