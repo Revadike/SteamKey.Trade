@@ -71,7 +71,7 @@
         }
       });
     });
-    ``;
+
     // Auto-advance for images
     if (items[newIndex] && items[newIndex].type === 'image') {
       timer = setTimeout(() => {
