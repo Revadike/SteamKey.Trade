@@ -30,47 +30,54 @@
     }
   });
 
-  const subscriber = supabase
-    .channel(TradeMessage.table)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: TradeMessage.table,
-        filter: `${TradeMessage.fields.tradeId}=eq.${props.tradeId}`
-      },
-      (payload) => {
-        if (payload.eventType === 'INSERT') {
-          messages.value.push(TradeMessage.fromDB(payload.new));
-        } else if (payload.eventType === 'UPDATE') {
-          const index = messages.value.findIndex(msg => msg.id === payload.new.id);
-          if (index !== -1) {
-            messages.value.splice(index, 1, TradeMessage.fromDB(payload.new));
-          }
-        } else if (payload.eventType === 'DELETE') {
-          // Does not work.... @see https://supabase.com/docs/guides/realtime/postgres-changes#delete-events-are-not-filterable
-          // messages.value.splice(messages.value.findIndex(msg => msg.id === payload.old.id), 1);
-        }
-
-        if (isLoggedIn.value) {
-          const instance = new Trade(props.tradeId);
-          instance.view(user.value.id); // Mark the trade as viewed
-        }
-
-        nextTick(() => {
-          scrollToBottom();
-          messageInput.value?.focus();
-        });
+  const handleRealtimeMessage = payload => {
+    if (payload.eventType === 'INSERT') {
+      const exists = messages.value.some(msg => msg.id === payload.new.id);
+      if (!exists) {
+        messages.value.push(TradeMessage.fromDB(payload.new));
       }
-    )
-    .subscribe();
-
-  onBeforeUnmount(() => {
-    if (subscriber) {
-      supabase.removeChannel(subscriber);
+    } else if (payload.eventType === 'UPDATE') {
+      const index = messages.value.findIndex(msg => msg.id === payload.new.id);
+      if (index !== -1) {
+        messages.value.splice(index, 1, TradeMessage.fromDB(payload.new));
+      }
+    } else if (payload.eventType === 'DELETE') {
+      // Does not work.... @see https://supabase.com/docs/guides/realtime/postgres-changes#delete-events-are-not-filterable
+      // messages.value.splice(messages.value.findIndex(msg => msg.id === payload.old.id), 1);
     }
-  });
+
+    if (isLoggedIn.value) {
+      const instance = new Trade(props.tradeId);
+      instance.view(user.value.id); // Mark the trade as viewed
+    }
+
+    nextTick(() => {
+      scrollToBottom();
+      messageInput.value?.focus();
+    });
+  };
+
+  watch(() => props.tradeId, async (tradeId, _, onCleanup) => {
+    if (!tradeId) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`${TradeMessage.table}_${tradeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: TradeMessage.table,
+          filter: `${TradeMessage.fields.tradeId}=eq.${tradeId}`
+        },
+        handleRealtimeMessage
+      )
+      .subscribe();
+
+    onCleanup(() => supabase.removeChannel(channel));
+  }, { immediate: true });
 
   const snackbarStore = useSnackbarStore();
   const sendMessage = async () => {
