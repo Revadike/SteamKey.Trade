@@ -338,17 +338,12 @@
 
               <span
                 v-if="trade.originalId"
-                class="ml-2"
+                class="ml-2 text-disabled"
               >
                 (Counter to
-                <nuxt-link
-                  :href="`/trade/${trade.originalId}`"
-                  rel="noopener"
-                  target="_blank"
-                >
+                <nuxt-link :to="`/trade/${trade.originalId}`">
                   <v-icon icon="mdi-arrow-right" />
-                </nuxt-link>
-                )
+                </nuxt-link>)
               </span>
 
               <v-spacer class="my-1" />
