@@ -44,32 +44,38 @@
 
   const brokenitems = ref([]);
   const mediaItems = computed(() =>
-    props.media.map(item => {
-      const baseItem = typeof item === 'string' ? { src: item } : item;
-      return {
-        ...detectMediaType(baseItem.src),
-        ...baseItem
-      };
-    }).filter(({ src }) => !brokenitems.value.includes(src))
+    props.media
+      .map(item => (typeof item === 'string' ? { src: item } : item))
+      .map(item => ({ ...detectMediaType(item.src), ...item }))
+      .filter(item => !brokenitems.value.includes(item.src))
   );
 
   let timer = null;
-  watch(() => currentIndex.value, newIndex => {
+
+  watch(currentIndex, newIndex => {
     clearTimeout(timer);
 
-    videoRefs.value.forEach((video, index) => {
-      if (video) {
-        if (index === newIndex && mediaItems.value[index].type === 'video') {
+    const items = mediaItems.value;
+
+    // Play/pause videos
+    nextTick(() => {
+      videoRefs.value.forEach((video, index) => {
+        if (!video) {
+          return;
+        }
+
+        if (items[index] && items[index].type === 'video' && index === newIndex) {
           video.play();
         } else {
           video.pause();
         }
-      }
+      });
     });
-
-    if (mediaItems.value[newIndex].type === 'image') {
+    ``;
+    // Auto-advance for images
+    if (items[newIndex] && items[newIndex].type === 'image') {
       timer = setTimeout(() => {
-        currentIndex.value = (newIndex + 1) % mediaItems.value.length;
+        currentIndex.value = (newIndex + 1) % items.length;
       }, 5000);
     }
   });
@@ -77,6 +83,25 @@
   const openDialog = item => {
     selectedItem.value = item;
     dialog.value = true;
+  };
+
+  const handleMediaError = src => {
+    if (!brokenitems.value.includes(src)) {
+      brokenitems.value.push(src);
+    }
+
+    nextTick(() => {
+      const items = mediaItems.value;
+      if (items.length === 0) {
+        currentIndex.value = 0;
+        return;
+      }
+
+      // If current index is now invalid, move to next available
+      if (currentIndex.value >= items.length) {
+        currentIndex.value = currentIndex.value % items.length;
+      }
+    });
   };
 </script>
 
@@ -90,7 +115,7 @@
   >
     <v-carousel-item
       v-for="(item, index) in mediaItems"
-      :key="index"
+      :key="item.src"
       :value="index"
     >
       <video
@@ -102,12 +127,15 @@
         controls
         muted
         @ended="currentIndex = (currentIndex + 1) % mediaItems.length"
+        @error="handleMediaError(item.src)"
       >
         <source
           :src="item.src"
           :type="item.mimeType"
+          @error="handleMediaError(item.src)"
         >
       </video>
+
       <v-img
         v-else
         v-ripple
@@ -115,6 +143,7 @@
         cover
         :src="item.src"
         @click="openDialog(item)"
+        @error="handleMediaError(item.src)"
       />
     </v-carousel-item>
   </v-carousel>
@@ -150,10 +179,7 @@
     }
 
     &.rounded {
-      .carousel-image {
-        border-radius: 4px;
-      }
-
+      .carousel-image,
       .carousel-video {
         border-radius: 4px;
       }
