@@ -715,7 +715,7 @@
                         'text-purple': inTradelist(item.id) && inWishlist(item.id) && !inLibrary(item.id),
                       }"
                       target="_blank"
-                      :to="`/app/${item.id}`"
+                      :to="simple ? `/app/${item.id}` : undefined"
                     >
                       {{ item[App.fields.title] || `Unknown App ${item.id}` }}
                     </nuxt-link>
@@ -999,6 +999,10 @@
 
                   <v-list>
                     <v-list-item
+                      title="SteamKey.Trade"
+                      @click="navigateTo(`/app/${item.id}`, { open: { target: '_blank' } })"
+                    />
+                    <v-list-item
                       v-for="(link, index) in visibleAppLinks(item)"
                       :key="index"
                       :title="link.title"
@@ -1126,11 +1130,6 @@
         position: relative;
         z-index: 2;
 
-        ::v-deep(.v-slide-group__prev--disabled),
-        ::v-deep(.v-slide-group__next--disabled) {
-          display: none;
-        }
-
         ::v-deep(.v-slide-group__prev),
         ::v-deep(.v-slide-group__next) {
           min-width: 0;
@@ -1176,5 +1175,10 @@
         min-width: 300px;
       }
     }
+  }
+
+  ::v-deep(.v-slide-group__prev--disabled),
+  ::v-deep(.v-slide-group__next--disabled) {
+    display: none !important;
   }
 </style>
