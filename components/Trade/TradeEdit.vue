@@ -163,80 +163,115 @@
   // If apps are connected to a vault entry, headless mode is enabled
   const headless = ref(false);
 
-  watch(() => trade.value, () => {
-    if (!trade.value) {
-      return;
-    }
+  // Local reactive form objects to separate editable state from async data
+  const tradeForm = reactive({
+    id: null,
+    originalId: null,
+    senderTotal: 1,
+    receiverTotal: 1,
+    senderId: props.sender || user.id,
+    receiverId: props.receiver || null,
+    senderDisputed: false,
+    receiverDisputed: false,
+    senderVaultless: false,
+    receiverVaultless: false,
+    status: Trade.enums.status.pending
+  });
 
-    users.value.sender = trade.value.senderId;
-    users.value.receiver = trade.value.receiverId;
-  }, { deep: true, immediate: true });
+  const tradeAppsForm = reactive({
+    sender: [],
+    receiver: []
+  });
 
-  watch(() => tradeApps.value, () => {
-    if (tradeApps.value && tradeApps.value.sender && tradeApps.value.receiver && (!isNew || isCounter || isCopy)) {
-      if (tradeApps.value.sender?.length) {
-        headless.value = headless.value || tradeApps.value.sender.every(({ vaultEntries, total }) => vaultEntries && vaultEntries.filter(Boolean).length === total);
-      }
-
-      for (const side of sides) {
-        const collectionIds = tradeApps.value[side].map(app => app.collectionId);
-
-        if (!selectedCollections.value[side]) {
-          selectedCollections.value[side] = [];
-        }
-
-        for (const id of collectionIds) {
-          if (!selectedCollections.value[side].includes(id)) {
-            selectedCollections.value[side].push(id);
-          }
-        }
-      }
-
-      // Check which app IDs need to be loaded
-      const existingAppIds = [
-        ...selectedApps.value.sender.map(app => app.id),
-        ...selectedApps.value.receiver.map(app => app.id)
-      ];
-
-      const appIdsToQuery = [...tradeApps.value.sender, ...tradeApps.value.receiver]
-        .map(app => app.appId)
-        .filter((appId, index, self) =>
-          appId &&
-          self.indexOf(appId) === index &&
-          !existingAppIds.includes(appId)
-        );
-
-      if (!appIdsToQuery.length) {
+  // Sync async trade data to local form when loaded
+  watch(
+    () => trade.value,
+    (value) => {
+      if (!value) {
         return;
       }
 
-      // Only query apps that aren't already loaded
-      App.query(supabase, [
-        { filter: 'in', params: [App.fields.id, appIdsToQuery] }
-      ]).then(instances => {
-        const newApps = instances.map(instance => instance.toObject());
-        const allApps = Array.from(
-          new Map([...selectedApps.value.sender, ...selectedApps.value.receiver, ...newApps]
-            .filter(app => app.id)
-            .map(app => [app.id, app]))
-            .values()
-        );
+      Object.assign(tradeForm, structuredClone(toRaw(value)));
+      users.value.sender = value.senderId;
+      users.value.receiver = value.receiverId;
+    },
+    { immediate: true }
+  );
 
-        selectedApps.value.sender = allApps.filter(app =>
-          tradeApps.value.sender.some(({ appId }) => appId === app.id)
-        );
-        selectedApps.value.receiver = allApps.filter(app =>
-          tradeApps.value.receiver.some(({ appId }) => appId === app.id)
-        );
-        mandatoryApps.value.sender = allApps.filter(app =>
-          tradeApps.value.sender.some(({ appId, mandatory }) => appId === app.id && mandatory)
-        );
-        mandatoryApps.value.receiver = allApps.filter(app =>
-          tradeApps.value.receiver.some(({ appId, mandatory }) => appId === app.id && mandatory)
-        );
-      });
-    }
-  }, { deep: true, immediate: true });
+  // Sync async tradeApps data to local form when loaded
+  watch(
+    () => tradeApps.value,
+    (value) => {
+      if (value && value.sender && value.receiver && (!isNew || isCounter || isCopy)) {
+        // Sync to local form
+        tradeAppsForm.sender = structuredClone(toRaw(value.sender));
+        tradeAppsForm.receiver = structuredClone(toRaw(value.receiver));
+
+        if (value.sender?.length) {
+          headless.value = headless.value || value.sender.every(({ vaultEntries, total }) => vaultEntries && vaultEntries.filter(Boolean).length === total);
+        }
+
+        for (const side of sides) {
+          const collectionIds = value[side].map(app => app.collectionId);
+
+          if (!selectedCollections.value[side]) {
+            selectedCollections.value[side] = [];
+          }
+
+          for (const id of collectionIds) {
+            if (!selectedCollections.value[side].includes(id)) {
+              selectedCollections.value[side].push(id);
+            }
+          }
+        }
+
+        // Check which app IDs need to be loaded
+        const existingAppIds = [
+          ...selectedApps.value.sender.map(app => app.id),
+          ...selectedApps.value.receiver.map(app => app.id)
+        ];
+
+        const appIdsToQuery = [...value.sender, ...value.receiver]
+          .map(app => app.appId)
+          .filter((appId, index, self) =>
+            appId &&
+            self.indexOf(appId) === index &&
+            !existingAppIds.includes(appId)
+          );
+
+        if (!appIdsToQuery.length) {
+          return;
+        }
+
+        // Only query apps that aren't already loaded
+        App.query(supabase, [
+          { filter: 'in', params: [App.fields.id, appIdsToQuery] }
+        ]).then(instances => {
+          const newApps = instances.map(instance => instance.toObject());
+          const allApps = Array.from(
+            new Map([...selectedApps.value.sender, ...selectedApps.value.receiver, ...newApps]
+              .filter(app => app.id)
+              .map(app => [app.id, app]))
+              .values()
+          );
+
+          selectedApps.value.sender = allApps.filter(app =>
+            value.sender.some(({ appId }) => appId === app.id)
+          );
+          selectedApps.value.receiver = allApps.filter(app =>
+            value.receiver.some(({ appId }) => appId === app.id)
+          );
+          mandatoryApps.value.sender = allApps.filter(app =>
+            value.sender.some(({ appId, mandatory }) => appId === app.id && mandatory)
+          );
+          mandatoryApps.value.receiver = allApps.filter(app =>
+            value.receiver.some(({ appId, mandatory }) => appId === app.id && mandatory)
+          );
+        });
+      }
+    },
+    { immediate: true }
+  );
 
   // Pre-select apps for new trades if senderSelected/receiverSelected are provided
   watch(
@@ -293,27 +328,31 @@
     gridItemWidth.value = getGridItemWidth();
   }, { immediate: true, deep: true });
 
-  watch(() => selectedApps.value, () => {
-    trade.value.senderTotal = Math.max(Math.min(selectedApps.value.sender.length, trade.value.senderTotal), mandatoryApps.value.sender.length);
-    trade.value.receiverTotal = Math.max(Math.min(selectedApps.value.receiver.length, trade.value.receiverTotal), mandatoryApps.value.receiver.length);
+  watch(
+    () => selectedApps.value,
+    () => {
+      tradeForm.senderTotal = Math.max(Math.min(selectedApps.value.sender.length, tradeForm.senderTotal), mandatoryApps.value.sender.length);
+      tradeForm.receiverTotal = Math.max(Math.min(selectedApps.value.receiver.length, tradeForm.receiverTotal), mandatoryApps.value.receiver.length);
 
-    for (const side of sides) {
-      const apps = [];
-      for (const app of selectedApps.value[side]) {
-        const existingTradeApp = tradeApps.value[side].find(tradeApp => tradeApp.appId === app.id) || {};
-        apps.push({
-          appId: app.id,
-          collectionId: existingTradeApp.collectionId || app.collection?.collectionId || selectedCollections.value?.[side]?.[0] || null,
-          vaultEntries: existingTradeApp.vaultEntries || [],
-          userId: side === 'sender' ? users.value.sender : users.value.receiver,
-          mandatory: mandatoryApps.value[side].some(({ id }) => id === app.id),
-          selected: false,
-          total: existingTradeApp.total || 1
-        });
+      for (const side of sides) {
+        const apps = [];
+        for (const app of selectedApps.value[side]) {
+          const existingTradeApp = tradeAppsForm[side].find(tradeApp => tradeApp.appId === app.id) || {};
+          apps.push({
+            appId: app.id,
+            collectionId: existingTradeApp.collectionId || app.collection?.collectionId || selectedCollections.value?.[side]?.[0] || null,
+            vaultEntries: existingTradeApp.vaultEntries || [],
+            userId: side === 'sender' ? users.value.sender : users.value.receiver,
+            mandatory: mandatoryApps.value[side].some(({ id }) => id === app.id),
+            selected: false,
+            total: existingTradeApp.total || 1
+          });
+        }
+        tradeAppsForm[side] = apps;
       }
-      tradeApps.value[side] = apps;
-    }
-  }, { deep: true });
+    },
+    { deep: true }
+  );
 
   watch(() => users.value, async () => {
     if (users.value.sender === users.value.receiver) {
@@ -340,26 +379,24 @@
       }
     }
 
-    if (trade.value) {
-      if (users.value.sender !== trade.value.senderId) {
-        trade.value.senderId = users.value.sender;
-      }
-      if (users.value.receiver !== trade.value.receiverId) {
-        trade.value.receiverId = users.value.receiver;
-      }
+    if (users.value.sender !== tradeForm.senderId) {
+      tradeForm.senderId = users.value.sender;
+    }
+    if (users.value.receiver !== tradeForm.receiverId) {
+      tradeForm.receiverId = users.value.receiver;
     }
   }, { deep: true, immediate: true });
 
   const isValid = computed(() => {
     return !!(valid.value
       && selectedApps.value.sender.length
-      && trade.value.senderTotal
-      && selectedApps.value.sender.length >= trade.value.senderTotal
-      && mandatoryApps.value.sender.length <= trade.value.senderTotal
+      && tradeForm.senderTotal
+      && selectedApps.value.sender.length >= tradeForm.senderTotal
+      && mandatoryApps.value.sender.length <= tradeForm.senderTotal
       && selectedApps.value.receiver.length
-      && trade.value.receiverTotal
-      && selectedApps.value.receiver.length >= trade.value.receiverTotal
-      && mandatoryApps.value.receiver.length <= trade.value.receiverTotal
+      && tradeForm.receiverTotal
+      && selectedApps.value.receiver.length >= tradeForm.receiverTotal
+      && mandatoryApps.value.receiver.length <= tradeForm.receiverTotal
     );
   });
 
@@ -374,20 +411,20 @@
     }
 
     try {
-      trade.value.status = Trade.enums.status.pending;
+      tradeForm.status = Trade.enums.status.pending;
 
-      const instance = new Trade(trade.value.id);
-      Object.assign(instance, trade.value);
+      const instance = new Trade(tradeForm.id);
+      Object.assign(instance, tradeForm);
       instance.senderId = users.value.sender;
       instance.receiverId = users.value.receiver;
 
       const savedInstance = await instance.save();
 
-      await savedInstance.setApps(Object.values(tradeApps.value).flat(), false, true);
+      await savedInstance.setApps([...tradeAppsForm.sender, ...tradeAppsForm.receiver], false, true);
 
       // decline original trade if countered
-      if (props.counterId && trade.value.originalId) {
-        const originalTrade = new Trade(trade.value.originalId);
+      if (props.counterId && tradeForm.originalId) {
+        const originalTrade = new Trade(tradeForm.originalId);
         await originalTrade.decline();
       }
 
@@ -582,7 +619,7 @@
                 class="mb-4 justify-center"
                 size="large"
               >
-                {{ trade.senderTotal === 1 ? '1 app' : `${trade.senderTotal || 0} apps` }} in exchange for {{ trade.receiverTotal === 1 ? '1 app' : `${trade.receiverTotal || 0} apps` }}
+                {{ tradeForm.senderTotal === 1 ? '1 app' : `${tradeForm.senderTotal || 0} apps` }} in exchange for {{ tradeForm.receiverTotal === 1 ? '1 app' : `${tradeForm.receiverTotal || 0} apps` }}
               </v-chip>
               <template
                 v-for="side in sides"
@@ -596,9 +633,9 @@
                     v-if="selectedApps[side].length"
                     class="d-flex align-center mb-1"
                   >
-                    <span class="me-2 mb-2 text-no-wrap">{{ trade[side + 'Total'] || 0 }} / {{ selectedApps[side].length || 0 }}</span>
+                    <span class="me-2 mb-2 text-no-wrap">{{ tradeForm[side + 'Total'] || 0 }} / {{ selectedApps[side].length || 0 }}</span>
                     <v-slider
-                      v-model.number="trade[side + 'Total']"
+                      v-model.number="tradeForm[side + 'Total']"
                       class="w-100 mb-2 flex-grow-0"
                       :disabled="selectedApps[side].every(({ id }) => mandatoryApps[side].some(({ id: mandatoryId }) => mandatoryId === id))"
                       hide-details
@@ -650,7 +687,7 @@
                         />
                       </nuxt-link>
                       <v-number-input
-                        v-model="tradeApps[side][tradeApps[side].findIndex(({ appId }) => appId === app.id)].total"
+                        v-model="tradeAppsForm[side][tradeAppsForm[side].findIndex(({ appId }) => appId === app.id)].total"
                         class="app-quantity-input"
                         :control-variant="gridItemWidth > 120 ? 'default' : 'hidden'"
                         density="compact"
@@ -709,7 +746,7 @@
             </template>
           </v-switch>
           <v-btn
-            v-if="!headless || !trade.receiverId"
+            v-if="!headless || !tradeForm.receiverId"
             class="ml-4"
             color="success"
             :disabled="!isValid"
@@ -720,11 +757,11 @@
           </v-btn>
           <dialog-vault-selector
             v-else
-            v-model="tradeApps.sender"
+            v-model="tradeAppsForm.sender"
             :only-apps="selectedApps.sender.map(({ id }) => id)"
-            :user-id="trade.receiverId"
+            :user-id="tradeForm.receiverId"
             @submit="submit"
-            @vaultless="trade.senderVaultless = true; submit()"
+            @vaultless="tradeForm.senderVaultless = true; submit()"
           >
             <template #activator="attrs">
               <v-btn
