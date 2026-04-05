@@ -275,6 +275,22 @@
     ].includes(trade.value.status);
   });
 
+  // Helper function to calculate total market value for a given side
+  const calculateTotal = (side) => {
+    const sideApps = (apps.value?.[side] || []).filter(app =>
+      selectedApps.value[side].some(selected => selected.id === app.id)
+    );
+
+    return sideApps.reduce((sum, app) => {
+      const quantity = app.total || 1;
+      const price = app.marketPrice || 0;
+      return sum + price * quantity;
+    }, 0);
+  };
+
+  const senderTotalValue = computed(() => calculateTotal('sender'));
+  const receiverTotalValue = computed(() => calculateTotal('receiver'));
+
   const title = computed(() => `${Trade.labels[trade.value?.status] || 'Loading'} trade`);
   const description = computed(() => `Trade offering ${trade.value?.senderTotal || 0} ${trade.value?.senderTotal === 1 ? 'app' : 'apps'} in exchange for ${trade.value?.receiverTotal || 0} ${trade.value?.receiverTotal === 1 ? 'app' : 'apps'}`);
   const breadcrumbs = computed(() => [
@@ -417,7 +433,11 @@
             <v-divider />
             <v-card-text class="d-flex flex-column flex-grow-1">
               <div class="text-center mb-2 text-disabled">
-                <rich-profile-link :user-id="trade.senderId" /> offered <strong class="text-primary">{{ trade.senderTotal }}</strong> {{ trade.senderTotal === 1 ? 'app' : 'apps' }}:
+                <rich-profile-link :user-id="trade.senderId" /> offered
+                <strong class="text-primary">{{ trade.senderTotal }}</strong> {{ trade.senderTotal === 1 ? 'app' : 'apps' }}
+                <template v-if="senderTotalValue > 0">
+                  (<strong class="text-primary">${{ senderTotalValue.toFixed(2) }}</strong>)
+                </template>:
               </div>
 
               <table-apps
@@ -444,7 +464,11 @@
               <v-spacer />
 
               <div class="text-center mb-2 text-disabled">
-                requesting <strong class="text-primary">{{ trade.receiverTotal }}</strong> {{ trade.receiverTotal === 1 ? 'app' : 'apps' }} from <rich-profile-link :user-id="trade.receiverId" />:
+                requesting <strong class="text-primary">{{ trade.receiverTotal }}</strong> {{ trade.receiverTotal === 1 ? 'app' : 'apps' }}
+                <template v-if="receiverTotalValue > 0">
+                  (<strong class="text-primary">${{ receiverTotalValue.toFixed(2) }}</strong>)
+                </template>
+                from <rich-profile-link :user-id="trade.receiverId" />:
               </div>
 
               <table-apps

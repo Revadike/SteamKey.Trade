@@ -452,6 +452,29 @@
     selectedApps.value[side] = selectedApps.value[side].filter(app => app.id !== appId);
   };
 
+  // Calculate total apps count (including quantities) for each side
+  const calculateTotalApps = (side) => {
+    const apps = tradeAppsForm[side] || [];
+    return apps.reduce((sum, app) => sum + (app.total || 1), 0);
+  };
+
+  // Calculate total market value for each side
+  const calculateTotalMarketValue = (side) => {
+    const apps = selectedApps.value[side] || [];
+    return apps.reduce((sum, app) => {
+      const tradeApp = tradeAppsForm[side]?.find(ta => ta.appId === app.id);
+      const quantity = tradeApp?.total || 1;
+      const price = app[App.fields.marketPrice] || 0;
+      return sum + price * quantity;
+    }, 0);
+  };
+
+  // Computed properties for each side
+  const senderTotalApps = computed(() => calculateTotalApps('sender'));
+  const receiverTotalApps = computed(() => calculateTotalApps('receiver'));
+  const senderTotalValue = computed(() => calculateTotalMarketValue('sender'));
+  const receiverTotalValue = computed(() => calculateTotalMarketValue('receiver'));
+
   const title = isNew ? 'New trade' : 'Editing trade';
   const breadcrumbs = [
     { title: 'Home', to: '/' },
@@ -505,6 +528,13 @@
                             :style="{ pointerEvents: 'none' }"
                             :user-id="users[tab]"
                           />
+                          <template v-if="selectedApps[tab]?.length">
+                            <v-icon icon="mdi-circle-small" />
+                            {{ tab === 'sender' ? senderTotalApps : receiverTotalApps }}
+                            <v-icon icon="mdi-circle-small" />
+                            ${{ (tab === 'sender' ? senderTotalValue : receiverTotalValue).toFixed(2) }}
+                          </template>
+
                           <dialog-select-user
                             v-if="tab !== 'sender'"
                             :title="`${users[tab] ? 'Change' : 'Select'} trade ${Trade.labels[tab].toLowerCase()}`"
@@ -693,7 +723,7 @@
                         density="compact"
                         hide-details
                         :min="1"
-                        :prefix="gridItemWidth > 180 ? 'Quantity:' : '#'"
+                        :prefix="gridItemWidth > 180 ? 'Copies:' : '#'"
                       />
                     </div>
                   </div>
