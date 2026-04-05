@@ -421,9 +421,9 @@
             <h2 class="text-h5 mb-2">
               Setting up user profile
             </h2>
-            <p class="text-body-2 text-disabled">
+            <small class="text-disabled">
               Please wait as this may take a few minutes...
-            </p>
+            </small>
           </v-card>
           <v-card
             v-else

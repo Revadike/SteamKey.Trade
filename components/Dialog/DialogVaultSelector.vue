@@ -168,7 +168,10 @@
       <v-card-title class="text-primary">
         Select your vault entries
       </v-card-title>
-      <v-card-text class="pa-0">
+      <v-card-text
+        v-if="authUser.publicKey"
+        class="pa-0"
+      >
         <dialog-vault-unlocker @unlocked="validPassword = true" />
         <v-container v-if="validPassword">
           <template
@@ -178,7 +181,7 @@
             <template v-if="onlyApps.includes(item.appId)">
               <v-row
                 v-for="idx in item.total || 1"
-                :key="item.appId + '-' + idx"
+                :key="`${item.appId}-${idx}`"
               >
                 <v-col
                   class="d-flex align-center"
@@ -240,12 +243,45 @@
               />
               {{
                 missingPartnerVault
-                  ? 'Partner vault not set up. Ask them to, or use the off-platform option.'
+                  ? 'Your partner vault hasn\'t been set up yet. Please ask them to set it up, or choose the off-platform option.'
                   : 'Incomplete! Please select a vault entry for each app.'
               }}
             </small>
           </div>
         </v-container>
+      </v-card-text>
+      <v-card-text
+        v-else
+        class="text-center px-10"
+      >
+        <v-icon
+          class="mb-2"
+          icon="mdi-shield-alert-outline"
+          size="64"
+        />
+
+        <h2 class="mb-2">
+          Vault not set up
+        </h2>
+
+        <p class="mb-6">
+          Create your vault to select entries for trades and keep your exchanges secure.
+        </p>
+
+        <v-btn
+          color="info"
+          prepend-icon="mdi-lock-plus-outline"
+          to="/vault"
+          variant="tonal"
+        >
+          Set up my vault
+        </v-btn>
+
+        <div class="mt-4">
+          <small class="text-disabled">
+            You can also choose to exchange off-platform if both parties agree.
+          </small>
+        </div>
       </v-card-text>
       <v-divider />
       <v-card-actions>
