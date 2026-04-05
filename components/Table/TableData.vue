@@ -330,6 +330,7 @@
       const isLastPage = page * itemsPerPage >= totalItems.value;
       query.headers.append('Prefer', isLastPage ? 'count=exact' : 'count=estimated');
 
+      // TODO: Use cursor-based pagination for better performance on large datasets
       const { data, error, count } = await query.abortSignal(signal).range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
 
       // Check if request was aborted

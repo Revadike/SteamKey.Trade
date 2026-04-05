@@ -15,7 +15,7 @@
 
   const { Review, Trade } = useORM();
 
-  const { data: fetchedStats } = useSupabaseData('user-stats', { id: props.user.id });
+  const { data: fetchedStats, error: statsError } = useSupabaseData('user-stats', { id: props.user.id });
   const stats = computed(() => props.stats || fetchedStats.value);
 
   const totalTrades = computed(() => stats.value?.totalPendingTrades
@@ -51,7 +51,7 @@
     immediate: true
   });
 
-  const { data: partners } = useSupabaseData('user-partners', { id: props.user.id });
+  const { data: partners, error: partnersError } = useSupabaseData('user-partners', { id: props.user.id });
 
   const snackbarStore = useSnackbarStore();
   const copy = value => {

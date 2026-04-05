@@ -48,7 +48,7 @@
 
   const isMe = computed(() => authUser?.id === user.id);
 
-  const { data: stats, /* status: statsStatus, */ error: statsError } = useSupabaseData('user-stats', { id: user.id });
+  const { data: stats, status: statsStatus, error: statsError } = useSupabaseData('user-stats', { id: user.id });
 
   const { data: tradesCommon, status: tradesStatus, error: tradesError } = useSupabaseData(
     'user-trades-with-partner',
@@ -56,7 +56,11 @@
   );
 
   const isLoading = computed(() => {
-    return /* statsStatus.value === 'pending' || */ tradesStatus.value === 'pending';
+    return statsStatus.value === 'pending' || tradesStatus.value === 'pending';
+  });
+
+  const isSettingUp = computed(() => {
+    return !isLoading.value && statsStatus.value === 'success' && stats.value === null && !statsError.value;
   });
 
   const hasError = computed(() => {
@@ -403,7 +407,28 @@
           cols="12"
           md="9"
         >
-          <v-card class="d-flex flex-column fill-height">
+          <v-card
+            v-if="isSettingUp"
+            class="d-flex flex-column fill-height align-center justify-center"
+            loading
+          >
+            <v-icon
+              class="mb-4"
+              color="primary"
+              icon="mdi-account-cog"
+              size="80"
+            />
+            <h2 class="text-h5 mb-2">
+              Setting up user profile
+            </h2>
+            <p class="text-body-2 text-disabled">
+              Please wait as this may take a few minutes...
+            </p>
+          </v-card>
+          <v-card
+            v-else
+            class="d-flex flex-column fill-height"
+          >
             <v-tabs
               v-model="activeTab"
               :direction="$vuetify.display.smAndUp ? 'horizontal' : 'vertical'"
