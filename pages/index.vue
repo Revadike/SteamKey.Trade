@@ -3,6 +3,7 @@
   import usersOnline from '~/components/Widget/WidgetUsersOnline.vue';
   import stats from '~/components/Widget/WidgetStats.vue';
   import tradeActivity from '~/components/Widget/WidgetTradeActivity.vue';
+  import bundles from '~/components/Widget/WidgetActiveBundles.vue';
 
   const { User } = useORM();
   const { preferences, isLoggedIn } = storeToRefs(useAuthStore());
@@ -11,7 +12,8 @@
     [User.enums.widget.welcome]: welcome,
     [User.enums.widget.usersOnline]: usersOnline,
     [User.enums.widget.stats]: stats,
-    [User.enums.widget.tradeActivity]: tradeActivity
+    [User.enums.widget.tradeActivity]: tradeActivity,
+    [User.enums.widget.bundles]: bundles
   };
 
   const title = 'Home';

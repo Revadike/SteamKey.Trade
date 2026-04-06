@@ -346,6 +346,38 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         return data.map(record => User.fromDB(record, User.statistics.fields));
       }
+    },
+
+    'active-bundles': {
+      key: () => 'active-bundles',
+      handler: async () => {
+        const { data, error } = await supabase
+          .from(Collection.table)
+          .select(`*,
+            parents:${Collection.relations.table}!${Collection.relations.fields.collectionId}(${Collection.relations.fields.parentId}),
+            subcollections:${Collection.relations.table}!${Collection.relations.fields.parentId}(
+              collection:${Collection.table}!${Collection.relations.fields.collectionId}(*)
+            )`)
+          .eq(Collection.fields.type, Collection.enums.type.bundle)
+          .or(`${Collection.fields.endsAt}.is.null,${Collection.fields.endsAt}.gt.${new Date().toISOString()}`)
+          .order(Collection.fields.createdAt, { ascending: false })
+          .limit(20); // Buffer for filtering
+        if (error) {
+          throw error;
+        }
+        // Filter to only parent bundles (no parents) and transform
+        return (data || [])
+          .filter(bundle => !bundle.parents || bundle.parents.length === 0)
+          .slice(0, 10)
+          .map(bundle => ({
+            ...bundle,
+            subcollections: bundle.subcollections?.map(s => s.collection).filter(Boolean) || [],
+            parents: undefined // Clean up the parents field
+          }));
+      },
+      defaultOptions: {
+        default: () => []
+      }
     }
   };
 

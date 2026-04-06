@@ -1,6 +1,6 @@
 -- Create widget type enum
 create type widget as enum (
-  'welcome', 'stats', 'trade_activity', 'users_online'
+  'welcome', 'stats', 'trade_activity', 'users_online', 'bundles'
 );
 
 -- Create preferences table

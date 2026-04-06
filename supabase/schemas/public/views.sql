@@ -457,7 +457,7 @@ left join collections_agg ca
 -- Function to refresh the user_statistics materialized view with locking to prevent concurrent refreshes
 create or replace function refresh_user_statistics()
 returns void
-language plpgsql
+set search_path = ''
 as $$
 begin
   if not pg_try_advisory_lock(4242, 9001) then
@@ -466,7 +466,7 @@ begin
   end if;
 
   begin
-    refresh materialized view concurrently user_statistics;
+    refresh materialized view concurrently public.user_statistics;
   exception when others then
     perform pg_advisory_unlock(4242, 9001);
     raise;
@@ -474,7 +474,7 @@ begin
 
   perform pg_advisory_unlock(4242, 9001);
 end;
-$$;
+$$ language plpgsql security definer;
 
 -- Cron job to refresh the materialized view every 10 minutes
 select cron.schedule('refresh_user_statistics', '*/10 * * * *', $$

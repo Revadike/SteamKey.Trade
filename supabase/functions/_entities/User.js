@@ -128,7 +128,8 @@ export class User extends Entity {
         welcome: 'welcome',
         usersOnline: 'users_online',
         stats: 'stats',
-        tradeActivity: 'trade_activity'
+        tradeActivity: 'trade_activity',
+        bundles: 'bundles'
       }),
       notification: Object.freeze({
         newTrade: 'new_trade',
@@ -180,6 +181,7 @@ export class User extends Entity {
       stats: 'Statistics',
       tradeActivity: 'Trade Activity',
       usersOnline: 'Users Online',
+      bundles: 'Active Bundles',
 
       newTrade: 'New Trade',
       acceptedTrade: 'Accepted Trade',
