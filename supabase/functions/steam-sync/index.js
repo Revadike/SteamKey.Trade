@@ -1,5 +1,5 @@
 import { serve } from '../_helpers/edge.js';
-import { createAuthenticatedClient } from '../_helpers/supabase.js';
+import { supabaseAdmin } from '../_helpers/supabase.js';
 import { steamApiRequest } from '../_helpers/steamAPI.js';
 import { User, Collection } from '../_entities/index.js';
 
@@ -151,24 +151,22 @@ const syncMyLibrary = (supabase, user) => {
 /**
  * Main handler for Steam sync endpoints
  */
-const steamSync = async ({ userId, type }, req) => {
-  const supabase = createAuthenticatedClient(req);
-
+const steamSync = async ({ userId, type }) => {
   if (!userId) {
-    const { error, data } = await supabase.auth.getUser();
+    const { error, data } = await supabaseAdmin.auth.getUser();
     if (error) {
       throw new Error('Either provide a user ID or authenticate the request');
     }
     userId = data.user.id;
   }
 
-  const user = new User(supabase, userId);
+  const user = new User(supabaseAdmin, userId);
   await user.load();
 
   if (!type) {
     const [wishlistCollection, libraryCollection] = await Promise.all([
-      syncMyWishlist(supabase, user),
-      syncMyLibrary(supabase, user)
+      syncMyWishlist(supabaseAdmin, user),
+      syncMyLibrary(supabaseAdmin, user)
     ]);
     return {
       success: true,
@@ -176,10 +174,10 @@ const steamSync = async ({ userId, type }, req) => {
       library: libraryCollection.id
     };
   } else if (type === Collection.enums.type.wishlist) {
-    const collection = await syncMyWishlist(supabase, user);
+    const collection = await syncMyWishlist(supabaseAdmin, user);
     return { success: true, wishlist: collection.id };
   } else if (type === Collection.enums.type.library) {
-    const collection = await syncMyLibrary(supabase, user);
+    const collection = await syncMyLibrary(supabaseAdmin, user);
     return { success: true, library: collection.id };
   } else {
     throw new Error(`Invalid collection type: ${type}`);

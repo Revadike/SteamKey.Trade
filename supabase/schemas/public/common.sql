@@ -341,10 +341,10 @@ begin
     delete from public.updater_queue
     where type = 'steam_library_sync' and value = v_library_user_id::text;
 
-    perform call_edge_function('steam-sync', jsonb_build_object(
+    perform public.call_edge_function('steam-sync'::text, jsonb_build_object(
       'userId', v_library_user_id::text,
       'type', 'library'
-    ));
+    )::jsonb);
   end if;
 
   -- Dequeue and process one wishlist sync
@@ -358,10 +358,10 @@ begin
     delete from public.updater_queue
     where type = 'steam_wishlist_sync' and value = v_wishlist_user_id::text;
 
-    perform call_edge_function('steam-sync', jsonb_build_object(
+    perform public.call_edge_function('steam-sync'::text, jsonb_build_object(
       'userId', v_wishlist_user_id::text,
       'type', 'wishlist'
-    ));
+    )::jsonb);
   end if;
 end;
 $$ language plpgsql security definer;
