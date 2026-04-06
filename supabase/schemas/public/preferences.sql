@@ -18,6 +18,8 @@ create table preferences (
   dashboard_widgets widget[] default array['welcome', 'users_online', 'stats', 'trade_activity']::widget[],
   enabled_notifications notification[] default array['new_trade', 'accepted_trade', 'new_vault_entry', 'unread_messages', 'disputed_trade', 'resolved_trade']::notification[],
   track_vault_copies boolean default false,
+  automatic_library_sync boolean default true,
+  automatic_wishlist_sync boolean default true,
   incoming_criteria jsonb default '{
     "collections": {"only":[],"except":[]},
     "tags": {"only":[],"except":[]},
@@ -38,19 +40,19 @@ as $$
 begin
   -- Check if all values in app_columns exist as column names in the apps table
   if exists (
-    select 1 
-    from unnest(new.app_columns) as col 
+    select 1
+    from unnest(new.app_columns) as col
     where not exists (
-      select 1 
-      from information_schema.columns 
+      select 1
+      from information_schema.columns
       where table_schema = 'public'
-      and table_name = 'apps' 
+      and table_name = 'apps'
       and column_name = col
     )
   ) then
     raise exception 'app_columns array contains invalid column names';
   end if;
-  
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -125,7 +127,7 @@ execute function sync_vault_counts_on_pref_update();
 alter table preferences enable row level security;
 
 -- Allow read access for all
-create policy preferences_select 
+create policy preferences_select
 on preferences
 for select
 to authenticated, anon

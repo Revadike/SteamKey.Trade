@@ -21,6 +21,7 @@ async function register(authUser, steamID64) {
   user.id = authUser.id;
   user.steamId = steamID64;
 
+  let isPublicProfile = false;
   try {
     const { players } = await steamApiRequest('ISteamUser', 'GetPlayerSummaries', 'v2', {
       params: {
@@ -28,7 +29,7 @@ async function register(authUser, steamID64) {
       }
     });
 
-    const { personaname, avatarfull, loccountrycode } = players[0];
+    const { personaname, avatarfull, loccountrycode, communityvisibilitystate } = players[0];
     if (personaname) {
       user.displayName = personaname;
     }
@@ -38,6 +39,7 @@ async function register(authUser, steamID64) {
     if (loccountrycode) {
       user.region = loccountrycode;
     }
+    isPublicProfile = communityvisibilitystate === 3;
   } catch (error) {
     console.error('Failed to set user information from Steam', error);
   }
@@ -54,7 +56,11 @@ async function register(authUser, steamID64) {
 
   // Set default preferences
   try {
-    await user.savePreferences({ createdAt: new Date() });
+    await user.savePreferences({
+      automaticLibrarySync: isPublicProfile,
+      automaticWishlistSync: isPublicProfile,
+      createdAt: new Date()
+    });
   } catch (error) {
     // ignore duplicate key error
     if (error.code !== '23505') {
@@ -73,12 +79,12 @@ async function register(authUser, steamID64) {
     if (!collection) {
       collection = await Collection.createMasterCollection(supabaseAdmin, user.id, type);
     }
-    if (type === Collection.enums.type.wishlist || type === Collection.enums.type.library) {
+    if ((type === Collection.enums.type.wishlist || type === Collection.enums.type.library) && isPublicProfile) {
       try {
         await collection.syncWithSteam();
       } catch (error) {
         console.error(`Failed to sync ${type} collection with Steam: `, error);
-      //   throw error;
+        // throw error;
       }
     }
   }));

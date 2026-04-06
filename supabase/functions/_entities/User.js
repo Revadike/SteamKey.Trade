@@ -48,6 +48,8 @@ export class User extends Entity {
         dashboardWidgets: 'dashboard_widgets',
         enabledNotifications: 'enabled_notifications',
         trackVaultCopies: 'track_vault_copies',
+        automaticLibrarySync: 'automatic_library_sync',
+        automaticWishlistSync: 'automatic_wishlist_sync',
         incomingCriteria: 'incoming_criteria',
         updatedAt: 'updated_at',
         createdAt: 'created_at'
@@ -208,7 +210,11 @@ export class User extends Entity {
       totalUniqueTrades: 'Total trades with unique users',
       totalVaultMine: 'My Total Vault Entries',
       totalVaultReceived: 'Total Vault Entries Received',
-      totalWishlist: 'Total Apps in Wishlist'
+      totalWishlist: 'Total Apps in Wishlist',
+
+      trackVaultCopies: 'Track Vault Counts',
+      automaticLibrarySync: 'Automatic Library Sync',
+      automaticWishlistSync: 'Automatic Wishlist Sync'
     });
   }
 
@@ -233,7 +239,10 @@ export class User extends Entity {
       newVaultEntry: 'You received a new item in your vault',
       unreadMessages: 'You have unread messages',
       disputedTrade: 'Your trade has been disputed',
-      resolvedTrade: 'Your trade dispute has been resolved'
+      resolvedTrade: 'Your trade dispute has been resolved',
+      trackVaultCopies: 'Automatically updates the \'Count\' tag in your tradelist to match the number of unspent copies you own in your vault.',
+      automaticLibrarySync: 'Periodically synchronize your Steam library with your master collection',
+      automaticWishlistSync: 'Periodically synchronize your Steam wishlist with your master collection'
     });
   }
 

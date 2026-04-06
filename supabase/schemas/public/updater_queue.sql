@@ -8,7 +8,9 @@ create type updater_queue_type as enum (
   'change_number',
   'ggdeals_deals_check',
   'ggdeals_bundles_check',
-  'app_update'
+  'app_update',
+  'steam_library_sync',
+  'steam_wishlist_sync'
 );
 
 -- Create updater_queue table
@@ -90,12 +92,12 @@ for insert
 to authenticated
 with check (
   -- Only allow 'app_update' type
-  type = 'app_update' 
+  type = 'app_update'
   -- Ensure app exists and hasn't been updated in past 24h
   and exists (
-    select 1 
-    from apps 
-    where id = value::integer 
+    select 1
+    from apps
+    where id = value::integer
       and (updated_at is null or updated_at < now() - interval '24 hours')
   )
 );

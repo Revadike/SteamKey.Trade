@@ -1,5 +1,6 @@
 <script setup>
-  const { Collection } = useORM();
+  const { Collection, User } = useORM();
+  const { user, preferences, setPreferences } = useAuthStore();
 
   const internalValue = ref(false);
 
@@ -7,6 +8,25 @@
   const { sync: syncLibrary, loading: loadingLibrary } = useSteamSync(Collection.enums.type.library);
 
   const loading = computed(() => loadingWishlist.value || loadingLibrary.value);
+
+  const automaticLibrarySync = ref(preferences.automaticLibrarySync ?? true);
+  const automaticWishlistSync = ref(preferences.automaticWishlistSync ?? true);
+
+  const snackbarStore = useSnackbarStore();
+  const saveSyncPreferences = async () => {
+    try {
+      const instance = new User(user.id);
+      const savedPreferences = await instance.savePreferences({
+        automaticLibrarySync: automaticLibrarySync.value,
+        automaticWishlistSync: automaticWishlistSync.value
+      });
+      setPreferences(savedPreferences);
+      snackbarStore.set('success', 'Sync preferences updated');
+    } catch (error) {
+      console.error(error);
+      snackbarStore.set('error', 'Unable to save sync preferences');
+    }
+  };
 </script>
 
 <template>
@@ -25,34 +45,55 @@
         Synchronize Master Collections
       </v-card-title>
       <v-card-text>
-        <v-btn
-          block
-          :disabled="loadingLibrary"
-          :loading="loadingWishlist"
-          variant="tonal"
-          @click="syncWishlist"
-        >
-          <v-icon
-            class="mr-2"
-            icon="mdi-sync"
-          />
-          Sync with Steam Wishlist
-        </v-btn>
+        <div class="d-flex flex-row align-center ga-4">
+          <v-btn
+            class="flex-grow-1"
+            :disabled="loadingLibrary"
+            :loading="loadingWishlist"
+            variant="tonal"
+            @click="syncWishlist"
+          >
+            <v-icon
+              class="mr-2"
+              icon="mdi-sync"
+            />
+            Sync with Steam Wishlist
+          </v-btn>
 
-        <v-btn
-          block
-          class="mt-4"
-          :disabled="loadingWishlist"
-          :loading="loadingLibrary"
-          variant="tonal"
-          @click="syncLibrary"
-        >
-          <v-icon
-            class="mr-2"
-            icon="mdi-sync"
+          <v-switch
+            v-model="automaticWishlistSync"
+            color="primary"
+            density="compact"
+            hide-details
+            label="Automatic"
+            @update:model-value="saveSyncPreferences"
           />
-          Sync with Steam Library
-        </v-btn>
+        </div>
+
+        <div class="d-flex flex-row align-center ga-4 mt-4">
+          <v-btn
+            class="flex-grow-1"
+            :disabled="loadingWishlist"
+            :loading="loadingLibrary"
+            variant="tonal"
+            @click="syncLibrary"
+          >
+            <v-icon
+              class="mr-2"
+              icon="mdi-sync"
+            />
+            Sync with Steam Library
+          </v-btn>
+
+          <v-switch
+            v-model="automaticLibrarySync"
+            color="primary"
+            density="compact"
+            hide-details
+            label="Automatic"
+            @update:model-value="saveSyncPreferences"
+          />
+        </div>
       </v-card-text>
       <v-divider />
       <v-card-actions>

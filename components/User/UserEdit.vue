@@ -24,6 +24,9 @@
   }));
 
   const enabledNotifications = ref(preferences.enabledNotifications || []);
+  const automaticLibrarySync = ref(preferences.automaticLibrarySync ?? true);
+  const automaticWishlistSync = ref(preferences.automaticWishlistSync ?? true);
+  const trackVaultCopies = ref(preferences.trackVaultCopies ?? false);
   const { data: user, status, error } = useSupabaseData('user', { id: authUser.id });
 
   // Set avatar and background refs when user data loads
@@ -141,7 +144,9 @@
       // Update user preferences
       const savedPreferences = await instance.savePreferences({
         enabledNotifications: enabledNotifications.value,
-        trackVaultCopies: preferences.trackVaultCopies
+        trackVaultCopies: trackVaultCopies.value,
+        automaticLibrarySync: automaticLibrarySync.value,
+        automaticWishlistSync: automaticWishlistSync.value
       });
 
       // Update auth store preferences
@@ -177,167 +182,204 @@
       v-model="valid"
       @submit.prevent="saveProfile"
     >
+      <!-- Profile Appearance -->
       <v-card class="mb-4">
+        <v-card-title>Profile Appearance</v-card-title>
+        <v-card-text>
+          <div class="d-flex flex-row flex-wrap ga-4">
+            <input-image
+              v-model="avatar"
+              :accepts="['image/jpeg', 'image/png']"
+              aspect-ratio="1:1"
+              cropped
+              cropper-eager
+              :hint="User.descriptions.avatar"
+              :label="User.labels.avatar"
+            />
+
+            <input-image
+              v-model="background"
+              :accepts="['image/jpeg', 'image/png']"
+              aspect-ratio="16:9"
+              cropped
+              cropper-eager
+              :hint="User.descriptions.background"
+              :label="User.labels.background"
+            />
+
+            <v-row>
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-text-field
+                  v-model="user.displayName"
+                  :hint="User.descriptions.displayName"
+                  :label="User.labels.displayName"
+                  persistent-hint
+                  required
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="3"
+              >
+                <v-text-field
+                  v-model="user.customUrl"
+                  :hint="User.descriptions.customUrl"
+                  :label="User.labels.customUrl"
+                  persistent-hint
+                  :rules="urlRules"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="3"
+              >
+                <v-select
+                  v-model="user.region"
+                  clearable
+                  :hint="User.descriptions.region"
+                  :items="regions"
+                  :label="User.labels.region"
+                  persistent-hint
+                />
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="user.bio"
+                  :hint="User.descriptions.bio"
+                  :label="User.labels.bio"
+                  persistent-hint
+                  rows="4"
+                />
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Account Connections -->
+      <v-card class="mb-4">
+        <v-card-title>Account Connections</v-card-title>
         <v-card-text>
           <v-row>
             <v-col
               cols="12"
-              md="6"
+              md="4"
             >
-              <input-image
-                v-model="avatar"
-                :accepts="['image/jpeg', 'image/png']"
-                aspect-ratio="1:1"
-                cropped
-                cropper-eager
-                :hint="User.descriptions.avatar"
-                :label="User.labels.avatar"
-              />
-            </v-col>
-
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <input-image
-                v-model="background"
-                :accepts="['image/jpeg', 'image/png']"
-                aspect-ratio="16:9"
-                cropped
-                cropper-eager
-                :hint="User.descriptions.background"
-                :label="User.labels.background"
-              />
-            </v-col>
-
-            <v-col
-              cols="12"
-              md="9"
-            >
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="8"
-                >
-                  <v-text-field
-                    v-model="user.displayName"
-                    :hint="User.descriptions.displayName"
-                    :label="User.labels.displayName"
-                    persistent-hint
-                    required
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="4"
-                >
-                  <v-text-field
-                    v-model="user.customUrl"
-                    :hint="User.descriptions.customUrl"
-                    :label="User.labels.customUrl"
-                    persistent-hint
-                    :rules="urlRules"
-                  />
-                </v-col>
-
-                <v-col cols="12">
-                  <v-textarea
-                    v-model="user.bio"
-                    :hint="User.descriptions.bio"
-                    :label="User.labels.bio"
-                    persistent-hint
-                    rows="4"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="4"
-                >
-                  <v-select
-                    v-model="user.region"
-                    clearable
-                    :hint="User.descriptions.region"
-                    :items="regions"
-                    :label="User.labels.region"
-                    persistent-hint
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="4"
-                >
-                  <v-text-field
-                    v-model="user.discordId"
-                    :hint="User.descriptions.discordId"
-                    :label="User.labels.discordId"
-                    persistent-hint
-                    :rules="[v => !v || (/^\d{17,19}$/.test(v)) || 'Invalid Discord ID']"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="4"
-                >
-                  <v-combobox
-                    hint="Your connected Steam account"
-                    :items="[authUser.steamId]"
-                    label="Steam Connection"
-                    menu-icon=""
-                    :model-value="authUser.steamId"
-                    persistent-hint
-                    readonly
-                    variant="plain"
-                  >
-                    <template #selection>
-                      <v-chip
-                        size="small"
-                        @click="() => navigateTo(`https://steamcommunity.com/profiles/${authUser.steamId}`, {
-                          external: true,
-                          open: { target: '_blank' }
-                        })"
-                      >
-                        <v-icon
-                          class="mr-1"
-                          icon="mdi-steam"
-                        />
-                        {{ authUser.steamId }}
-                      </v-chip>
-                    </template>
-                  </v-combobox>
-                </v-col>
-              </v-row>
-              <v-switch
-                v-model="preferences.trackVaultCopies"
-                class="mt-2 ml-2"
-                density="compact"
-                hint="Automatically updates the 'Count' tag in your tradelist to match the number of unsent copies you own in your vault."
-                :label="'Track vault counts'"
+              <v-text-field
+                v-model="user.discordId"
+                :hint="User.descriptions.discordId"
+                :label="User.labels.discordId"
                 persistent-hint
+                :rules="[v => !v || (/^\d{17,19}$/.test(v)) || 'Invalid Discord ID']"
               />
             </v-col>
-
             <v-col
               cols="12"
-              md="3"
+              md="8"
             >
-              <p>Enabled notifications</p>
+              <v-combobox
+                hint="Your connected Steam account"
+                :items="[authUser.steamId]"
+                label="Steam Connection"
+                menu-icon=""
+                :model-value="authUser.steamId"
+                persistent-hint
+                readonly
+                variant="plain"
+              >
+                <template #selection>
+                  <v-chip
+                    size="small"
+                    @click="() => navigateTo(`https://steamcommunity.com/profiles/${authUser.steamId}`, {
+                      external: true,
+                      open: { target: '_blank' }
+                    })"
+                  >
+                    <v-icon
+                      class="mr-1"
+                      icon="mdi-steam"
+                    />
+                    {{ authUser.steamId }}
+                  </v-chip>
+                </template>
+              </v-combobox>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+
+      <!-- Preferences -->
+      <v-card class="mb-4">
+        <v-card-title>Preferences</v-card-title>
+        <v-card-text>
+          <v-row>
+            <!-- Notifications Section -->
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-subtitle-1 mb-2">
+                Notifications
+              </div>
               <v-checkbox
                 v-for="(value, key) in User.enums.notification"
                 :key="key"
                 v-model="enabledNotifications"
+                density="compact"
                 hide-details
                 :label="User.labels[key]"
                 :value="value"
+              />
+            </v-col>
+
+            <!-- Steam & Vault Settings Section -->
+            <v-col
+              cols="12"
+              md="8"
+            >
+              <div class="text-subtitle-1 mb-2">
+                Collections
+              </div>
+              <v-switch
+                v-model="automaticLibrarySync"
+                color="primary"
+                density="compact"
+                :hint="User.descriptions.automaticLibrarySync"
+                :label="User.labels.automaticLibrarySync"
+                persistent-hint
+              />
+              <v-switch
+                v-model="automaticWishlistSync"
+                color="primary"
+                density="compact"
+                :hint="User.descriptions.automaticWishlistSync"
+                :label="User.labels.automaticWishlistSync"
+                persistent-hint
+              />
+
+              <div class="text-subtitle-1 mb-2 mt-4">
+                Vault
+              </div>
+              <v-switch
+                v-model="trackVaultCopies"
+                color="primary"
+                density="compact"
+                :hint="User.descriptions.trackVaultCopies"
+                :label="User.labels.trackVaultCopies"
+                persistent-hint
               />
             </v-col>
           </v-row>
         </v-card-text>
       </v-card>
 
+      <!-- Actions -->
       <v-card>
         <v-card-actions>
           <v-spacer />
