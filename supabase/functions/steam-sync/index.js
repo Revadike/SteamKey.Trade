@@ -44,7 +44,7 @@ const syncCollection = async (supabase, user, collectionType, fetchApps) => {
   const appsToAdd = newAppIds.filter(appId => !existingApps.includes(appId));
 
   if (appsToRemove.length > 0) {
-    const batchSize = 1000;
+    const batchSize = 500;
 
     // Split into batches for better performance
     for (let i = 0; i < appsToRemove.length; i += batchSize) {
@@ -64,7 +64,7 @@ const syncCollection = async (supabase, user, collectionType, fetchApps) => {
   }
 
   if (appsToAdd.length > 0) {
-    const batchSize = 1000;
+    const batchSize = 500;
 
     // Split into batches for better performance
     for (let i = 0; i < appsToAdd.length; i += batchSize) {
