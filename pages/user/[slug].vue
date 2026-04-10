@@ -174,23 +174,18 @@
       :breadcrumbs="breadcrumbs"
       :loading="isLoading"
     >
-      <template #append>
+      <template #actions>
         <!-- TODO: Implement user roles -->
         <v-btn
           v-if="authUser?.steamId === '76561198042965266'"
-          class="ml-2 bg-surface rounded"
-          :icon="$vuetify.display.xs"
-          :rounded="$vuetify.display.xs"
           variant="flat"
           @click="impersonate(user.steamId)"
         >
           <v-icon
-            class="mr-0 mr-sm-2"
             icon="mdi-account-switch"
+            start
           />
-          <span class="d-none d-sm-block">
-            Impersonate
-          </span>
+          Impersonate
         </v-btn>
         <dialog-user-review
           v-if="tradesCommon?.total"
@@ -200,69 +195,49 @@
           <template #activator="attrs">
             <v-btn
               v-bind="attrs.props"
-              class="ml-2 bg-surface rounded"
-              :icon="$vuetify.display.xs"
-              :rounded="$vuetify.display.xs"
               variant="flat"
             >
               <v-icon
-                class="mr-0 mr-sm-2"
                 icon="mdi-star"
+                start
               />
-              <span class="d-none d-sm-block">
-                Review
-              </span>
+              Review
             </v-btn>
           </template>
         </dialog-user-review>
         <v-btn
           v-if="isLoggedIn && !isMe"
-          class="ml-2 bg-surface rounded"
-          :icon="$vuetify.display.xs"
-          :rounded="$vuetify.display.xs"
           :to="`/matches?user=${user.id}`"
           variant="flat"
         >
           <v-icon
-            class="mr-0 mr-sm-2"
             icon="mdi-crosshairs"
+            start
           />
-          <span class="d-none d-sm-block">
-            Match
-          </span>
+          Match
         </v-btn>
         <v-btn
           v-if="isLoggedIn && !isMe"
-          class="ml-2 bg-surface rounded"
-          :icon="$vuetify.display.xs"
-          :rounded="$vuetify.display.xs"
           :to="`/trade/new?partner=${user.id}`"
           variant="flat"
         >
           <v-icon
-            class="mr-0 mr-sm-2"
             icon="mdi-plus"
+            start
           />
-          <span class="d-none d-sm-block">
-            New trade
-          </span>
+          New trade
         </v-btn>
 
         <v-btn
           v-else-if="isLoggedIn && isMe"
-          class="ml-2 bg-surface rounded"
-          :icon="$vuetify.display.xs"
-          :rounded="$vuetify.display.xs"
           to="/settings"
           variant="flat"
         >
           <v-icon
-            class="mr-0 mr-sm-2"
             icon="mdi-pencil"
+            start
           />
-          <span class="d-none d-sm-block">
-            Edit
-          </span>
+          Edit
         </v-btn>
       </template>
 

@@ -109,22 +109,17 @@
 
 <template>
   <s-page-content :breadcrumbs="breadcrumbs">
-    <template #append>
+    <template #actions>
       <v-btn
         v-if="isLoggedIn"
-        class="ml-2 bg-surface rounded"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         to="/trade/new"
         variant="flat"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-plus"
+          start
         />
-        <span class="d-none d-sm-block">
-          New trade
-        </span>
+        New trade
       </v-btn>
     </template>
 

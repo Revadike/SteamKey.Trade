@@ -131,81 +131,61 @@
     :breadcrumbs="breadcrumbs"
     :loading="status !== 'success'"
   >
-    <template #append>
+    <template #actions>
       <v-btn
         v-if="inLibrary(appid)"
         v-tooltip:top="'Remove from your library'"
-        class="ml-2 bg-surface rounded"
         color="success"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         variant="tonal"
         @click="removeFromMasterCollection(Collection.enums.type.library)"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
-          :icon="$vuetify.display.xs ? Collection.icons.library : 'mdi-minus'"
+          icon="mdi-minus"
+          start
         />
-        <span class="d-none d-sm-block">
-          Library
-        </span>
+        Library
       </v-btn>
 
       <v-btn
         v-if="inWishlist(appid)"
         v-tooltip:top="'Remove from your wishlist'"
-        class="ml-2 bg-surface rounded"
         color="error"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         variant="tonal"
         @click="removeFromMasterCollection(Collection.enums.type.wishlist)"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
-          :icon="$vuetify.display.xs ? Collection.icons.wishlist : 'mdi-minus'"
+          icon="mdi-minus"
+          start
         />
-        <span class="d-none d-sm-block">
-          Wishlist
-        </span>
+        Wishlist
       </v-btn>
 
       <v-btn
         v-if="inBlacklist(appid)"
         v-tooltip:top="'Remove from your blacklist'"
-        class="ml-2 bg-surface rounded"
         color="disabled"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         variant="tonal"
         @click="removeFromMasterCollection(Collection.enums.type.blacklist)"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
-          :icon="$vuetify.display.xs ? Collection.icons.blacklist : 'mdi-minus'"
+          icon="mdi-minus"
+          start
         />
-        <span class="d-none d-sm-block">
-          Blacklist
-        </span>
+        Blacklist
       </v-btn>
 
       <v-btn
         v-if="inTradelist(appid)"
         v-tooltip:top="'Remove from your tradelist'"
-        class="ml-2 bg-surface rounded"
         color="info"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         variant="tonal"
         @click="removeFromMasterCollection(Collection.enums.type.tradelist)"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
-          :icon="$vuetify.display.xs ? Collection.icons.tradelist : 'mdi-minus'"
+          icon="mdi-minus"
+          start
         />
-        <span class="d-none d-sm-block">
-          Tradelist
-        </span>
+        Tradelist
       </v-btn>
 
       <dialog-select-collection
@@ -218,37 +198,27 @@
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
-            class="ml-2 bg-surface rounded"
-            :icon="$vuetify.display.xs"
-            :rounded="$vuetify.display.xs"
             variant="flat"
           >
             <v-icon
-              class="mr-0 mr-sm-2"
-              :icon="$vuetify.display.xs ? 'mdi-apps' : 'mdi-plus'"
+              icon="mdi-apps"
+              start
             />
-            <span class="d-none d-sm-block">
-              Collection
-            </span>
+            Collection
           </v-btn>
         </template>
       </dialog-select-collection>
 
       <v-btn
         v-if="isLoggedIn"
-        class="ml-2 bg-surface rounded"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         :to="`/matches?app=${appid}`"
         variant="flat"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-crosshairs"
+          start
         />
-        <span class="d-none d-sm-block">
-          Matches
-        </span>
+        Matches
       </v-btn>
     </template>
 

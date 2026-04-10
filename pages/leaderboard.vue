@@ -84,7 +84,7 @@
     <!-- TODO: Implement a friend system (See #94) -->
     <!-- <template
       v-if="isLoggedIn && false"
-      #append
+      #actions
     >
       <v-tabs v-model="activeTab">
         <v-tab value="top100">

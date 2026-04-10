@@ -26,13 +26,13 @@
 
 <template>
   <s-page-content :breadcrumbs="breadcrumbs">
-    <template #append>
+    <template #actions>
       <dialog-dashboard-settings v-if="isLoggedIn">
         <template #activator="attrs">
-          <v-btn
+          <v-icon
+            v-bind="attrs.props"
             icon="mdi-cog"
             variant="text"
-            v-bind="attrs.props"
           />
         </template>
       </dialog-dashboard-settings>

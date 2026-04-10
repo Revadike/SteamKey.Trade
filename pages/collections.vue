@@ -13,41 +13,31 @@
 
 <template>
   <s-page-content :breadcrumbs="breadcrumbs">
-    <template #append>
+    <template #actions>
       <dialog-sync-collection v-if="isLoggedIn && activeTab === 'mine'">
         <template #activator="attrs">
           <v-btn
             v-bind="attrs.props"
-            class="bg-surface rounded"
-            :icon="$vuetify.display.xs"
-            :rounded="$vuetify.display.xs"
             variant="flat"
           >
             <v-icon
-              class="mr-0 mr-sm-2"
               icon="mdi-sync"
+              start
             />
-            <span class="d-none d-sm-block">
-              Sync
-            </span>
+            Sync
           </v-btn>
         </template>
       </dialog-sync-collection>
       <v-btn
         v-if="isLoggedIn"
-        class="ml-2 bg-surface rounded"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         to="/collection/new"
         variant="flat"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-plus"
+          start
         />
-        <span class="d-none d-sm-block">
-          New collection
-        </span>
+        New collection
       </v-btn>
     </template>
 

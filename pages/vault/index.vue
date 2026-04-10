@@ -185,53 +185,47 @@
 
 <template>
   <s-page-content :breadcrumbs="breadcrumbs">
-    <template #prepend>
-      <span class="text-warning text-no-wrap d-flex align-center">
-        <v-icon
-          class="mr-1"
-          color="warning"
-          icon="mdi-alert"
-          size="x-small"
+    <template #breadcrumbs="{ breadcrumbs: items }">
+      <div class="d-flex align-center flex-wrap ga-2">
+        <v-breadcrumbs
+          :items="items"
+          :max-items="items.length"
         />
-        Use with caution
-      </span>
+        <span class="text-warning text-no-wrap d-flex align-center">
+          <v-icon
+            class="mr-1"
+            color="warning"
+            icon="mdi-alert"
+            size="x-small"
+          />
+          Use with caution
+        </span>
+      </div>
     </template>
-    <template #append>
+    <template #actions>
       <v-btn
-        class="ml-2 bg-surface rounded"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         to="/vault/import"
         variant="flat"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-import"
+          start
         />
-        <span class="d-none d-sm-block">
-          Import
-        </span>
+        Import
       </v-btn>
       <v-btn
-        class="ml-2 bg-surface rounded"
         :disabled="exporting"
-        :icon="$vuetify.display.xs"
         :loading="exporting"
-        :rounded="$vuetify.display.xs"
         variant="flat"
         @click="() => exportVault()"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-export"
+          start
         />
-        <span class="d-none d-sm-block">
-          Export
-        </span>
+        Export
       </v-btn>
     </template>
-
-    <dialog-vault-unlocker />
 
     <div class="d-flex flex-grow-1">
       <v-row class="w-100">
@@ -466,5 +460,7 @@
         </v-col>
       </v-row>
     </div>
+
+    <dialog-vault-unlocker />
   </s-page-content>
 </template>

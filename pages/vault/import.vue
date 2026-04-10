@@ -303,16 +303,22 @@
 
 <template>
   <s-page-content :breadcrumbs="breadcrumbs">
-    <template #prepend>
-      <span class="text-warning text-no-wrap d-flex align-center">
-        <v-icon
-          class="mr-1"
-          color="warning"
-          icon="mdi-alert"
-          size="x-small"
+    <template #breadcrumbs="{ breadcrumbs: items }">
+      <div class="d-flex align-center flex-wrap ga-2">
+        <v-breadcrumbs
+          :items="items"
+          :max-items="items.length"
         />
-        Proceed with caution
-      </span>
+        <span class="text-warning text-no-wrap d-flex align-center">
+          <v-icon
+            class="mr-1"
+            color="warning"
+            icon="mdi-alert"
+            size="x-small"
+          />
+          Proceed with caution
+        </span>
+      </div>
     </template>
 
     <dialog-vault-security v-if="!user.publicKey" />

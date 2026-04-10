@@ -79,40 +79,30 @@
   >
     <template
       v-if="isLoggedIn && collection && collection.userId === user.id"
-      #append
+      #actions
     >
       <v-btn
         v-if="collection.master && [Collection.enums.type.wishlist, Collection.enums.type.library].includes(collection.type)"
-        class="bg-surface rounded"
-        :icon="$vuetify.display.xs"
         :loading="syncing"
-        :rounded="$vuetify.display.xs"
         variant="flat"
         @click="syncWithSteam"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-sync"
+          start
         />
-        <span class="d-none d-sm-block">
-          Sync
-        </span>
+        Sync
       </v-btn>
 
       <v-btn
-        class="ml-2 bg-surface rounded"
-        :icon="$vuetify.display.xs"
-        :rounded="$vuetify.display.xs"
         :to="`/collection/${id}/edit`"
         variant="flat"
       >
         <v-icon
-          class="mr-0 mr-sm-2"
           icon="mdi-pencil"
+          start
         />
-        <span class="d-none d-sm-block">
-          Edit
-        </span>
+        Edit
       </v-btn>
 
       <dialog-confirm
@@ -123,20 +113,15 @@
       >
         <template #activator="attrs">
           <v-btn
-            class="ml-2 bg-surface rounded"
             color="error"
-            :icon="$vuetify.display.xs"
-            :rounded="$vuetify.display.xs"
             variant="flat"
             v-bind="attrs.props"
           >
             <v-icon
-              class="mr-0 mr-sm-2"
               icon="mdi-delete"
+              start
             />
-            <span class="d-none d-sm-block">
-              Delete
-            </span>
+            Delete
           </v-btn>
         </template>
       </dialog-confirm>
