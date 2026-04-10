@@ -233,6 +233,23 @@
           </v-btn>
         </template>
       </dialog-select-collection>
+
+      <v-btn
+        v-if="isLoggedIn"
+        class="ml-2 bg-surface rounded"
+        :icon="$vuetify.display.xs"
+        :rounded="$vuetify.display.xs"
+        :to="`/matches?app=${appid}`"
+        variant="flat"
+      >
+        <v-icon
+          class="mr-0 mr-sm-2"
+          icon="mdi-crosshairs"
+        />
+        <span class="d-none d-sm-block">
+          Matches
+        </span>
+      </v-btn>
     </template>
 
     <v-row class="flex-grow-1">

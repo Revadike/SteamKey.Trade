@@ -220,6 +220,22 @@
           class="ml-2 bg-surface rounded"
           :icon="$vuetify.display.xs"
           :rounded="$vuetify.display.xs"
+          :to="`/matches?user=${user.id}`"
+          variant="flat"
+        >
+          <v-icon
+            class="mr-0 mr-sm-2"
+            icon="mdi-crosshairs"
+          />
+          <span class="d-none d-sm-block">
+            Match
+          </span>
+        </v-btn>
+        <v-btn
+          v-if="isLoggedIn && !isMe"
+          class="ml-2 bg-surface rounded"
+          :icon="$vuetify.display.xs"
+          :rounded="$vuetify.display.xs"
           :to="`/trade/new?partner=${user.id}`"
           variant="flat"
         >
