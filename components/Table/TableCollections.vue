@@ -353,9 +353,9 @@
               </v-list-item>
             </template>
             <template #body>
-              <div class="pa-4">
-                Are you sure you want to delete this collection?
-                This action cannot be undone.
+              <div class="px-4 pb-4">
+                <p>Are you sure you want to delete this collection?</p>
+                <strong>This action cannot be undone.</strong>
               </div>
             </template>
           </dialog-confirm>
