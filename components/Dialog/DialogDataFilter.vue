@@ -546,7 +546,6 @@
       <v-card-actions>
         <v-btn
           color="error"
-          :disabled="localFilters.length === 0"
           text
           @click="clearFilters"
         >
