@@ -117,6 +117,9 @@
 
   // Load all fresh matches from cache (for current filter)
   const loadCachedMatches = () => {
+    if (selectedUser.value) {
+      return; // Don't load from cache in single user mode
+    }
     matches.value = [];
     const userIds = Object.keys(matchesStore.users);
     userIds.forEach(userId => {
