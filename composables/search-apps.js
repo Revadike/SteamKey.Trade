@@ -1,22 +1,21 @@
 const MAX_SEARCH_BATCH_SIZE = 20;
 const DEFAULT_SEARCH_LIMIT = 20;
 
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-const mapSearchResult = result => {
-  const confidence = clamp(Number(result.confidence || 0), 0, 1);
-
-  return {
-    item: {
-      appid: result.id,
-      names: [result.title].concat(result.altTitles || []),
-      header: result.header,
-      type: result.type
-    },
-    score: 1 - confidence
-  };
-};
-
+/**
+ * Composable for searching apps through Supabase-backed ORM helpers.
+ *
+ * Provides two async methods:
+ * - `search(query, limit)`: searches a single query string and returns a flat array of mapped results.
+ * - `searchMany(queries, limit)`: searches one or more queries, preserving the original input order and returning
+ *   an array of `{ query, results }` objects.
+ *
+ * Empty or whitespace-only queries return an empty result set.
+ *
+ * @returns {{
+ *   search: (query: string, limit?: number) => Promise<Array<any>>,
+ *   searchMany: (queries: string | string[], limit?: number) => Promise<Array<{ query: string, results: Array<any> }>>
+ * }} An object containing app search helpers.
+ */
 export const useSearchApps = () => {
   const supabase = useSupabaseClient();
   const { App } = useORM();
@@ -40,7 +39,18 @@ export const useSearchApps = () => {
         if (!resultsByQuery[key]) {
           resultsByQuery[key] = [];
         }
-        resultsByQuery[key].push(mapSearchResult(row));
+
+        const confidence = Math.min(1, Math.max(0, Number(row.confidence || 0)));
+
+        resultsByQuery[key].push({
+          item: {
+            appid: row.id,
+            names: [row.title].concat(row.altTitles || []),
+            header: row.header,
+            type: row.type
+          },
+          score: 1 - confidence
+        });
       });
     }
 

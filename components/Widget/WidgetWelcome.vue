@@ -65,6 +65,7 @@
           >
             <input-app-search
               v-model="have"
+              clearable
               :disabled="!!want"
               hide-details
               label="Have"
@@ -78,6 +79,7 @@
           >
             <input-app-search
               v-model="want"
+              clearable
               :disabled="!!have"
               hide-details
               label="Want"

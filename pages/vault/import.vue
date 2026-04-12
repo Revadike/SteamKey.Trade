@@ -359,9 +359,10 @@
           >
             <v-slide-group
               v-show="!showSearch && step === 1"
+              class="import-buttons"
               show-arrows
             >
-              <v-btn-group divided>
+              <v-slide-group-item>
                 <dialog-manual-import @import="setImports">
                   <template #activator="{ props: activatorProps }">
                     <v-btn
@@ -376,7 +377,9 @@
                     </v-btn>
                   </template>
                 </dialog-manual-import>
+              </v-slide-group-item>
 
+              <v-slide-group-item>
                 <dialog-select-collection
                   :multiple="false"
                   :table-props="{ onlyUsers: [user.id], maxSelection: 1 }"
@@ -396,7 +399,9 @@
                     </v-btn>
                   </template>
                 </dialog-select-collection>
+              </v-slide-group-item>
 
+              <v-slide-group-item>
                 <v-btn
                   :disabled="importingBartervg || importingCollection"
                   :loading="importingSteamInventory"
@@ -408,7 +413,9 @@
                     Steam Inventory
                   </span>
                 </v-btn>
+              </v-slide-group-item>
 
+              <v-slide-group-item>
                 <dialog-steamtrades-import @import="setImports">
                   <template #activator="{ props: activatorProps }">
                     <v-btn
@@ -423,7 +430,9 @@
                     </v-btn>
                   </template>
                 </dialog-steamtrades-import>
+              </v-slide-group-item>
 
+              <v-slide-group-item>
                 <v-btn
                   :disabled="importingSteamInventory || importingCollection"
                   :loading="importingBartervg"
@@ -435,8 +444,9 @@
                     Barter.vg
                   </span>
                 </v-btn>
+              </v-slide-group-item>
 
-                <!-- <v-btn
+              <!-- <v-btn
                   disabled
                   variant="tonal"
                 >
@@ -445,7 +455,6 @@
                     Reddit
                   </span>
                 </v-btn> -->
-              </v-btn-group>
             </v-slide-group>
             <v-alert
               v-if="!showSearch && step === 2"
@@ -693,6 +702,41 @@
       flex-direction: column;
       gap: 8px;
       padding: 16px;
+    }
+
+    .import-buttons {
+      &::v-deep(.v-slide-group__prev.v-slide-group__prev--disabled),
+      &::v-deep(.v-slide-group__next.v-slide-group__next--disabled) {
+        display: none;
+      }
+
+      // only outer buttons are rounded, inner buttons are connected
+      &::v-deep(.v-btn) {
+        border-radius: 0;
+        // divider line between buttons
+        &::before {
+          content: '';
+          position: absolute;
+          top: 4px;
+          bottom: 4px;
+          left: 0;
+          width: 1px;
+          background-color: rgba(var(--v-theme-on-surface), 0.12);
+        }
+
+        &:first-child {
+          border-top-left-radius: 8px;
+          border-bottom-left-radius: 8px;
+          &::before {
+            display: none;
+          }
+        }
+
+        &:last-child {
+          border-top-right-radius: 8px;
+          border-bottom-right-radius: 8px;
+        }
+      }
     }
   }
 </style>

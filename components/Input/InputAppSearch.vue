@@ -52,6 +52,7 @@
     :loading="loading"
     placeholder="Type to search..."
     v-bind="$attrs"
+    @click:clear="suggestions = []"
     @update:model-value="suggestions = []"
     @update:search="onSearch"
   >
