@@ -1,5 +1,8 @@
 set check_function_bodies=off;
 
+-- Enable pgroonga extension for full-text search
+create extension if not exists pgroonga with schema extensions;
+
 -- Enable cron extension
 create extension pg_cron with schema pg_catalog;
 grant usage on schema cron to postgres;

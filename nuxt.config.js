@@ -118,7 +118,6 @@ export default {
 
         // Utilities
         'lodash/debounce',
-        'fuse.js',
         'uuid',
         'json-to-csv-export',
         'jsonata',

@@ -23,7 +23,7 @@
 
   const seeAll = ref(false);
 
-  const { search } = useAppsStore();
+  const { searchMany } = useSearchApps();
   const importingSteamInventory = ref(false);
   const importSteamInventory = async () => {
     importingSteamInventory.value = true;
@@ -58,23 +58,22 @@
       }
 
       const uniqueQueries = [...new Set(queries)];
-      for (let i = 0; i < uniqueQueries.length; i += 50) {
-        const batch = uniqueQueries.slice(i, i + 50);
-        await Promise.all(batch.map(async query => {
-          const results = await search(query);
-          if (results) {
-            const count = queries.filter(q => q === query);
-            items.push({
-              appid: results[0]?.item?.appid ?? null,
-              name: results[0]?.item?.names?.[0] ?? query,
-              query,
-              score: results[0]?.score ?? 1,
-              suggestions: results.slice(0, 10),
-              type: VaultEntry.enums.type.gift,
-              values: Array(count).fill(`https://steamcommunity.com/tradeoffer/new/?partner=${toAccountID(user.steamId)}`)
-            });
-          }
-        }));
+      for (let i = 0; i < uniqueQueries.length; i += 20) {
+        const batch = uniqueQueries.slice(i, i + 20);
+        const batchResults = await searchMany(batch);
+
+        batchResults.forEach(({ query, results }) => {
+          const count = queries.filter(q => q === query).length;
+          items.push({
+            appid: results[0]?.item?.appid ?? null,
+            name: results[0]?.item?.names?.[0] ?? query,
+            query,
+            score: results[0]?.score ?? 1,
+            suggestions: results.slice(0, 10),
+            type: VaultEntry.enums.type.gift,
+            values: Array(count).fill(`https://steamcommunity.com/tradeoffer/new/?partner=${toAccountID(user.steamId)}`)
+          });
+        });
       }
 
       setImports(items);

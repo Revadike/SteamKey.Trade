@@ -1,7 +1,7 @@
 <script setup>
   import debounce from 'lodash/debounce';
 
-  const { search } = useAppsStore();
+  const { search } = useSearchApps();
 
   const selected = defineModel({
     default: null,

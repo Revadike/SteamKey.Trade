@@ -4,7 +4,7 @@
   const inputText = ref('');
   const isLoading = ref(false);
 
-  const { search } = useAppsStore();
+  const { searchMany } = useSearchApps();
 
   const selectedFormat = ref(0);
 
@@ -77,21 +77,19 @@
       }
 
       const batch = queries.slice(i, i + batchSize);
-      await Promise.all(batch.map(async query => {
-        const results = await search(query);
+      const batchResults = await searchMany(batch);
+      batchResults.forEach(({ query, results }) => {
         queried.value++;
-        if (results) {
-          imports.push({
-            query,
-            values: data[query].concat(['']),
-            type: VaultEntry.enums.type.key,
-            suggestions: results.slice(0, 100),
-            appid: results[0]?.item?.appid ?? null,
-            name: results[0]?.item?.names?.[0] ?? query,
-            score: results[0]?.score ?? 1
-          });
-        }
-      }));
+        imports.push({
+          query,
+          values: data[query].concat(['']),
+          type: VaultEntry.enums.type.key,
+          suggestions: results.slice(0, 100),
+          appid: results[0]?.item?.appid ?? null,
+          name: results[0]?.item?.names?.[0] ?? query,
+          score: results[0]?.score ?? 1
+        });
+      });
     }
 
     emit('import', imports);

@@ -28,7 +28,7 @@
     }
   });
 
-  const { search } = useAppsStore();
+  const { searchMany } = useSearchApps();
   const queried = ref(0);
   const importToVault = async () => {
     isLoading.value = true;
@@ -46,26 +46,29 @@
         });
       });
 
-      for (let i = 0; i < queries.length; i += 50) {
-        const batch = queries.slice(i, i + 50);
-        await Promise.all(batch.map(async query => {
+      for (let i = 0; i < queries.length; i += 20) {
+        if (internalValue.value === false) {
+          break;
+        }
+
+        const batch = queries.slice(i, i + 20);
+        const batchResults = await searchMany(batch);
+
+        for (const { query, results } of batchResults) {
           if (internalValue.value === false) {
-            return;
+            break;
           }
 
-          const results = await search(query);
-          if (results) {
-            queried.value++;
-            imports.push({
-              query,
-              values: [''],
-              suggestions: results.slice(0, 100),
-              appid: results[0]?.item?.appid ?? null,
-              name: results[0]?.item?.names?.[0] ?? query,
-              score: results[0]?.score ?? 1
-            });
-          }
-        }));
+          queried.value++;
+          imports.push({
+            query,
+            values: [''],
+            suggestions: results.slice(0, 100),
+            appid: results[0]?.item?.appid ?? null,
+            name: results[0]?.item?.names?.[0] ?? query,
+            score: results[0]?.score ?? 1
+          });
+        }
       }
     }
 

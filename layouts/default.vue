@@ -56,7 +56,7 @@
     { title: 'Leaderboard', icon: 'mdi-podium-gold', to: '/leaderboard' }
   ]).filter(Boolean));
 
-  const { refreshMetadata, refreshFacets } = useAppsStore();
+  const { refreshFacets } = useAppsStore();
   const { refreshTags } = useTagsStore();
   onMounted(async () => {
     document.addEventListener('keydown', event => {
@@ -68,7 +68,6 @@
     });
 
     // Refresh stores
-    refreshMetadata();
     refreshFacets();
     refreshTags();
   });

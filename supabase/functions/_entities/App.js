@@ -47,7 +47,21 @@ export class App extends Entity {
       removedAt: 'removed_at',
       releasedAt: 'released_at',
       updatedAt: 'updated_at',
-      createdAt: 'created_at'
+      createdAt: 'created_at',
+      searchText: 'search_text',
+      wilsonScore: 'wilson_score'
+    });
+  }
+
+  static get searchFields() {
+    return Object.freeze({
+      query: 'query',
+      id: 'id',
+      title: 'title',
+      altTitles: 'alt_titles',
+      header: 'header',
+      type: 'type',
+      confidence: 'confidence'
     });
   }
 
@@ -342,6 +356,18 @@ export class App extends Entity {
           format: 'date-time',
           title: 'Created At',
           description: 'The date when the app was added to the database.'
+        },
+        searchText: {
+          type: 'string',
+          nullable: true,
+          title: 'Search Text',
+          description: 'The normalized title text used for full-text search.'
+        },
+        wilsonScore: {
+          type: 'number',
+          nullable: true,
+          title: 'Wilson Score',
+          description: 'Confidence-adjusted score derived from positive and negative reviews.'
         }
       }
     });
@@ -396,6 +422,30 @@ export class App extends Entity {
     }
 
     return true;
+  }
+
+  static async search(supabase, queries, limit = 20) {
+    const queryList = (Array.isArray(queries) ? queries : [queries])
+      .map(query => `${query ?? ''}`.trim())
+      .filter(Boolean);
+
+    if (queryList.length === 0) {
+      return [];
+    }
+
+    const isSingle = queryList.length === 1;
+    const rpc = isSingle ? 'search_app' : 'search_apps';
+    const params = isSingle
+      ? { p_query: queryList[0], p_limit: limit }
+      : { p_queries: queryList, p_limit: limit };
+
+    const { data, error } = await supabase.rpc(rpc, params);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map(row => this.fromDB(row, this.searchFields));
   }
 
   static async getFacets(supabase, field) {

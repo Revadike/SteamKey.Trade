@@ -10,7 +10,7 @@
   });
 
   const { Collection } = useORM();
-  const { search } = useAppsStore();
+  const { searchMany } = useSearchApps();
   const internalValue = ref(false);
   const inputText = ref('');
   const isLoading = ref(false);
@@ -166,22 +166,27 @@
           }
 
           const batch = inputItems.slice(i, i + batchSize);
-          const appIdPromises = batch.map(async (title) => {
+          const titlesToSearch = batch.filter(title => {
+            return !(selectedValueType.value === 'mixed' && !isNaN(Number(title)));
+          });
+
+          const batchResults = await searchMany(titlesToSearch);
+          const resultsByQuery = Object.fromEntries(batchResults.map(({ query, results }) => [query, results]));
+
+          const resolvedAppIds = batch.map((title) => {
             if (selectedValueType.value === 'mixed' && !isNaN(Number(title))) {
               return Number(title); // It's an appid
             }
 
-            const results = await search(title);
             processedItems.value++;
+            const results = resultsByQuery[title] || [];
 
-            if (results && results.length > 0) {
+            if (results.length > 0) {
               // Get the appid from the best match
               return results[0]?.item?.appid;
             }
             return null;
           });
-
-          const resolvedAppIds = await Promise.all(appIdPromises);
           finalAppIds.push(...resolvedAppIds.filter(id => id !== null && !isNaN(id)));
         }
 
