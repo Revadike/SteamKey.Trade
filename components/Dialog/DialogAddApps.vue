@@ -9,9 +9,16 @@
     }
   });
 
+  const emit = defineEmits(['submit']);
+
   const { Collection } = useORM();
-  const { searchMany } = useSearchApps();
+  const snackbarStore = useSnackbarStore();
+  const supabase = useSupabaseClient();
+
   const internalValue = ref(false);
+  const matchingDialogOpen = ref(false);
+  const matchingTitles = ref([]);
+
   const inputText = ref('');
   const isLoading = ref(false);
   const preview = ref([]);
@@ -20,69 +27,109 @@
 
   const selectedValueType = ref('title');
   const valueTypes = [
-    { title: 'AppID\'s (fast)', value: 'appid' },
-    { title: 'App titles (slow)', value: 'title' },
-    { title: 'AppID\'s and titles', value: 'mixed' }
+    { title: 'App IDs', value: 'appid', icon: 'mdi-numeric' },
+    { title: 'App titles', value: 'title', icon: 'mdi-format-title' }
   ];
 
   const selectedInputType = ref('text');
   const inputTypes = [
-    { title: 'Text', value: 'text' },
-    { title: 'JSON', value: 'json' }
+    { title: 'Text', value: 'text', icon: 'mdi-text-box-edit-outline' },
+    { title: 'JSON', value: 'json', icon: 'mdi-code-json' }
   ];
 
-  // For text input with delimiter
+  const isAppIdMode = computed(() => selectedValueType.value === 'appid');
+  const stepOverline = computed(() => isAppIdMode.value ? 'Single-step import' : 'Step 1 of 2');
+  const dialogTitle = computed(() => isAppIdMode.value ? 'Add Apps by App ID' : 'Parse App Titles');
+  const dialogSubtitle = computed(() => {
+    return isAppIdMode.value
+      ? 'Import from text or JSON and save directly to the collection.'
+      : 'Import from text or JSON, then continue to title matching.';
+  });
+
   const showDelimiterOption = ref(false);
   const delimiter = ref(',');
 
-  // For JSON input with JSONata
   const jsonIsValid = ref(true);
   const jsonataQuery = ref('');
   const jsonataError = ref('');
 
-  const totalItems = ref(0);
-  const processedItems = ref(0);
-  const emit = defineEmits(['submit']);
+  const formatPreviewItem = (item) => {
+    if (item === null || item === undefined) {
+      return '';
+    }
 
-  // Process text input into array of items
-  const processTextInput = (text) => {
-    const lines = text.trim().split('\n').filter(line => line.trim());
+    if (typeof item === 'string') {
+      return item;
+    }
 
-    if (lines.length === 1) {
-      showDelimiterOption.value = true;
-      return lines[0].split(delimiter.value).map(item => item.trim()).filter(Boolean);
-    } else {
-      showDelimiterOption.value = false;
-      return lines;
+    if (typeof item === 'number' || typeof item === 'boolean') {
+      return `${item}`;
+    }
+
+    try {
+      return JSON.stringify(item);
+    } catch {
+      return `${item}`;
     }
   };
 
-  // Parse JSON and apply JSONata query if provided
+  const toTextItems = (items) => {
+    return items
+      .map(item => `${item ?? ''}`.trim())
+      .filter(Boolean);
+  };
+
+  const dedupeAppIds = (appIds) => {
+    return [...new Set(
+      appIds
+        .map(appId => Number(appId))
+        .filter(appId => Number.isInteger(appId) && appId > 0)
+    )];
+  };
+
+  const processTextInput = (text) => {
+    const lines = text
+      .trim()
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    if (lines.length <= 1) {
+      showDelimiterOption.value = true;
+      const separator = delimiter.value || ',';
+      return (lines[0] || '').split(separator).map(item => item.trim()).filter(Boolean);
+    }
+
+    showDelimiterOption.value = false;
+    return lines;
+  };
+
   const processJsonInput = async (text, query) => {
     try {
       const jsonData = JSON.parse(text);
       jsonIsValid.value = true;
 
-      if (query.trim()) {
-        try {
-          // Use JSONata for query processing
-          const expression = jsonata(query);
-          const result = await expression.evaluate(jsonData);
-          jsonataError.value = '';
-
-          if (Array.isArray(result)) {
-            return result;
-          } else if (result !== undefined) {
-            return [result];
-          }
-          return [];
-        } catch (e) {
-          jsonataError.value = e.message;
-          return [];
-        }
-      } else {
-        // No query provided, just return the top-level array if it exists
+      if (!query.trim()) {
         return Array.isArray(jsonData) ? jsonData : [jsonData];
+      }
+
+      try {
+        const expression = jsonata(query);
+        const result = await expression.evaluate(jsonData);
+        jsonataError.value = '';
+
+        if (Array.isArray(result)) {
+          return result;
+        }
+
+        if (result !== undefined) {
+          return [result];
+        }
+
+        return [];
+      } catch (error) {
+        jsonataError.value = error.message;
+        return [];
       }
     } catch {
       jsonIsValid.value = false;
@@ -90,7 +137,6 @@
     }
   };
 
-  // Process input based on selected type
   const processInput = async () => {
     if (!inputText.value.trim()) {
       return [];
@@ -99,100 +145,69 @@
     try {
       if (selectedInputType.value === 'text') {
         return processTextInput(inputText.value);
-      } else if (selectedInputType.value === 'json') {
+      }
+
+      if (selectedInputType.value === 'json') {
         return await processJsonInput(inputText.value, jsonataQuery.value);
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
 
     return [];
   };
 
-  // Validate app IDs
   const validateAppIds = (items) => {
-    const validAppIds = items
-      .map(item => Number(item))
-      .filter(appId => !isNaN(appId) && appId > 0 && appId === Math.floor(appId));
+    const normalized = items.map(item => Number(`${item}`.trim()));
+    const validAppIds = normalized.filter(appId => Number.isInteger(appId) && appId > 0);
 
     if (validAppIds.length !== items.length) {
-      validationError.value = 'Not all items are valid AppIDs (positive integers)';
+      validationError.value = 'Not all items are valid App IDs (positive integers).';
     }
 
     return validAppIds;
   };
 
-  // Update preview based on current selections and input
   const updatePreview = async () => {
     preview.value = [];
     validationError.value = '';
 
     const items = await processInput();
 
-    // Validate if all items are valid AppIDs if value type is appid
     if (selectedValueType.value === 'appid' && items.length > 0) {
       validateAppIds(items);
     }
 
-    // Limit preview to first n items
-    preview.value = items.slice(0, previewCount);
+    preview.value = items
+      .slice(0, previewCount)
+      .map(formatPreviewItem)
+      .filter(Boolean);
   };
 
-  // Watch for input changes to update preview
-  watch([inputText, selectedInputType, selectedValueType, delimiter, jsonataQuery], () => {
-    updatePreview();
-  }, { immediate: true });
+  const resetForm = () => {
+    inputText.value = '';
+    showDelimiterOption.value = false;
+    jsonIsValid.value = true;
+    jsonataQuery.value = '';
+    jsonataError.value = '';
+    validationError.value = '';
+    preview.value = [];
+    matchingTitles.value = [];
+  };
 
-  const submit = async () => {
+  const saveAppsToCollection = async (appIds) => {
+    const finalAppIds = dedupeAppIds(appIds);
+    if (!finalAppIds.length) {
+      validationError.value = 'No valid App IDs to add.';
+      return;
+    }
+
     isLoading.value = true;
     validationError.value = '';
 
     try {
-      const inputItems = await processInput();
-      let finalAppIds = [];
-
-      // If appids are already selected, just validate them
-      if (selectedValueType.value === 'appid') {
-        finalAppIds = validateAppIds(inputItems);
-      // If app titles are selected, search for each title and extract the appids
-      } else if (selectedValueType.value === 'title' || selectedValueType.value === 'mixed') {
-        totalItems.value = inputItems.length;
-        processedItems.value = 0;
-
-        const batchSize = 20;
-        for (let i = 0; i < inputItems.length; i += batchSize) {
-          if (internalValue.value === false) {
-            break; // Abort if dialog is closed
-          }
-
-          const batch = inputItems.slice(i, i + batchSize);
-          const titlesToSearch = batch.filter(title => {
-            return !(selectedValueType.value === 'mixed' && !isNaN(Number(title)));
-          });
-
-          const batchResults = await searchMany(titlesToSearch);
-          const resultsByQuery = Object.fromEntries(batchResults.map(({ query, results }) => [query, results]));
-
-          const resolvedAppIds = batch.map((title) => {
-            if (selectedValueType.value === 'mixed' && !isNaN(Number(title))) {
-              return Number(title); // It's an appid
-            }
-
-            processedItems.value++;
-            const results = resultsByQuery[title] || [];
-
-            if (results.length > 0) {
-              // Get the appid from the best match
-              return results[0]?.item?.appid;
-            }
-            return null;
-          });
-          finalAppIds.push(...resolvedAppIds.filter(id => id !== null && !isNaN(id)));
-        }
-
-        if (finalAppIds.length !== inputItems.length) {
-          validationError.value = 'Some app titles could not be found';
-        }
+      if (!props.collection) {
+        throw new Error('Collection is required');
       }
 
       let instance = new Collection(props.collection.id);
@@ -206,36 +221,62 @@
       await instance.addApps(finalAppIds);
 
       if (isNew) {
-        useSnackbarStore().set('success', 'Collection created');
+        snackbarStore.set('success', 'Collection created');
         await navigateTo(`/collection/${instance.id}/edit`);
       } else {
         emit('submit', finalAppIds);
       }
 
+      matchingDialogOpen.value = false;
       internalValue.value = false;
       resetForm();
     } catch (error) {
       console.error(error);
-      validationError.value = `Error: ${error.message}`;
+      const message = error?.message || 'Failed to add apps';
+      validationError.value = `Error: ${message}`;
+      snackbarStore.set('error', message);
     } finally {
       isLoading.value = false;
     }
   };
 
-  const resetForm = () => {
-    inputText.value = '';
-    showDelimiterOption.value = false;
-    jsonIsValid.value = true;
-    jsonataQuery.value = '';
-    jsonataError.value = '';
+  const submitParsedInput = async () => {
     validationError.value = '';
-    preview.value = [];
-    totalItems.value = 0;
-    processedItems.value = 0;
+
+    const inputItems = await processInput();
+    if (!inputItems.length) {
+      validationError.value = 'No items found to import.';
+      return;
+    }
+
+    if (selectedValueType.value === 'appid') {
+      const appIds = validateAppIds(inputItems);
+      if (validationError.value) {
+        return;
+      }
+
+      await saveAppsToCollection(appIds);
+      return;
+    }
+
+    matchingTitles.value = toTextItems(inputItems);
+    if (!matchingTitles.value.length) {
+      validationError.value = 'No valid titles found to match.';
+      return;
+    }
+
+    internalValue.value = false;
+    matchingDialogOpen.value = true;
   };
 
-  const snackbarStore = useSnackbarStore();
-  const supabase = useSupabaseClient();
+  const submitMatchedApps = async (appIds) => {
+    await saveAppsToCollection(appIds);
+  };
+
+  watch([inputText, selectedInputType, selectedValueType, delimiter, jsonataQuery], () => {
+    updatePreview();
+  }, { immediate: true });
+
   const presets = ref([
     {
       title: 'Barter.vg',
@@ -255,17 +296,16 @@
             throw error;
           }
 
-          const { appids = [] } = data;
-
-          if (appids.length === 0) {
+          const appIds = dedupeAppIds(data?.appids || []);
+          if (!appIds.length) {
             snackbarStore.set('error', 'No items found in your Barter.vg tradable collection');
             return;
           }
 
-          inputText.value = appids.join(',');
+          inputText.value = appIds.join('\n');
           selectedInputType.value = 'text';
           selectedValueType.value = 'appid';
-          delimiter.value = ',';
+          delimiter.value = '\n';
           await updatePreview();
           snackbarStore.set('success', 'Barter.vg items loaded successfully');
         } catch (error) {
@@ -299,17 +339,29 @@
             throw error;
           }
 
-          const { appids = [], queries = [] } = data;
+          const appIds = dedupeAppIds(data?.appids || []);
+          const queries = [...new Set((data?.queries || []).map(query => `${query ?? ''}`.trim()).filter(Boolean))];
 
-          if (appids.length === 0) {
+          if (!appIds.length && !queries.length) {
             snackbarStore.set('error', 'No items found in your Steam Inventory');
             return;
           }
 
-          inputText.value = `${appids.join('\n')}\n${[...new Set(queries)].join('\n')}`;
           selectedInputType.value = 'text';
-          selectedValueType.value = appids.length > 0 ? 'mixed' : 'title';
           delimiter.value = '\n';
+
+          if (appIds.length > 0) {
+            inputText.value = appIds.join('\n');
+            selectedValueType.value = 'appid';
+
+            if (queries.length > 0) {
+              snackbarStore.set('info', 'Loaded App IDs from Steam Inventory. Import titles separately if needed.');
+            }
+          } else {
+            inputText.value = queries.join('\n');
+            selectedValueType.value = 'title';
+          }
+
           await updatePreview();
           snackbarStore.set('success', 'Steam Inventory items loaded successfully');
         } catch (error) {
@@ -343,30 +395,34 @@
             throw error;
           }
 
-          if (!data || data.length === 0) {
+          if (!Array.isArray(data) || data.length === 0) {
             snackbarStore.set('error', 'No trade topics found in SteamTrades');
             return;
           }
 
-          inputText.value = '';
-          for (const topic of data) {
-            if (data.length > 1) {
-              inputText.value += `(REMOVE THIS) Found in: ${topic.title}\n\n`;
-            }
-            if (topic.appids && topic.appids.length > 0) {
-              inputText.value += `${topic.appids.join(',')}\n`;
-            }
-            if (topic.queries && topic.queries.length > 0) {
-              inputText.value += `${topic.queries.join('\n')}\n`;
-            }
-            const index = data.indexOf(topic);
-            if (index < data.length - 1) {
-              inputText.value += '\n\n\n--------------------------------------------------------\n\n\n';
-            }
+          const appIds = dedupeAppIds(data.flatMap(topic => topic?.appids || []));
+          const queries = [...new Set(data.flatMap(topic => topic?.queries || []).map(query => `${query ?? ''}`.trim()).filter(Boolean))];
+
+          if (!appIds.length && !queries.length) {
+            snackbarStore.set('error', 'No importable items found in SteamTrades topics');
+            return;
           }
+
           selectedInputType.value = 'text';
-          selectedValueType.value = data.some(topic => topic.appids.length > 0) ? 'mixed' : 'title';
           delimiter.value = '\n';
+
+          if (appIds.length > 0) {
+            inputText.value = appIds.join('\n');
+            selectedValueType.value = 'appid';
+
+            if (queries.length > 0) {
+              snackbarStore.set('info', 'Loaded App IDs from SteamTrades. Import titles separately if needed.');
+            }
+          } else {
+            inputText.value = queries.join('\n');
+            selectedValueType.value = 'title';
+          }
+
           await updatePreview();
           snackbarStore.set('success', 'SteamTrades topics loaded successfully');
         } catch (error) {
@@ -410,7 +466,7 @@
   <v-dialog
     v-model="internalValue"
     :persistent="isLoading"
-    width="720"
+    width="760"
   >
     <template #activator="attrs">
       <slot
@@ -420,20 +476,25 @@
     </template>
 
     <template #default>
-      <v-card :loading="isLoading">
-        <v-card-title>
-          Apps import
-          <template v-if="isLoading && (selectedValueType === 'title' || selectedValueType === 'mixed')">
-            ({{ processedItems }}/{{ totalItems }})
-          </template>
+      <v-card
+        class="dialog-add-shell"
+        :loading="isLoading"
+      >
+        <v-card-title class="px-6 pt-6 pb-2">
+          <div class="d-flex flex-column">
+            <span class="text-overline">{{ stepOverline }}</span>
+            <span class="text-h5 font-weight-bold">{{ dialogTitle }}</span>
+            <span class="text-caption text-medium-emphasis">{{ dialogSubtitle }}</span>
+          </div>
         </v-card-title>
-        <v-card-text>
+
+        <v-card-text class="px-6 pb-4 add-apps-body">
           <v-row>
             <v-col
               class="d-flex align-center"
               cols="12"
             >
-              <span class="flex-grow-0 text-no-wrap">
+              <span class="flex-grow-0 text-no-wrap mr-2">
                 <v-icon
                   class="mr-1 mt-n1"
                   icon="mdi-tune"
@@ -447,6 +508,7 @@
                 <v-chip
                   v-for="preset in presets"
                   :key="preset.title"
+                  class="preset-chip"
                   :disabled="preset.loading"
                   :prepend-icon="preset.loading ? 'mdi-loading mdi-spin' : undefined"
                   :text="preset.title"
@@ -456,31 +518,78 @@
               </v-chip-group>
             </v-col>
           </v-row>
+
           <v-divider class="my-4" />
+
           <v-row>
             <v-col
               cols="12"
               md="6"
             >
-              <v-select
-                v-model="selectedValueType"
-                density="comfortable"
-                hide-details
-                :items="valueTypes"
-                label="Target"
-              />
+              <v-sheet
+                class="option-panel pa-3"
+                rounded="lg"
+              >
+                <div class="text-caption mb-1">
+                  Match type
+                </div>
+                <v-radio-group
+                  v-model="selectedValueType"
+                  hide-details
+                  inline
+                >
+                  <v-radio
+                    v-for="item in valueTypes"
+                    :key="item.value"
+                    :value="item.value"
+                  >
+                    <template #label>
+                      <span class="d-flex align-center ga-2">
+                        <v-icon
+                          :icon="item.icon"
+                          size="18"
+                        />
+                        {{ item.title }}
+                      </span>
+                    </template>
+                  </v-radio>
+                </v-radio-group>
+              </v-sheet>
             </v-col>
+
             <v-col
               cols="12"
               md="6"
             >
-              <v-select
-                v-model="selectedInputType"
-                density="comfortable"
-                hide-details
-                :items="inputTypes"
-                label="Input"
-              />
+              <v-sheet
+                class="option-panel pa-3"
+                rounded="lg"
+              >
+                <div class="text-caption mb-1">
+                  Input type
+                </div>
+                <v-radio-group
+                  v-model="selectedInputType"
+                  hide-details
+                  inline
+                >
+                  <v-radio
+                    v-for="item in inputTypes"
+                    :key="item.value"
+                    :value="item.value"
+                  >
+                    <template #label>
+                      <span class="d-flex align-center ga-2">
+                        <v-icon
+                          :icon="item.icon"
+                          size="18"
+                        />
+                        {{ item.title }}
+                      </span>
+                    </template>
+                  </v-radio>
+                </v-radio-group>
+              </v-sheet>
             </v-col>
           </v-row>
 
@@ -488,8 +597,9 @@
             <v-textarea
               v-model="inputText"
               class="mt-4"
-              :label="`Enter ${selectedValueType === 'appid' ? 'appids' : 'app titles'}`"
-              rows="5"
+              :label="`Enter ${selectedValueType === 'appid' ? 'app IDs' : 'app titles'}`"
+              rows="6"
+              variant="outlined"
             />
 
             <v-expand-transition>
@@ -499,14 +609,14 @@
                   density="comfortable"
                   hint="Character that separates values"
                   label="Delimiter"
+                  variant="outlined"
                 />
               </div>
             </v-expand-transition>
           </template>
 
-          <!-- JSON Input Section -->
           <template v-else-if="selectedInputType === 'json'">
-            <p class="text-caption mt-4">
+            <p class="text-caption mt-4 mb-2">
               TIP: Import <a
                 href="https://store.steampowered.com/dynamicstore/userdata/"
                 rel="noopener noreferrer"
@@ -515,12 +625,12 @@
             </p>
             <v-textarea
               v-model="inputText"
-              class="mt-4"
               :error="!jsonIsValid"
               :error-messages="jsonIsValid ? '' : 'Invalid JSON format'"
               label="Enter JSON"
               :placeholder="JSON.stringify({ apps: { 400: { title: 'Portal' }, 620: { title: 'Portal 2' } } }, null, 2)"
-              rows="5"
+              rows="6"
+              variant="outlined"
             />
 
             <v-text-field
@@ -529,33 +639,51 @@
               :error-messages="jsonataError"
               :hint="selectedValueType === 'title' ? 'e.g. apps.*.title' : 'e.g. $keys(apps)'"
               label="JSON selector"
+              variant="outlined"
             />
           </template>
 
-          <!-- Validation Error -->
-          <div
+          <v-alert
             v-if="validationError"
-            class="text-error mt-2"
-          >
-            {{ validationError }}
-          </div>
-
-          <!-- Preview Section -->
-          <v-card
-            v-if="Array.isArray(preview) && preview.length > 0 && !validationError"
-            class="mt-4 text-disabled"
+            class="mt-3"
+            density="comfortable"
+            icon="mdi-alert-circle-outline"
+            type="error"
             variant="tonal"
           >
-            <v-card-title class="text-subtitle-1">
-              Parsed preview (first {{ previewCount }} items)
-            </v-card-title>
-            <v-card-text>
-              <p
-                v-for="(item, index) in preview"
-                :key="index"
+            {{ validationError }}
+          </v-alert>
+
+          <v-card
+            v-if="preview.length > 0 && !validationError"
+            class="mt-4 preview-card"
+            variant="outlined"
+          >
+            <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
+              <span>Parsed preview</span>
+              <v-chip
+                color="primary"
+                size="small"
+                variant="tonal"
               >
-                {{ item }}
-              </p>
+                first {{ previewCount }}
+              </v-chip>
+            </v-card-title>
+            <v-card-text class="preview-content">
+              <v-list
+                class="py-0"
+                density="compact"
+              >
+                <v-list-item
+                  v-for="(item, index) in preview"
+                  :key="`${item}-${index}`"
+                  rounded="lg"
+                >
+                  <v-list-item-title class="preview-text">
+                    {{ item }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
               <div
                 v-if="preview.length === previewCount"
                 class="text-caption text-center pa-2"
@@ -565,7 +693,8 @@
             </v-card-text>
           </v-card>
         </v-card-text>
-        <v-card-actions>
+
+        <v-card-actions class="px-6 pb-6 pt-0">
           <v-btn @click="internalValue = false">
             {{ isLoading ? 'Abort' : 'Close' }}
           </v-btn>
@@ -576,22 +705,63 @@
             color="primary"
             :disabled="isLoading || preview.length === 0 || !!validationError"
             variant="tonal"
-            @click="submit"
+            @click="submitParsedInput"
           >
-            Save apps
+            {{ selectedValueType === 'appid' ? 'Save apps' : 'Match titles' }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </template>
   </v-dialog>
+
+  <dialog-match-apps
+    v-model="matchingDialogOpen"
+    :collection="props.collection"
+    :loading="isLoading"
+    :titles="matchingTitles"
+    @save="submitMatchedApps"
+  />
 </template>
 
 <style lang="scss" scoped>
+  .dialog-add-shell {
+    background: rgb(var(--v-theme-surface));
+  }
+
+  .add-apps-body {
+    max-height: 68vh;
+    overflow-y: auto;
+  }
+
   .presets {
     padding: 0 8px 0 8px;
+
     :deep(.v-slide-group__prev--disabled),
     :deep(.v-slide-group__next--disabled) {
       display: none;
     }
+  }
+
+  .preset-chip {
+    transition: filter 0.2s ease;
+  }
+
+  .option-panel {
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+    background: rgb(var(--v-theme-surface));
+  }
+
+  .preview-card {
+    border-color: rgba(var(--v-theme-on-surface), 0.14);
+    background: rgb(var(--v-theme-surface));
+  }
+
+  .preview-content {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .preview-text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   }
 </style>
