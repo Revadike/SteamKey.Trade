@@ -107,15 +107,15 @@
   };
 
   const getConfidenceColor = (confidence) => {
-    if (confidence >= 85) {
+    if (confidence >= 90) {
       return 'success';
     }
 
-    if (confidence >= 65) {
+    if (confidence >= 60) {
       return 'info';
     }
 
-    if (confidence >= 45) {
+    if (confidence >= 30) {
       return 'warning';
     }
 
@@ -165,14 +165,6 @@
       typeLabel: getTypeLabel(type),
       subtitle: `Match: ${confidence}% | AppID: ${appId} | Type: ${getTypeLabel(type)}`
     };
-  };
-
-  const getSelectedOption = (row) => {
-    if (row.selectedOption) {
-      return row.selectedOption;
-    }
-
-    return row.options.find(option => Number(option.value) === Number(row.selectedAppId)) || null;
   };
 
   const setSelectedOption = (row, option) => {
@@ -394,32 +386,36 @@
   >
     <v-card class="dialog-match-shell">
       <v-card-title class="px-6 pt-5 pb-2">
-        <div class="d-flex flex-column flex-md-row align-md-center justify-space-between ga-2 w-100">
+        <div class="d-flex flex-column flex-md-row align-md-end align-start justify-space-between ga-2 w-100">
           <div>
-            <div class="text-overline">Step 2 of 2</div>
-            <div class="text-h6 font-weight-bold">Match App Titles</div>
+            <div class="text-overline">
+              Step 2 of 2
+            </div>
+            <div class="text-h6 font-weight-bold">
+              Match App Titles
+            </div>
             <div class="text-caption text-medium-emphasis">
-              {{ collection?.title ? `Collection: ${collection.title}` : 'Connect each title to the correct Steam app.' }}
+              Connect each title to the correct Steam app.
             </div>
           </div>
-          <div class="d-flex align-center ga-2 flex-wrap justify-end">
+          <div class="d-flex align-center ga-2 flex-wrap">
             <v-chip
               color="primary"
               prepend-icon="mdi-progress-clock"
               size="small"
               variant="tonal"
             >
-              {{ processedTitles }} / {{ totalTitles }}
+              <strong>{{ processedTitles }}</strong>&nbsp;of {{ totalTitles }}
             </v-chip>
 
             <v-chip
               :class="{ 'stats-chip-pulse': matchedPulse }"
               color="success"
-              prepend-icon="mdi-check-decagram"
+              prepend-icon="mdi-check-circle-outline"
               size="small"
               variant="tonal"
             >
-              {{ matchedCount }} matched
+              <strong>{{ matchedCount }}</strong>&nbsp;matched
             </v-chip>
 
             <v-chip
@@ -429,7 +425,7 @@
               size="small"
               variant="tonal"
             >
-              {{ sameTitleDetections }} same-title
+              <strong>{{ sameTitleDetections }}</strong>&nbsp;same title
             </v-chip>
 
             <v-chip
@@ -438,7 +434,7 @@
               size="small"
               variant="tonal"
             >
-              {{ unresolvedCount }} unresolved
+              <strong>{{ unresolvedCount }}</strong>&nbsp;unresolved
             </v-chip>
           </div>
         </div>
@@ -486,13 +482,14 @@
                   cols="12"
                   md="5"
                 >
-                  <div class="d-flex align-center ga-3 min-w-0">
+                  <div class="d-flex align-center ga-3 mb-md-0 mb-2 overflow-auto">
                     <v-img
-                      class="match-header-image rounded"
+                      class="rounded flex-grow-0"
                       cover
-                      height="54"
-                      :src="item.selectedOption?.header || resolveHeader(item.selectedAppId)"
-                      width="96"
+                      height="50"
+                      lazy-src="/applogo.svg"
+                      :src="resolveHeader(item.selectedAppId, item.selectedOption?.header)"
+                      width="100"
                     />
 
                     <div class="min-w-0 flex-grow-1">
@@ -500,49 +497,67 @@
                         class="user-input text-body-2 font-weight-medium text-truncate"
                         :title="item.title"
                       >
-                        "{{ item.title }}"
+                        <v-chip
+                          v-if="item.exactCollision"
+                          class="mr-1 mt-n1"
+                          color="warning"
+                          size="x-small"
+                          variant="tonal"
+                        >
+                          <v-icon
+                            color="warning"
+                            icon="mdi-alert-circle-outline"
+                            start
+                          />
+                          Same title
+                        </v-chip>
+
+                        <v-chip
+                          v-if="!item.selectedOption"
+                          class="mr-1 mt-n1"
+                          color="warning"
+                          size="x-small"
+                          variant="tonal"
+                        >
+                          <v-icon
+                            color="warning"
+                            icon="mdi-alert-circle-outline"
+                            start
+                          />
+                          No match
+                        </v-chip>
+
+                        <v-icon
+                          icon="mdi-format-quote-open"
+                          size="x-small"
+                        />
+                        {{ item.title }}
+                        <v-icon
+                          icon="mdi-format-quote-close"
+                          size="x-small"
+                        />
                       </div>
 
                       <div
                         v-if="item.status === 'matching'"
-                        class="text-caption text-medium-emphasis text-truncate"
+                        class="text-caption text-medium-emphasis text-wrap"
                       >
                         Matching...
                       </div>
 
                       <div
                         v-else-if="item.selectedOption"
-                        class="text-caption text-medium-emphasis text-truncate"
+                        class="text-caption text-medium-emphasis text-wrap"
                       >
-                        Matched <strong>{{ item.selectedOption.title }}</strong> with {{ item.selectedOption.confidence }}% <strong>confidence</strong>
+                        Matched <strong>{{ item.selectedOption.title }}</strong> with <strong :class="`text-${item.selectedOption.confidenceColor}`">{{ item.selectedOption.confidence }}%</strong> confidence
                       </div>
 
                       <div
                         v-else
-                        class="text-caption text-medium-emphasis text-truncate"
+                        class="text-caption text-medium-emphasis text-wrap"
                       >
                         No automatic match found. Search manually.
                       </div>
-                    </div>
-
-                    <div class="d-flex align-center ga-1">
-                      <v-chip
-                        v-if="item.exactCollision"
-                        color="warning"
-                        size="x-small"
-                        variant="tonal"
-                      >
-                        Same title
-                      </v-chip>
-
-                      <v-btn
-                        color="error"
-                        density="compact"
-                        icon="mdi-close"
-                        size="x-small"
-                        variant="text"
-                        @click="removeRow(item.id)"
-                      />
                     </div>
                   </div>
                 </v-col>
@@ -553,11 +568,9 @@
                   md="7"
                 >
                   <template v-if="item.manualMode">
-                    <div
-                      v-if="item.manualEditing"
-                      class="d-flex align-center ga-2"
-                    >
+                    <div class="d-flex align-center ga-2 justify-end">
                       <input-app-search
+                        v-if="item.manualEditing"
                         v-model="item.selectedAppId"
                         class="flex-grow-1"
                         density="compact"
@@ -567,33 +580,27 @@
                         @update:model-value="onManualAppSelected(item, $event)"
                       />
 
-                      <v-chip
-                        color="warning"
-                        size="small"
-                        variant="tonal"
-                      >
-                        No match
-                      </v-chip>
-                    </div>
-
-                    <div
-                      v-else
-                      class="d-flex align-center justify-end ga-2"
-                    >
-                      <v-chip
-                        color="success"
-                        size="small"
-                        variant="tonal"
-                      >
-                        100%
-                      </v-chip>
+                      <v-btn
+                        v-if="item.manualEditing"
+                        v-tooltip:top="'Remove from list'"
+                        class="rounded"
+                        color="error"
+                        density="compact"
+                        icon="mdi-close"
+                        size="large"
+                        variant="text"
+                        @click="removeRow(item.id)"
+                      />
 
                       <v-btn
+                        v-else
+                        v-tooltip:top="'Edit manual match'"
+                        class="rounded"
                         color="primary"
                         density="compact"
                         icon="mdi-pencil"
-                        size="small"
-                        variant="tonal"
+                        size="large"
+                        variant="text"
                         @click="editManualMatch(item)"
                       />
                     </div>
@@ -606,9 +613,9 @@
                         class="flex-grow-1 match-select"
                         density="compact"
                         hide-details
-                        :items="item.options"
                         item-title="title"
                         item-value="value"
+                        :items="item.options"
                         label="Select match"
                         :menu-props="{ maxHeight: 460 }"
                         variant="outlined"
@@ -618,32 +625,43 @@
                           <v-list-item v-bind="itemProps">
                             <template #prepend>
                               <v-img
-                                class="mr-3 rounded"
+                                class="rounded mr-4"
                                 cover
-                                height="54"
+                                height="50"
+                                lazy-src="/applogo.svg"
                                 :src="optionItem.raw.header"
-                                width="96"
+                                width="100"
                               />
                             </template>
 
-                            <v-list-item-title>{{ optionItem.raw.title }}</v-list-item-title>
-                            <v-list-item-subtitle>{{ optionItem.raw.subtitle }}</v-list-item-subtitle>
+                            <template #title>
+                              <v-list-item-title>
+                                {{ optionItem.raw.title }}
+                              </v-list-item-title>
+                            </template>
 
-                            <template #append>
-                              <div class="d-flex ga-1">
-                                <v-chip
-                                  size="x-small"
-                                  variant="tonal"
-                                >
-                                  {{ optionItem.raw.typeLabel }}
-                                </v-chip>
-
+                            <template #subtitle>
+                              <div class="d-flex align-center ga-1 flex-wrap">
                                 <v-chip
                                   :color="optionItem.raw.confidenceColor"
                                   size="x-small"
                                   variant="tonal"
                                 >
                                   {{ optionItem.raw.confidence }}%
+                                </v-chip>
+
+                                <v-chip
+                                  size="x-small"
+                                  variant="tonal"
+                                >
+                                  {{ optionItem.raw.appid }}
+                                </v-chip>
+
+                                <v-chip
+                                  size="x-small"
+                                  variant="tonal"
+                                >
+                                  {{ optionItem.raw.typeLabel }}
                                 </v-chip>
                               </div>
                             </template>
@@ -657,13 +675,16 @@
                         </template>
                       </v-select>
 
-                      <v-chip
-                        :color="getSelectedOption(item)?.confidenceColor || 'default'"
-                        size="small"
-                        variant="tonal"
-                      >
-                        {{ getSelectedOption(item)?.confidence || 0 }}%
-                      </v-chip>
+                      <v-btn
+                        v-tooltip:top="'Remove from list'"
+                        class="rounded"
+                        color="error"
+                        density="compact"
+                        icon="mdi-close"
+                        size="large"
+                        variant="text"
+                        @click="removeRow(item.id)"
+                      />
                     </div>
                   </template>
                 </v-col>
@@ -719,10 +740,6 @@
 
   .user-input {
     max-width: 100%;
-  }
-
-  .match-header-image {
-    flex-shrink: 0;
   }
 
   .stats-chip-pulse {

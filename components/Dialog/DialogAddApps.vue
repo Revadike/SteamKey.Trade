@@ -27,7 +27,7 @@
 
   const selectedValueType = ref('title');
   const valueTypes = [
-    { title: 'App IDs', value: 'appid', icon: 'mdi-numeric' },
+    { title: 'AppIDs', value: 'appid', icon: 'mdi-pound' },
     { title: 'App titles', value: 'title', icon: 'mdi-format-title' }
   ];
 
@@ -38,8 +38,8 @@
   ];
 
   const isAppIdMode = computed(() => selectedValueType.value === 'appid');
-  const stepOverline = computed(() => isAppIdMode.value ? 'Single-step import' : 'Step 1 of 2');
-  const dialogTitle = computed(() => isAppIdMode.value ? 'Add Apps by App ID' : 'Parse App Titles');
+  const stepOverline = computed(() => isAppIdMode.value ? '' : 'Step 1 of 2');
+  const dialogTitle = computed(() => isAppIdMode.value ? 'Add Apps by AppID' : 'Parse App Titles');
   const dialogSubtitle = computed(() => {
     return isAppIdMode.value
       ? 'Import from text or JSON and save directly to the collection.'
@@ -659,14 +659,14 @@
             class="mt-4 preview-card"
             variant="outlined"
           >
-            <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
+            <v-card-title class="text-subtitle-1 d-flex align-center ga-2">
               <span>Parsed preview</span>
               <v-chip
                 color="primary"
                 size="small"
                 variant="tonal"
               >
-                first {{ previewCount }}
+                First {{ previewCount }} only
               </v-chip>
             </v-card-title>
             <v-card-text class="preview-content">
@@ -757,11 +757,8 @@
   }
 
   .preview-content {
-    max-height: 220px;
-    overflow-y: auto;
-  }
-
-  .preview-text {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    .preview-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    }
   }
 </style>
