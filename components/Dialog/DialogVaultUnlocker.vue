@@ -10,17 +10,19 @@
 
   const emit = defineEmits(['unlocked']);
 
-  const check = async pwd => {
+  const check = async (pwd, persistPassword = true) => {
     const valid = await validate(pwd);
     if (valid) {
-      setPassword(pwd, forget.value ? 60 * 60 * 1000 : false);
+      if (persistPassword) {
+        setPassword(pwd, forget.value ? 60 * 60 * 1000 : false);
+      }
       emit('unlocked');
     }
     validPassword.value = valid;
   };
 
   if (validPassword.value) {
-    check(password.value);
+    check(password.value, false);
   }
 </script>
 
@@ -42,7 +44,7 @@
           <input-password
             v-model="passwordInput"
             hide-details
-            @keyup.enter="check(passwordInput)"
+            @keyup.enter="check(passwordInput, true)"
           />
           <v-checkbox
             v-model="forget"
@@ -61,7 +63,7 @@
           <v-btn
             :disabled="!passwordInput"
             variant="tonal"
-            @click="check(passwordInput)"
+            @click="check(passwordInput, true)"
           >
             Submit
           </v-btn>

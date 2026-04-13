@@ -29,14 +29,21 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   function setPassword(pwd, expiresIn) {
-    password.value = pwd;
+    password.value = pwd || null;
     if (expirer) {
       clearTimeout(expirer);
+      expirer = null;
     }
-    if (expiresIn) {
+
+    // Reset persisted expiry metadata unless a new valid timeout is provided.
+    passwordExpiry.value = null;
+
+    if (typeof expiresIn === 'number' && Number.isFinite(expiresIn) && expiresIn > 0) {
       passwordExpiry.value = Date.now() + expiresIn;
       expirer = setTimeout(() => {
         password.value = null;
+        passwordExpiry.value = null;
+        expirer = null;
       }, expiresIn);
     }
   }
@@ -129,7 +136,11 @@ export const useAuthStore = defineStore('auth', () => {
     // Restore the password expiry timer
     if (password.value && passwordExpiry.value) {
       const expiresIn = passwordExpiry.value - Date.now();
-      setPassword(password.value, expiresIn);
+      if (expiresIn > 0) {
+        setPassword(password.value, expiresIn);
+      } else {
+        setPassword(null);
+      }
     }
   }
 
