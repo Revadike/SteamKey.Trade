@@ -1,4 +1,4 @@
-import { getLastCheck, updateLastCheck, enqueueApps, dumpAppsMetadata } from '../_helpers/updater.js';
+import { getLastCheck, updateLastCheck, enqueueApps } from '../_helpers/updater.js';
 import { serve } from '../_helpers/edge.js';
 import { processSteamNames } from '../_processors/steam-names.js';
 import { processSteamTypes } from '../_processors/steam-types.js';
@@ -93,13 +93,6 @@ const databaseUpdate = async () => {
     console.error('Error processing GG Deals Prices:', pricesResult.errors);
   } else {
     await updateLastCheck('ggdeals_deals_check', now);
-  }
-
-  console.log('10. Dump apps metadata to storage');
-  try {
-    await dumpAppsMetadata();
-  } catch (error) {
-    console.error('Error dumping apps metadata:', error);
   }
 
   // Get peak memory usage (if available)
