@@ -27,16 +27,21 @@
   const rows = ref([]);
   const isSearching = ref(false);
   const runToken = ref(0);
-  const matchedPulse = ref(false);
+  const activeFilter = ref('all');
+  const frozenRowOrder = ref([]);
 
-  const scoreToPercent = (score) => {
-    return Math.round((1 - score) * 1000) / 10;
+  const isProcessedRow = (row) => {
+    return ['matched', 'unmatched'].includes(row.status);
+  };
+
+  const isMatchedRow = (row) => {
+    return Number(row.selectedAppId) > 0;
   };
 
   const totalTitles = computed(() => rows.value.length);
 
   const processedTitles = computed(() => {
-    return rows.value.filter(row => ['matched', 'unmatched'].includes(row.status)).length;
+    return rows.value.filter(isProcessedRow).length;
   });
 
   const progress = computed(() => {
@@ -49,15 +54,52 @@
   });
 
   const matchedCount = computed(() => {
-    return rows.value.filter(row => Number(row.selectedAppId) > 0).length;
+    return rows.value.filter(isMatchedRow).length;
   });
 
   const unresolvedCount = computed(() => {
-    return rows.value.filter(row => !Number(row.selectedAppId)).length;
+    return rows.value.filter(row => !isMatchedRow(row)).length;
   });
 
   const sameTitleDetections = computed(() => {
     return rows.value.filter(row => row.exactCollision).length;
+  });
+
+  const progressChips = computed(() => {
+    return [
+      {
+        key: 'processed',
+        color: 'primary',
+        icon: 'mdi-progress-clock',
+        value: processedTitles.value,
+        label: `of ${totalTitles.value}`,
+        visible: true
+      },
+      {
+        key: 'matched',
+        color: 'success',
+        icon: 'mdi-check-circle-outline',
+        value: matchedCount.value,
+        label: 'matched',
+        visible: true
+      },
+      {
+        key: 'same-title',
+        color: 'warning',
+        icon: 'mdi-alert-circle-outline',
+        value: sameTitleDetections.value,
+        label: 'same title',
+        visible: sameTitleDetections.value > 0
+      },
+      {
+        key: 'unresolved',
+        color: 'warning',
+        icon: 'mdi-alert-outline',
+        value: unresolvedCount.value,
+        label: 'unresolved',
+        visible: true
+      }
+    ];
   });
 
   const isBusy = computed(() => {
@@ -74,8 +116,34 @@
     );
   });
 
-  const sortedRows = computed(() => {
-    return rows.value
+  const filteredRows = computed(() => {
+    if (activeFilter.value === 'all') {
+      return rows.value;
+    }
+
+    return rows.value.filter((row) => {
+      if (activeFilter.value === 'processed') {
+        return isProcessedRow(row);
+      }
+
+      if (activeFilter.value === 'matched') {
+        return isMatchedRow(row);
+      }
+
+      if (activeFilter.value === 'same-title') {
+        return row.exactCollision;
+      }
+
+      if (activeFilter.value === 'unresolved') {
+        return !isMatchedRow(row);
+      }
+
+      return true;
+    });
+  });
+
+  const sortRowsByMatch = (sourceRows) => {
+    return sourceRows
       .slice()
       .sort((a, b) => {
         const aMatched = !!a.selectedOption;
@@ -96,14 +164,40 @@
 
         return a.title.localeCompare(b.title);
       });
+  };
+
+  const sortedRows = computed(() => {
+    if (!frozenRowOrder.value.length) {
+      return sortRowsByMatch(filteredRows.value);
+    }
+
+    const orderMap = new Map(frozenRowOrder.value.map((rowId, index) => [rowId, index]));
+
+    return filteredRows.value
+      .slice()
+      .sort((a, b) => {
+        return (orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER);
+      });
   });
+
+  const toggleFilter = (filterKey) => {
+    activeFilter.value = activeFilter.value === filterKey ? 'all' : filterKey;
+  };
 
   const getTypeLabel = (type) => {
     return typeLabelsByValue.value[type] || App.labels.unknown || 'Unknown';
   };
 
-  const normalizeTitle = (value) => {
-    return `${value ?? ''}`.trim().toLowerCase();
+  const sanitizeSearchTitle = (title) => {
+    const originalTitle = `${title ?? ''}`.trim();
+    const cleanedTitle = originalTitle
+      .replace(/\[[^\]]*]/g, ' ')
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/\{[^}]*}/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return cleanedTitle || originalTitle;
   };
 
   const getConfidenceColor = (confidence) => {
@@ -135,13 +229,13 @@
   };
 
   const hasDuplicateExactTitleMatches = (title, results) => {
-    const normalizedInput = normalizeTitle(title);
+    const normalizedInput = `${title ?? ''}`.trim().toLowerCase();
     if (!normalizedInput) {
       return false;
     }
 
     const exactMatches = results.filter(result => {
-      return (result?.item?.names || []).some(name => normalizeTitle(name) === normalizedInput);
+      return (result?.item?.names || []).some(name => `${name ?? ''}`.trim().toLowerCase() === normalizedInput);
     });
 
     return exactMatches.length > 1;
@@ -149,7 +243,7 @@
 
   const mapResultToOption = (result) => {
     const rawScore = Math.max(0, Math.min(1, Number(result?.score || 1)));
-    const confidence = scoreToPercent(rawScore);
+    const confidence = Math.round((1 - rawScore) * 1000) / 10;
     const appId = Number(result?.item?.appid || 0);
     const type = result?.item?.type || App.enums.type.unknown;
 
@@ -221,6 +315,8 @@
   const resetState = () => {
     rows.value = [];
     isSearching.value = false;
+    activeFilter.value = 'all';
+    frozenRowOrder.value = [];
   };
 
   const abortMatching = () => {
@@ -229,6 +325,9 @@
   };
 
   const startMatching = async () => {
+    activeFilter.value = 'all';
+    frozenRowOrder.value = [];
+
     const cleanTitles = props.titles
       .map(title => `${title ?? ''}`.trim())
       .filter(Boolean)
@@ -269,7 +368,7 @@
           row.status = 'matching';
         });
 
-        const batchResults = await searchMany(batchRows.map(row => row.title), 12);
+        const batchResults = await searchMany(batchRows.map(row => sanitizeSearchTitle(row.title)), 12);
 
         if (runToken.value !== currentToken || !modelValue.value) {
           return;
@@ -293,6 +392,7 @@
     } finally {
       if (runToken.value === currentToken) {
         isSearching.value = false;
+        frozenRowOrder.value = sortRowsByMatch(rows.value).map(row => row.id);
       }
     }
   };
@@ -334,8 +434,34 @@
     setSelectedOption(row, null);
   };
 
+  const isManualMatched = (row) => {
+    return row.manualMode && !!row.selectedOption && !row.manualEditing;
+  };
+
+  const rowActionColor = (row) => {
+    return isManualMatched(row) ? 'primary' : 'error';
+  };
+
+  const rowActionIcon = (row) => {
+    return isManualMatched(row) ? 'mdi-pencil' : 'mdi-close';
+  };
+
+  const rowActionTooltip = (row) => {
+    return isManualMatched(row) ? 'Edit manual match' : 'Remove from list';
+  };
+
   const removeRow = (rowId) => {
     rows.value = rows.value.filter(row => row.id !== rowId);
+    frozenRowOrder.value = frozenRowOrder.value.filter(id => id !== rowId);
+  };
+
+  const onRowAction = (row) => {
+    if (isManualMatched(row)) {
+      editManualMatch(row);
+      return;
+    }
+
+    removeRow(row.id);
   };
 
   const closeDialog = () => {
@@ -350,15 +476,6 @@
 
     emit('save', appIds);
   };
-
-  watch(matchedCount, (count, previous = 0) => {
-    if (count > previous) {
-      matchedPulse.value = true;
-      setTimeout(() => {
-        matchedPulse.value = false;
-      }, 300);
-    }
-  });
 
   watch(modelValue, (isOpen) => {
     if (isOpen) {
@@ -384,7 +501,7 @@
     :persistent="isBusy"
     scrollable
   >
-    <v-card class="dialog-match-shell">
+    <v-card>
       <v-card-title class="px-6 pt-5 pb-2">
         <div class="d-flex flex-column flex-md-row align-md-end align-start justify-space-between ga-2 w-100">
           <div>
@@ -400,41 +517,18 @@
           </div>
           <div class="d-flex align-center ga-2 flex-wrap">
             <v-chip
-              color="primary"
-              prepend-icon="mdi-progress-clock"
+              v-for="chip in progressChips.filter(entry => entry.visible)"
+              :key="`${chip.key}-${chip.value}-${chip.label}`"
+              class="stats-chip"
+              :class="{ 'stats-chip-active': activeFilter === chip.key }"
+              :color="chip.color"
+              :prepend-icon="chip.icon"
               size="small"
-              variant="tonal"
+              :variant="activeFilter === chip.key ? 'flat' : 'tonal'"
+              @click="toggleFilter(chip.key)"
             >
-              <strong>{{ processedTitles }}</strong>&nbsp;of {{ totalTitles }}
-            </v-chip>
-
-            <v-chip
-              :class="{ 'stats-chip-pulse': matchedPulse }"
-              color="success"
-              prepend-icon="mdi-check-circle-outline"
-              size="small"
-              variant="tonal"
-            >
-              <strong>{{ matchedCount }}</strong>&nbsp;matched
-            </v-chip>
-
-            <v-chip
-              v-if="sameTitleDetections > 0"
-              color="warning"
-              prepend-icon="mdi-alert-circle-outline"
-              size="small"
-              variant="tonal"
-            >
-              <strong>{{ sameTitleDetections }}</strong>&nbsp;same title
-            </v-chip>
-
-            <v-chip
-              color="warning"
-              prepend-icon="mdi-alert-outline"
-              size="small"
-              variant="tonal"
-            >
-              <strong>{{ unresolvedCount }}</strong>&nbsp;unresolved
+              <strong>{{ chip.value }}</strong>
+              <span class="ml-1">{{ chip.label }}</span>
             </v-chip>
           </div>
         </div>
@@ -461,11 +555,18 @@
           No titles to match.
         </div>
 
+        <div
+          v-else-if="!sortedRows.length"
+          class="text-center py-10 text-medium-emphasis"
+        >
+          No titles match this filter.
+        </div>
+
         <v-virtual-scroll
           v-else
           class="match-list"
           height="62vh"
-          :item-height="112"
+          :item-height="132"
           :items="sortedRows"
         >
           <template #default="{ item }">
@@ -482,7 +583,7 @@
                   cols="12"
                   md="5"
                 >
-                  <div class="d-flex align-center ga-3 mb-md-0 mb-2 overflow-auto">
+                  <div class="d-flex align-start ga-3 mb-md-0 mb-2">
                     <v-img
                       class="rounded flex-grow-0"
                       cover
@@ -493,8 +594,20 @@
                     />
 
                     <div class="min-w-0 flex-grow-1">
+                      <v-btn
+                        v-if="!$vuetify.display.mdAndUp"
+                        v-tooltip:top="rowActionTooltip(item)"
+                        class="rounded float-right mt-n1"
+                        :color="rowActionColor(item)"
+                        density="compact"
+                        :icon="rowActionIcon(item)"
+                        size="large"
+                        variant="text"
+                        @click="onRowAction(item)"
+                      />
+
                       <div
-                        class="user-input text-body-2 font-weight-medium text-truncate"
+                        class="user-input text-body-2 font-weight-medium"
                         :title="item.title"
                       >
                         <v-chip
@@ -525,6 +638,21 @@
                             start
                           />
                           No match
+                        </v-chip>
+
+                        <v-chip
+                          v-if="isManualMatched(item)"
+                          class="mr-1 mt-n1"
+                          color="info"
+                          size="x-small"
+                          variant="tonal"
+                        >
+                          <v-icon
+                            color="info"
+                            icon="mdi-pencil-circle-outline"
+                            start
+                          />
+                          Manual
                         </v-chip>
 
                         <v-icon
@@ -563,16 +691,17 @@
                 </v-col>
 
                 <v-col
+                  v-if="!isManualMatched(item) || $vuetify.display.mdAndUp"
                   class="py-1"
                   cols="12"
                   md="7"
                 >
-                  <template v-if="item.manualMode">
-                    <div class="d-flex align-center ga-2 justify-end">
+                  <div class="d-flex align-start align-md-center ga-2 row-controls">
+                    <template v-if="item.manualMode">
                       <input-app-search
                         v-if="item.manualEditing"
                         v-model="item.selectedAppId"
-                        class="flex-grow-1"
+                        class="flex-grow-1 row-control-input"
                         density="compact"
                         hide-details="auto"
                         label="Search app manually"
@@ -580,113 +709,92 @@
                         @update:model-value="onManualAppSelected(item, $event)"
                       />
 
-                      <v-btn
-                        v-if="item.manualEditing"
-                        v-tooltip:top="'Remove from list'"
-                        class="rounded"
-                        color="error"
-                        density="compact"
-                        icon="mdi-close"
-                        size="large"
-                        variant="text"
-                        @click="removeRow(item.id)"
-                      />
-
-                      <v-btn
+                      <div
                         v-else
-                        v-tooltip:top="'Edit manual match'"
-                        class="rounded"
-                        color="primary"
-                        density="compact"
-                        icon="mdi-pencil"
-                        size="large"
-                        variant="text"
-                        @click="editManualMatch(item)"
+                        class="row-control-placeholder flex-grow-1"
                       />
-                    </div>
-                  </template>
+                    </template>
 
-                  <template v-else>
-                    <div class="d-flex align-center ga-2">
-                      <v-select
-                        v-model="item.selectedAppId"
-                        class="flex-grow-1 match-select"
-                        density="compact"
-                        hide-details
-                        item-title="title"
-                        item-value="value"
-                        :items="item.options"
-                        label="Select match"
-                        :menu-props="{ maxHeight: 460 }"
-                        variant="outlined"
-                        @update:model-value="onSelectOption(item, $event)"
-                      >
-                        <template #item="{ item: optionItem, props: itemProps }">
-                          <v-list-item v-bind="itemProps">
-                            <template #prepend>
-                              <v-img
-                                class="rounded mr-4"
-                                cover
-                                height="50"
-                                lazy-src="/applogo.svg"
-                                :src="optionItem.raw.header"
-                                width="100"
-                              />
-                            </template>
+                    <v-select
+                      v-else
+                      v-model="item.selectedAppId"
+                      class="flex-grow-1 match-select row-control-input"
+                      density="compact"
+                      hide-details
+                      item-title="title"
+                      item-value="value"
+                      :items="item.options"
+                      label="Select match"
+                      :menu-props="{ maxHeight: 460 }"
+                      variant="outlined"
+                      @update:model-value="onSelectOption(item, $event)"
+                    >
+                      <template #item="{ item: optionItem, props: itemProps }">
+                        <v-list-item v-bind="itemProps">
+                          <template #prepend>
+                            <v-img
+                              class="rounded mr-4"
+                              cover
+                              height="50"
+                              lazy-src="/applogo.svg"
+                              :src="optionItem.raw.header"
+                              width="100"
+                            />
+                          </template>
 
-                            <template #title>
-                              <v-list-item-title>
-                                {{ optionItem.raw.title }}
-                              </v-list-item-title>
-                            </template>
+                          <template #title>
+                            <v-list-item-title>
+                              {{ optionItem.raw.title }}
+                            </v-list-item-title>
+                          </template>
 
-                            <template #subtitle>
-                              <div class="d-flex align-center ga-1 flex-wrap">
-                                <v-chip
-                                  :color="optionItem.raw.confidenceColor"
-                                  size="x-small"
-                                  variant="tonal"
-                                >
-                                  {{ optionItem.raw.confidence }}%
-                                </v-chip>
+                          <template #subtitle>
+                            <div class="d-flex align-center ga-1 flex-wrap">
+                              <v-chip
+                                :color="optionItem.raw.confidenceColor"
+                                size="x-small"
+                                variant="tonal"
+                              >
+                                {{ optionItem.raw.confidence }}%
+                              </v-chip>
 
-                                <v-chip
-                                  size="x-small"
-                                  variant="tonal"
-                                >
-                                  {{ optionItem.raw.appid }}
-                                </v-chip>
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                              >
+                                {{ optionItem.raw.appid }}
+                              </v-chip>
 
-                                <v-chip
-                                  size="x-small"
-                                  variant="tonal"
-                                >
-                                  {{ optionItem.raw.typeLabel }}
-                                </v-chip>
-                              </div>
-                            </template>
-                          </v-list-item>
-                        </template>
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                              >
+                                {{ optionItem.raw.typeLabel }}
+                              </v-chip>
+                            </div>
+                          </template>
+                        </v-list-item>
+                      </template>
 
-                        <template #selection="{ item: optionItem }">
-                          <span class="match-selection-text">
-                            {{ optionItem.raw.title }} - {{ optionItem.raw.subtitle }}
-                          </span>
-                        </template>
-                      </v-select>
+                      <template #selection="{ item: optionItem }">
+                        <span class="match-selection-text">
+                          {{ optionItem.raw.title }} - {{ optionItem.raw.subtitle }}
+                        </span>
+                      </template>
+                    </v-select>
 
-                      <v-btn
-                        v-tooltip:top="'Remove from list'"
-                        class="rounded"
-                        color="error"
-                        density="compact"
-                        icon="mdi-close"
-                        size="large"
-                        variant="text"
-                        @click="removeRow(item.id)"
-                      />
-                    </div>
-                  </template>
+                    <v-btn
+                      v-if="$vuetify.display.mdAndUp"
+                      v-tooltip:top="rowActionTooltip(item)"
+                      class="rounded"
+                      :color="rowActionColor(item)"
+                      density="compact"
+                      :icon="rowActionIcon(item)"
+                      size="large"
+                      variant="text"
+                      @click="onRowAction(item)"
+                    />
+                  </div>
                 </v-col>
               </v-row>
             </div>
@@ -722,10 +830,6 @@
 </template>
 
 <style lang="scss" scoped>
-  .dialog-match-shell {
-    background: rgb(var(--v-theme-surface));
-  }
-
   .match-list {
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.06);
   }
@@ -739,15 +843,39 @@
   }
 
   .user-input {
-    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  .stats-chip-pulse {
-    animation: chip-pulse 0.3s ease;
+  .stats-chip {
+    animation: chip-pulse 0.32s ease;
+    cursor: pointer;
+  }
+
+  .stats-chip-active {
+    outline: 1px solid rgba(var(--v-theme-on-surface), 0.16);
   }
 
   .match-select {
     min-width: 250px;
+  }
+
+  .row-controls {
+    width: 100%;
+  }
+
+  .row-control-input {
+    width: 100%;
+  }
+
+  .row-control-placeholder {
+    min-height: 40px;
+  }
+
+  @media (max-width: 959px) {
+    .row-controls {
+      align-items: flex-start;
+    }
   }
 
   .match-selection-text {
@@ -782,7 +910,7 @@
     }
 
     50% {
-      transform: scale(1.03);
+      transform: scale(1.02);
     }
 
     100% {
