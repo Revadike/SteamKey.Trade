@@ -72,6 +72,10 @@
       type: Array,
       default: () => []
     },
+    quickFilters: {
+      type: Array,
+      default: () => []
+    },
     filtersInHeader: {
       type: Boolean,
       default: false
@@ -79,6 +83,10 @@
     filtersInUrl: {
       type: Boolean,
       default: false
+    },
+    collectionFilters: {
+      type: [Array, Boolean],
+      default: null
     },
     rowLink: {
       type: [String, Object, Function],
@@ -96,7 +104,19 @@
     default: () => []
   });
 
-  const activeFilters = ref([]);
+  const activeFilters = ref({
+    fields: [],
+    collections: {
+      any: false,
+      only: [],
+      exclude: []
+    }
+  });
+  const activeFilterCount = computed(() => {
+    return activeFilters.value.fields.length
+      + activeFilters.value.collections.only.length
+      + activeFilters.value.collections.exclude.length;
+  });
   const activeHeaders = computed(() => {
     if (props.filtersInHeader) {
       return [
@@ -107,7 +127,15 @@
     return props.headers;
   });
 
-  const waitingForUrlFilters = ref(props.filtersInUrl && route.query.filters);
+  const filtersSyncedWithUrl = computed(() => {
+    return props.filtersInUrl || props.quickFilters.length > 0;
+  });
+
+  const hasDialogFilters = computed(() => {
+    return props.filters.length > 0 || Array.isArray(props.collectionFilters);
+  });
+
+  const waitingForUrlFilters = ref(filtersSyncedWithUrl.value && route.query.filters);
   const waitingForUrlSort = ref(props.sortInUrl && route.query.sort && route.query.order);
 
   watch([
@@ -116,7 +144,7 @@
     // () => props.mapItem,
     // () => props.rowProps,
     () => selectedOnly.value,
-    () => activeFilters.value.length
+    () => activeFilters.value
   ], () => nextTick(refresh), { deep: true });
 
   watch(() => selected.value, newValue => {
@@ -168,23 +196,79 @@
   };
 
   const loadFiltersFromUrl = async () => {
-    if (!props.filtersInUrl) {
+    if (!filtersSyncedWithUrl.value) {
+      waitingForUrlFilters.value = false;
       return;
     }
-    const filters = route.query.filters ? await decodeFromQuery(route.query.filters) : [];
-    if (filters.length) {
-      activeFilters.value = filters;
+
+    if (!route.query.filters) {
+      activeFilters.value = {
+        fields: [],
+        collections: {
+          any: false,
+          only: [],
+          exclude: []
+        }
+      };
       waitingForUrlFilters.value = false;
-    } else {
-      activeFilters.value = [];
+      return;
+    }
+
+    try {
+      const filters = await decodeFromQuery(route.query.filters);
+      const hasValidShape = filters
+        && typeof filters === 'object'
+        && Array.isArray(filters.fields)
+        && filters.collections
+        && typeof filters.collections === 'object'
+        && Array.isArray(filters.collections.only)
+        && Array.isArray(filters.collections.exclude);
+
+      activeFilters.value = hasValidShape
+        ? filters
+        : {
+          fields: [],
+          collections: {
+            any: false,
+            only: [],
+            exclude: []
+          }
+        };
+    } catch (error) {
+      console.error(error);
+      activeFilters.value = {
+        fields: [],
+        collections: {
+          any: false,
+          only: [],
+          exclude: []
+        }
+      };
+    } finally {
+      waitingForUrlFilters.value = false;
     }
   };
 
   onMounted(() => loadSortFromUrl());
   watch(() => route.query, () => {
     loadSortFromUrl();
+    waitingForUrlFilters.value = !!(filtersSyncedWithUrl.value && route.query.filters);
     loadFiltersFromUrl();
   }, { immediate: true });
+  watch(filtersSyncedWithUrl, (enabled) => {
+    if (!enabled) {
+      waitingForUrlFilters.value = false;
+      return;
+    }
+
+    if (!route.query.filters) {
+      waitingForUrlFilters.value = false;
+      return;
+    }
+
+    waitingForUrlFilters.value = true;
+    loadFiltersFromUrl();
+  });
   watch(sortBy, () => {
     currentPage.value = 1;
     tablesStore.setSortBy(resolvedTableId.value, sortBy.value);
@@ -220,7 +304,14 @@
   };
 
   const clearFilters = () => {
-    activeFilters.value = [];
+    activeFilters.value = {
+      fields: [],
+      collections: {
+        any: false,
+        only: [],
+        exclude: []
+      }
+    };
     waitingForUrlFilters.value = false;
     loadItems({ itemsPerPage: itemsPerPage.value, page: 1, search: search.value, sortBy: sortBy.value });
   };
@@ -233,6 +324,40 @@
 
   const mapper = result => {
     return props.mapItem(result);
+  };
+
+  const isQueryBuilder = (value) => {
+    return !!value
+      && typeof value === 'object'
+      && typeof value.range === 'function';
+  };
+
+  const resolveQueryBuilder = async (queryResult) => {
+    let resolved = queryResult;
+
+    // Supabase builders are thenable; awaiting them executes the query.
+    if (resolved && typeof resolved.then === 'function' && !isQueryBuilder(resolved)) {
+      resolved = await resolved;
+    }
+
+    if (resolved?.query) {
+      resolved = resolved.query;
+    }
+
+    if (!isQueryBuilder(resolved)) {
+      throw new Error('queryGetter must return a Supabase query builder.');
+    }
+
+    return { query: resolved };
+  };
+
+  const applyQueryMethod = (query, method, ...args) => {
+    if (typeof query?.[method] !== 'function') {
+      return query;
+    }
+
+    const nextQuery = query[method](...args);
+    return nextQuery ?? query;
   };
 
   const remap = async () => {
@@ -259,10 +384,10 @@
     currentPage.value = page;
 
     try {
-      let query = props.queryGetter(selectedOnly.value && selected.value.length);
+      let { query } = await resolveQueryBuilder(props.queryGetter(selectedOnly.value && selected.value.length, activeFilters.value));
 
       if (search && props.searchField) {
-        query = query.ilike(props.searchField, `%${search}%`);
+        query = applyQueryMethod(query, 'ilike', props.searchField, `%${search}%`);
 
         // // This only matches whole words, not partials
         // query = query.textSearch(props.searchField, search, {
@@ -271,9 +396,12 @@
         // });
       }
 
-      if (activeFilters.value.length) {
-        activeFilters.value.forEach(filter => {
+      if (activeFilters.value.fields.length) {
+        activeFilters.value.fields.forEach(filter => {
           const { field, operation, value } = filter;
+          if (!field || !operation) {
+            return;
+          }
 
           // Format date values for database queries
           let formattedValue = value;
@@ -283,55 +411,66 @@
 
           if (operation === 'is') {
             if (value === 'null') {
-              query = query.is(field, null);
+              query = applyQueryMethod(query, 'is', field, null);
             } else if (value === 'not.null') {
-              query = query.not(field, 'is', null);
+              query = applyQueryMethod(query, 'not', field, 'is', null);
             }
           } else if (operation === 'eq') {
-            query = query.eq(field, formattedValue);
+            query = applyQueryMethod(query, 'eq', field, formattedValue);
           } else if (operation === 'neq') {
-            query = query.neq(field, formattedValue);
+            query = applyQueryMethod(query, 'neq', field, formattedValue);
           } else if (operation === 'gt') {
-            query = query.gt(field, formattedValue);
+            query = applyQueryMethod(query, 'gt', field, formattedValue);
           } else if (operation === 'gte') {
-            query = query.gte(field, formattedValue);
+            query = applyQueryMethod(query, 'gte', field, formattedValue);
           } else if (operation === 'lt') {
-            query = query.lt(field, formattedValue);
+            query = applyQueryMethod(query, 'lt', field, formattedValue);
           } else if (operation === 'lte') {
-            query = query.lte(field, formattedValue);
+            query = applyQueryMethod(query, 'lte', field, formattedValue);
           } else if (operation === 'like') {
-            query = query.like(field, formattedValue);
+            query = applyQueryMethod(query, 'like', field, formattedValue);
           } else if (operation === 'ilike') {
-            query = query.ilike(field, `%${formattedValue}%`);
+            query = applyQueryMethod(query, 'ilike', field, `%${formattedValue}%`);
           } else if (operation === 'cs') {
-            query = query.contains(field, formattedValue);
+            query = applyQueryMethod(query, 'contains', field, formattedValue);
           } else if (operation === 'cd') {
-            query = query.containedBy(field, formattedValue);
+            query = applyQueryMethod(query, 'containedBy', field, formattedValue);
           } else if (operation === 'ov') {
-            query = query.overlaps(field, formattedValue);
+            query = applyQueryMethod(query, 'overlaps', field, formattedValue);
           } else if (operation === 'in') {
-            query = query.in(field, formattedValue);
+            query = applyQueryMethod(query, 'in', field, formattedValue);
           } else if (operation === 'or') {
-            query = query.or(value);
+            query = applyQueryMethod(query, 'or', value);
           }
         });
       }
 
       if (sortBy?.length) {
         sortBy.forEach(({ key, order }) => {
-          query = query.order(props.mapKey(key), {
+          query = applyQueryMethod(query, 'order', props.mapKey(key), {
             ascending: order === 'asc',
             nullsFirst: false
           });
         });
       }
 
-      // Force returning the count
+      // Force returning count when the query builder exposes mutable headers.
       const isLastPage = page * itemsPerPage >= totalItems.value;
-      query.headers.append('Prefer', isLastPage ? 'count=exact' : 'count=estimated');
+      if (query?.headers && typeof query.headers.append === 'function') {
+        query.headers.append('Prefer', isLastPage ? 'count=exact' : 'count=estimated');
+      }
+
+      let executableQuery = query;
+      if (typeof executableQuery.abortSignal === 'function') {
+        executableQuery = applyQueryMethod(executableQuery, 'abortSignal', signal);
+      }
+
+      if (typeof executableQuery.range !== 'function') {
+        throw new Error('Query builder does not support range pagination.');
+      }
 
       // TODO: Use cursor-based pagination for better performance on large datasets
-      const { data, error, count } = await query.abortSignal(signal).range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
+      const { data, error, count } = await executableQuery.range((page - 1) * itemsPerPage, page * itemsPerPage - 1); // for some reason it adds 1 to the end index
 
       // Check if request was aborted
       if (signal.aborted || requestId !== activeRequestId) {
@@ -344,7 +483,17 @@
 
       queryResults = data;
       await remap();
-      totalItems.value = count;
+
+      if (typeof count === 'number') {
+        totalItems.value = count;
+      } else {
+        // Fallback when count is unavailable from PostgREST response headers.
+        const loadedCount = Array.isArray(data) ? data.length : 0;
+        const fallbackCount = (page - 1) * itemsPerPage + loadedCount;
+        totalItems.value = page === 1
+          ? fallbackCount
+          : Math.max(totalItems.value, fallbackCount);
+      }
     } catch (error) {
       if (error?.name !== 'AbortError') {
         console.error(error);
@@ -438,7 +587,7 @@
         v-bind="attrs"
       />
       <div
-        v-if="showSelect || searchField || props.filters.length"
+        v-if="showSelect || searchField || hasDialogFilters || props.quickFilters.length"
         class="d-flex justify-end align-center ga-2 px-2 pt-2"
       >
         <v-text-field
@@ -461,24 +610,32 @@
           {{ selected.length }}{{ maxSelection ? `/${maxSelection}` : '' }} selected
         </v-chip>
 
+        <s-quick-filters
+          v-if="props.quickFilters.length"
+          chip-size="large"
+          class="mr-n2"
+          :filters="props.quickFilters"
+        />
+
         <dialog-data-filter
-          v-if="props.filters.length && !filtersInHeader"
+          v-if="hasDialogFilters && !filtersInHeader"
           :active-filters="activeFilters"
-          :filters="props.filters"
-          :sync-with-url="filtersInUrl"
+          :collection-filters="props.collectionFilters"
+          :field-filters="props.filters"
+          :sync-with-url="filtersSyncedWithUrl"
           @apply="applyFilters"
           @clear="clearFilters"
         >
           <template #activator="{ props: dialogProps }">
             <v-badge
               color="primary"
-              :content="activeFilters.length.toString()"
-              :model-value="activeFilters.length > 0"
+              :content="activeFilterCount.toString()"
+              :model-value="activeFilterCount > 0"
               offset-x="5"
               offset-y="5"
             >
               <v-btn
-                v-tooltip:top="activeFilters.length > 0 ? `${activeFilters.length} filter${activeFilters.length > 1 ? 's' : ''} applied` : 'Apply filters'"
+                v-tooltip:top="activeFilterCount > 0 ? `${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} applied` : 'Apply filters'"
                 v-bind="dialogProps"
                 icon="mdi-filter"
                 variant="text"
@@ -498,23 +655,24 @@
 
     <template #[`header.table-data-filters-slot`]>
       <dialog-data-filter
-        v-if="props.filters.length"
+        v-if="hasDialogFilters"
         :active-filters="activeFilters"
-        :filters="props.filters"
-        :sync-with-url="filtersInUrl"
+        :collection-filters="props.collectionFilters"
+        :field-filters="props.filters"
+        :sync-with-url="filtersSyncedWithUrl"
         @apply="applyFilters"
         @clear="clearFilters"
       >
         <template #activator="{ props: dialogProps }">
           <v-badge
             color="primary"
-            :content="activeFilters.length.toString()"
-            :model-value="activeFilters.length > 0"
+            :content="activeFilterCount.toString()"
+            :model-value="activeFilterCount > 0"
             offset-x="5"
             offset-y="5"
           >
             <v-btn
-              v-tooltip:top="activeFilters.length > 0 ? `${activeFilters.length} filter${activeFilters.length > 1 ? 's' : ''} applied` : 'Apply filters'"
+              v-tooltip:top="activeFilterCount > 0 ? `${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} applied` : 'Apply filters'"
               v-bind="dialogProps"
               icon="mdi-filter"
               variant="text"

@@ -280,6 +280,7 @@ export class Collection extends Entity {
       throw error;
     }
 
+    await this.refreshUpdatedAt();
     return true;
   }
 
@@ -423,6 +424,7 @@ export class Collection extends Entity {
       }
     }
 
+    await this.refreshUpdatedAt();
     return true;
   }
 
@@ -454,6 +456,7 @@ export class Collection extends Entity {
       throw error;
     }
 
+    await this.refreshUpdatedAt();
     return true;
   }
 
@@ -467,6 +470,25 @@ export class Collection extends Entity {
       .from(Collection.apps.table)
       .delete()
       .eq(Collection.apps.fields.collectionId, this.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await this.refreshUpdatedAt();
+    return true;
+  }
+
+  /**
+   * Refreshes the `updated_at` timestamp of the collection to the current time.
+   * @returns {Promise<boolean>} Whether the timestamp was refreshed.
+   * @throws Will throw an error if the timestamp cannot be refreshed.
+   */
+  async refreshUpdatedAt() {
+    const { error } = await this._client
+      .from(Collection.table)
+      .update({ [Collection.fields.updatedAt]: new Date().toISOString() })
+      .eq(Collection.fields.id, this.id);
 
     if (error) {
       throw error;
@@ -562,6 +584,38 @@ export class Collection extends Entity {
     }
 
     return data;
+  }
+
+  /**
+   * Get filtered app IDs of the user collections.
+   * @param {import('@supabase/supabase-js').SupabaseClient} supabase - The Supabase client.
+   * @param {Object} [options] - Options for filtering apps.
+   * @param {string[]} [options.onlyCollectionIds] - Only include apps from these collection IDs.
+   * @param {string[]} [options.excludeCollectionIds] - Exclude apps from these collection IDs.
+   * @param {boolean} [options.anyCollections=false] - Whether to use OR instead of AND when filtering by multiple collection IDs.
+   * @param {number[]} [options.includeAppIds] - Include these app IDs in addition to collection filters.
+   * @returns {Promise<Object[]>} The filtered app IDs list.
+   */
+  static getCollectionFilteredApps(supabase, {
+    onlyCollectionIds = null,
+    excludeCollectionIds = null,
+    anyCollections = false,
+    includeAppIds = null
+  } = {}) {
+    if (!supabase) {
+      throw new Error('Missing required parameters');
+    }
+
+    if ([onlyCollectionIds, excludeCollectionIds, includeAppIds].some((ids) => ids && !Array.isArray(ids))) {
+      throw new Error('Invalid collection IDs');
+    }
+
+    return supabase.rpc('get_collection_filtered_apps', {
+      p_only_collection_ids: onlyCollectionIds,
+      p_exclude_collection_ids: excludeCollectionIds,
+      p_any_collections: Boolean(anyCollections),
+      p_include_app_ids: includeAppIds
+    });
   }
 
   /**

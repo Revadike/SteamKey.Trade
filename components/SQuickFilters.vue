@@ -5,6 +5,10 @@
     filters: {
       type: Array,
       required: true
+    },
+    chipSize: {
+      type: String,
+      default: 'default'
     }
   });
 
@@ -49,7 +53,6 @@
 
 <template>
   <v-chip-group
-    class="pa-2"
     :model-value="activeFilter"
     show-arrows
   >
@@ -58,6 +61,7 @@
       :key="filter.title"
       filter
       prepend-icon="mdi-filter"
+      :size="chipSize"
       :text="filter.title"
       :value="filter.value"
       variant="tonal"

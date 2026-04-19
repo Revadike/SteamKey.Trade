@@ -160,6 +160,58 @@
   const selectedApps = ref({ sender: [], receiver: [] });
   const mandatoryApps = ref({ sender: [], receiver: [] });
 
+  const { data: senderMasterCollections } = useSupabaseData('master-collections', { userId: users.value.sender }, {
+    watch: [() => users.value.sender]
+  });
+  const { data: receiverMasterCollections } = useSupabaseData('master-collections', { userId: users.value.receiver }, {
+    watch: [() => users.value.receiver]
+  });
+
+  const getPartnerSide = (side) => side === 'sender' ? 'receiver' : 'sender';
+
+  const partnerMasterCollections = computed(() => ({
+    sender: senderMasterCollections.value || [],
+    receiver: receiverMasterCollections.value || []
+  }));
+
+  const getQuickFilters = (side) => {
+    // Quick filters are built from prefetched partner master collections.
+    const collections = partnerMasterCollections.value[getPartnerSide(side)] || [];
+    const wishlistCollection = collections.find((collection) => collection.type === Collection.enums.type.wishlist);
+    const libraryCollection = collections.find((collection) => collection.type === Collection.enums.type.library);
+    const quickFilters = [];
+
+    if (wishlistCollection?.id) {
+      quickFilters.push({
+        title: 'Wished',
+        value: {
+          fields: [],
+          collections: {
+            any: false,
+            only: [wishlistCollection.id],
+            exclude: []
+          }
+        }
+      });
+    }
+
+    if (libraryCollection?.id) {
+      quickFilters.push({
+        title: 'Unowned',
+        value: {
+          fields: [],
+          collections: {
+            any: false,
+            only: [],
+            exclude: [libraryCollection.id]
+          }
+        }
+      });
+    }
+
+    return quickFilters;
+  };
+
   // If apps are connected to a vault entry, headless mode is enabled
   const headless = ref(false);
 
@@ -614,6 +666,7 @@
                     v-model:mandatory="mandatoryApps[tab]"
                     class="flex-grow-1"
                     :only-collections="selectedCollections[tab]"
+                    :quick-filters="getQuickFilters(tab)"
                     show-select
                   />
                 </v-container>

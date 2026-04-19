@@ -91,18 +91,106 @@ with recursive collection_hierarchy as (
 )
 select
   -- Aggregate app_ids for each type into a JSON array, filtered by source if provided
-  (select json_agg(app_id) from public.collection_apps 
+  (select json_agg(app_id) from public.collection_apps
    where collection_id in (select id from collection_hierarchy where type = 'tradelist')
      and (p_source is null or source = p_source)) as tradelist,
-  (select json_agg(app_id) from public.collection_apps 
+  (select json_agg(app_id) from public.collection_apps
    where collection_id in (select id from collection_hierarchy where type = 'wishlist')
      and (p_source is null or source = p_source)) as wishlist,
-  (select json_agg(app_id) from public.collection_apps 
+  (select json_agg(app_id) from public.collection_apps
    where collection_id in (select id from collection_hierarchy where type = 'library')
      and (p_source is null or source = p_source)) as library,
-  (select json_agg(app_id) from public.collection_apps 
+  (select json_agg(app_id) from public.collection_apps
    where collection_id in (select id from collection_hierarchy where type = 'blacklist')
      and (p_source is null or source = p_source)) as blacklist;
+$$ language sql stable security invoker;
+
+-- Get apps filtered by collection inclusion/exclusion rules.
+create or replace function get_collection_filtered_apps(
+  p_only_collection_ids text[] default null,
+  p_exclude_collection_ids text[] default null,
+  p_any_collections boolean default false,
+  p_include_app_ids integer[] default null
+)
+returns setof public.apps
+set search_path = ''
+as $$
+with recursive
+only_scope as (
+  select distinct
+    c.id as collection_id,
+    array[c.id]::text[] as path
+  from unnest(coalesce(p_only_collection_ids, array[]::text[])) as root(id)
+  inner join public.collections c on c.id = root.id
+
+  union all
+
+  select
+    rel.collection_id,
+    os.path || rel.collection_id
+  from public.collection_relations rel
+  inner join only_scope os on rel.parent_id = os.collection_id
+  where not rel.collection_id = any(os.path)
+),
+exclude_scope as (
+  select distinct
+    c.id as collection_id,
+    array[c.id]::text[] as path
+  from unnest(coalesce(p_exclude_collection_ids, array[]::text[])) as root(id)
+  inner join public.collections c on c.id = root.id
+
+  union all
+
+  select
+    rel.collection_id,
+    es.path || rel.collection_id
+  from public.collection_relations rel
+  inner join exclude_scope es on rel.parent_id = es.collection_id
+  where not rel.collection_id = any(es.path)
+),
+only_scope_distinct as (
+  select distinct collection_id
+  from only_scope
+),
+exclude_scope_distinct as (
+  select distinct collection_id
+  from exclude_scope
+),
+only_apps_any as (
+  select distinct ca.app_id
+  from public.collection_apps ca
+  inner join only_scope_distinct os on os.collection_id = ca.collection_id
+),
+only_apps_all as (
+  select ca.app_id
+  from public.collection_apps ca
+  inner join only_scope_distinct os on os.collection_id = ca.collection_id
+  group by ca.app_id
+  having count(distinct ca.collection_id) = (select count(*) from only_scope_distinct)
+),
+excluded_apps as (
+  select distinct ca.app_id
+  from public.collection_apps ca
+  inner join exclude_scope_distinct es on es.collection_id = ca.collection_id
+),
+included_apps as (
+  select distinct app_id
+  from unnest(coalesce(p_include_app_ids, array[]::integer[])) as app_id
+)
+select a.*
+from public.apps a
+where (
+  (
+    (select count(*) from only_scope_distinct) = 0
+    or (p_any_collections and a.id in (select app_id from only_apps_any))
+    or ((not p_any_collections) and a.id in (select app_id from only_apps_all))
+    or a.id in (select app_id from included_apps)
+  )
+  and (
+    (select count(*) from exclude_scope_distinct) = 0
+    or a.id not in (select app_id from excluded_apps)
+  )
+);
 $$ language sql stable security invoker;
 
 -- Create function to clean app collections
@@ -130,7 +218,7 @@ begin
         giveaways = 0,
         steam_packages = 0,
         steam_bundles = 0;
-        
+
     -- Update counters based on collection_apps data
     with app_counts as (
       select
@@ -264,7 +352,7 @@ begin
       end if;
     end loop;
   end if;
-  
+
   perform pg_advisory_unlock(4203596817983697560);
 end;
 $$ language plpgsql security definer
@@ -289,33 +377,33 @@ declare
 begin
   -- Determine if we're incrementing (insert) or decrementing (delete)
   increment := case when tg_op = 'INSERT' then 1 else -1 end;
-  
+
   -- Get the collection type and master status in a single query
   select type, master, user_id into v_collection_data
   from public.collections
   where id = case when tg_op = 'INSERT' then new.collection_id else old.collection_id end;
-  
+
   -- Define the mapping of collection types to column names
   collection_type_map := '{
     "library": "libraries",
     "wishlist": "wishlists",
-    "tradelist": "tradelists", 
+    "tradelist": "tradelists",
     "blacklist": "blacklists",
     "bundle": "bundles",
     "giveaway": "giveaways",
     "steampackage": "steam_packages",
     "steambundle": "steam_bundles"
   }'::jsonb;
-  
-  -- Update statistics for: 
+
+  -- Update statistics for:
   -- 1. Master collections of specific types (library, wishlist, tradelist, blacklist)
   -- 2. System collections for bundle types (bundle, giveaway, steampackage, steambundle)
   if (v_collection_data.type in ('library', 'wishlist', 'tradelist', 'blacklist') and v_collection_data.master = true) or
      (v_collection_data.type in ('bundle', 'giveaway', 'steampackage', 'steambundle') and v_collection_data.user_id is null) then
-    
+
     -- Get the column name from the mapping
     column_name := collection_type_map->>v_collection_data.type::text;
-    
+
     -- Update the appropriate counter in the apps table
     execute format('
       update public.apps
@@ -327,7 +415,7 @@ begin
       column_name, increment
     );
   end if;
-  
+
   return null; -- This is an AFTER trigger, so the return value is ignored
 end;
 $$ language plpgsql security definer;

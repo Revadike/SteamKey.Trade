@@ -7,6 +7,9 @@
   const supabase = useSupabaseClient();
   const { preferences, isLoggedIn, user } = storeToRefs(useAuthStore());
   const { inLibrary, inWishlist, inBlacklist, inTradelist } = useCollectionsStore();
+  const { data: ownMasterCollections } = useSupabaseData('master-collections', { userId: user.value?.id }, {
+    watch: [() => user.value?.id]
+  });
 
   const table = ref(null);
   const props = defineProps({
@@ -57,6 +60,10 @@
     simple: {
       type: Boolean,
       default: false
+    },
+    quickFilters: {
+      type: Array,
+      default: () => []
     },
     // Requires v-model to be set on this component to work properly!
     showSelect: {
@@ -234,42 +241,180 @@
     };
   };
 
-  const queryGetter = (selectedOnly) => {
-    if (props.onlyApps) {
-      let query = supabase
-        .from(App.table)
-        .select();
+  const getCollectionSelect = (allowIncludeApps = Boolean(props.includeApps?.length)) => `*,
+    collection:${Collection.apps.table}${allowIncludeApps ? '' : '!inner'}(
+      ${Collection.apps.fields.collectionId},
+      ...${Collection.table}(
+        ${Collection.fields.userId},
+        tags:${Collection.tags.table}!inner(
+          ${Collection.tags.fields.collectionId},
+          ${Collection.tags.fields.appId},
+          ${Collection.tags.fields.tagId},
+          ${Collection.tags.fields.body}
+        )
+      )
+    )
+  `;
 
-      if (selectedOnly) {
-        query = query.in(App.fields.id, selected.value.map(({ id }) => id));
-      } else {
-        query = query.in(App.fields.id, props.onlyApps);
+  const resolveCollectionFilterConstraints = (activeFilters = null) => {
+    const filters = activeFilters?.collections || { any: false, only: [], exclude: [] };
+    // Base collection scope comes from props.onlyCollections.
+    // Dialog filters.only are an extra include constraint and use any/all logic.
+    const baseOnlyCollectionIds = [
+      ...(props.onlyCollections || [])
+    ];
+    const filterOnlyCollectionIds = [
+      ...filters.only
+    ];
+    const excludeCollectionIds = [
+      ...(props.excludeCollections || []),
+      ...filters.exclude
+    ];
+
+    if (!baseOnlyCollectionIds.length && !filterOnlyCollectionIds.length && !excludeCollectionIds.length) {
+      return null;
+    }
+
+    return {
+      baseOnlyCollectionIds,
+      filterOnlyCollectionIds,
+      excludeCollectionIds,
+      anyCollections: filters.any
+    };
+  };
+
+  const resolveIncludedAppIdsForCollectionFilters = async (includeAppIds = [], filterOnlyCollectionIds = [], anyCollections = false) => {
+    if (!includeAppIds?.length) {
+      return null;
+    }
+
+    if (!filterOnlyCollectionIds?.length) {
+      return includeAppIds;
+    }
+
+    const { data, error } = await supabase
+      .from(Collection.apps.table)
+      .select(`${Collection.apps.fields.appId}, ${Collection.apps.fields.collectionId}`)
+      .in(Collection.apps.fields.appId, includeAppIds)
+      .in(Collection.apps.fields.collectionId, filterOnlyCollectionIds);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.length) {
+      return [];
+    }
+
+    if (anyCollections) {
+      return [...new Set(data.map(row => row[Collection.apps.fields.appId]))];
+    }
+
+    const requiredCollectionCount = new Set(filterOnlyCollectionIds).size;
+    const appCollectionMap = data.reduce((acc, row) => {
+      const appId = row[Collection.apps.fields.appId];
+      const collectionId = row[Collection.apps.fields.collectionId];
+
+      if (!acc[appId]) {
+        acc[appId] = new Set();
+      }
+
+      acc[appId].add(collectionId);
+      return acc;
+    }, {});
+
+    return Object.entries(appCollectionMap)
+      .filter(([, collectionIds]) => collectionIds.size === requiredCollectionCount)
+      .map(([appId]) => Number(appId));
+  };
+
+  const queryGetter = async (selectedOnly, activeFilters) => {
+    const collectionFilterConstraints = resolveCollectionFilterConstraints(activeFilters);
+
+    if (collectionFilterConstraints) {
+      const selectedAppIds = selectedOnly
+        ? selected.value.map(({ id }) => id)
+        : [];
+
+      const hasFilterOnlyCollections = collectionFilterConstraints.filterOnlyCollectionIds.length > 0;
+      const onlyCollectionIds = hasFilterOnlyCollections
+        ? collectionFilterConstraints.filterOnlyCollectionIds
+        : collectionFilterConstraints.baseOnlyCollectionIds;
+      const anyCollections = hasFilterOnlyCollections
+        ? collectionFilterConstraints.anyCollections
+        : true;
+      const resolvedIncludeAppIds = await resolveIncludedAppIdsForCollectionFilters(
+        props.includeApps || [],
+        collectionFilterConstraints.filterOnlyCollectionIds,
+        collectionFilterConstraints.anyCollections
+      );
+      const includeAppIds = resolvedIncludeAppIds?.length ? resolvedIncludeAppIds : null;
+
+      let query = Collection.getCollectionFilteredApps(supabase, {
+        onlyCollectionIds,
+        excludeCollectionIds: collectionFilterConstraints.excludeCollectionIds,
+        anyCollections,
+        includeAppIds
+      }).select(getCollectionSelect(Boolean(includeAppIds?.length)));
+
+      // Keep results scoped to the base collection context when provided.
+      if (collectionFilterConstraints.baseOnlyCollectionIds.length) {
+        query = query.in(`collection.${Collection.apps.fields.collectionId}`, collectionFilterConstraints.baseOnlyCollectionIds);
+      }
+
+      if (collectionFilterConstraints.excludeCollectionIds.length) {
+        query = query.not(`collection.${Collection.apps.fields.collectionId}`, 'in', `(${collectionFilterConstraints.excludeCollectionIds.join(',')})`);
+      }
+
+      if (includeAppIds?.length && collectionFilterConstraints.baseOnlyCollectionIds.length) {
+        query = query.or(`collection.not.is.null, ${App.fields.id}.in.(${includeAppIds.join(',')})`);
+      }
+
+      if (props.onlyApps) {
+        if (props.onlyApps.length) {
+          query = query.in(App.fields.id, props.onlyApps);
+        } else {
+          query = query.in(App.fields.id, [-1]);
+        }
+      }
+
+      if (props.onlyParents?.length) {
+        query = query.in(App.fields.parentId, props.onlyParents);
       }
 
       if (props.excludeApps?.length) {
         query = query.not(App.fields.id, 'in', `(${props.excludeApps.join(',')})`);
       }
 
-      return query;
+      if (selectedAppIds.length) {
+        query = query.in(App.fields.id, selectedAppIds);
+      }
+
+      return { query };
     }
 
-    if (props.onlyCollections || props.excludeCollections) {
-      let query = supabase
+    let query;
+
+    if (props.onlyApps) {
+      query = supabase
         .from(App.table)
-        .select(`*,
-          collection:${Collection.apps.table}${props.includeApps?.length ? '' : '!inner'}(
-            ${Collection.apps.fields.collectionId},
-            ...${Collection.table}(
-              ${Collection.fields.userId},
-              tags:${Collection.tags.table}!inner(
-                ${Collection.tags.fields.collectionId},
-                ${Collection.tags.fields.appId},
-                ${Collection.tags.fields.tagId},
-                ${Collection.tags.fields.body}
-              )
-            )
-          )
-        `);
+        .select();
+
+      if (selectedOnly) {
+        query = query.in(App.fields.id, selected.value.map(({ id }) => id));
+      } else if (props.onlyApps.length) {
+        query = query.in(App.fields.id, props.onlyApps);
+      } else {
+        query = query.in(App.fields.id, [-1]);
+      }
+
+      if (props.excludeApps?.length) {
+        query = query.not(App.fields.id, 'in', `(${props.excludeApps.join(',')})`);
+      }
+    } else if (props.onlyCollections || props.excludeCollections) {
+      query = supabase
+        .from(App.table)
+        .select(getCollectionSelect());
 
       if (props.onlyCollections?.length) {
         // This filter applies to the embedded alias – only matching rows where collection_id is the desired value.
@@ -297,17 +442,13 @@
       if (selectedOnly) {
         query = query.in(App.fields.id, selected.value.map(({ id }) => id));
       }
-
-      return query;
-    }
-
-    if (props.onlyVaultUnsent || props.onlyVaultSent || props.onlyVaultReceived) {
+    } else if (props.onlyVaultUnsent || props.onlyVaultSent || props.onlyVaultReceived) {
       if (!isLoggedIn.value) {
         throw new Error('User is not logged in and cannot access vault entries.');
       }
 
       if (props.onlyVaultUnsent) {
-        return supabase
+        query = supabase
           .from(App.table)
           .select(`*,
             ${VaultEntry.table}!inner(
@@ -319,58 +460,64 @@
           .eq(`${VaultEntry.table}.${VaultEntry.fields.userId}`, user.value.id)
           // Only unsent vault items
           .is(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, null);
-      }
+      } else {
+        query = supabase
+          .from(App.table)
+          .select(`*,
+            ${VaultEntry.table}!inner(
+              ${VaultEntry.fields.userId},
+              ${VaultEntry.fields.tradeId}
+            ),
+            ${Trade.apps.table}!inner(
+              ${Trade.apps.fields.appId},
+              ${Trade.apps.fields.tradeId},
+              ${Trade.apps.fields.selected},
+              ${Trade.apps.fields.userId}
+            )
+          `)
+          // Only our vault apps (we don't have access to other's vault items anyway)
+          .eq(`${VaultEntry.table}.${VaultEntry.fields.userId}`, user.value.id)
+          // Only sent vault items
+          .not(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, 'is', null)
+          // Only those that were selected in a trade
+          .eq(`${Trade.apps.table}.${Trade.apps.fields.selected}`, true);
 
-      const query = supabase
+        if (props.onlyVaultSent) {
+          // Only items that came from me
+          query = query.eq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id);
+        } else if (props.onlyVaultReceived) {
+          // Only items that came from the other user
+          query = query.neq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id);
+        }
+      }
+    } else {
+      query = supabase
         .from(App.table)
-        .select(`*,
-          ${VaultEntry.table}!inner(
-            ${VaultEntry.fields.userId},
-            ${VaultEntry.fields.tradeId}
-          ),
-          ${Trade.apps.table}!inner(
-            ${Trade.apps.fields.appId},
-            ${Trade.apps.fields.tradeId},
-            ${Trade.apps.fields.selected},
-            ${Trade.apps.fields.userId}
-          )
-        `)
-        // Only our vault apps (we don't have access to other's vault items anyway)
-        .eq(`${VaultEntry.table}.${VaultEntry.fields.userId}`, user.value.id)
-        // Only sent vault items
-        .not(`${VaultEntry.table}.${VaultEntry.fields.tradeId}`, 'is', null)
-        // Only those that were selected in a trade
-        .eq(`${Trade.apps.table}.${Trade.apps.fields.selected}`, true);
+        .select();
 
-      if (props.onlyVaultSent) {
-        // Only items that came from me
-        return query.eq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id);
-      } else if (props.onlyVaultReceived) {
-        // Only items that came from the other user
-        return query.neq(`${Trade.apps.table}.${Trade.apps.fields.userId}`, user.value.id);
+      if (props.onlyParents?.length) {
+        query = query.in(App.fields.parentId, props.onlyParents);
+      }
+
+      if (props.excludeApps?.length) {
+        query = query.not(App.fields.id, 'in', `(${props.excludeApps.join(',')})`);
+      }
+
+      if (selectedOnly) {
+        query = query.in(App.fields.id, selected.value.map(({ id }) => id));
       }
     }
 
-    const query = supabase
-      .from(App.table)
-      .select();
-
-    if (props.onlyParents?.length) {
-      query.in(App.fields.parentId, props.onlyParents);
-    }
-
-    if (props.excludeApps?.length) {
-      query.not(App.fields.id, 'in', `(${props.excludeApps.join(',')})`);
-    }
-
-    if (selectedOnly) {
-      query.in(App.fields.id, selected.value.map(({ id }) => id));
-    }
-
-    // includeApps not applicable here yet
-
-    return query;
+    return { query };
   };
+
+  const masterCollectionOptions = computed(() => {
+    const collections = ownMasterCollections.value || [];
+    return collections.map((collection) => ({
+      title: collection.title || collection.id,
+      value: collection.id
+    }));
+  });
 
   // Determine visible app properties from user preferences
   const visibleAppFields = computed(() => {
@@ -486,8 +633,11 @@
       return {
         ...baseProps,
         queryGetter,
+        quickFilters: props.quickFilters,
+        filtersInUrl: props.quickFilters.length > 0,
         // mapItem: (item) => item.apps || item,
         // mapKey: (key) => `apps(${key})`,
+        collectionFilters: masterCollectionOptions.value,
         searchField: App.fields.title,
         filters: filters.value
       };

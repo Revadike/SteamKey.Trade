@@ -240,6 +240,32 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
       }
     },
 
+    'master-collections': {
+      key: () => params.userId ? `master-collections-${params.userId}` : 'master-collections-unknown',
+      handler: async () => {
+        if (!params.userId) {
+          return [];
+        }
+
+        const masterTypes = [
+          Collection.enums.type.library,
+          Collection.enums.type.wishlist,
+          Collection.enums.type.blacklist,
+          Collection.enums.type.tradelist
+        ];
+
+        const collections = await Promise.all(masterTypes.map(async (type) => {
+          const masterCollection = await Collection.getMasterCollection(supabase, params.userId, type);
+          return masterCollection ? masterCollection.toObject() : null;
+        }));
+
+        return collections.filter(Boolean);
+      },
+      defaultOptions: {
+        default: () => []
+      }
+    },
+
     'collection-subcollections': {
       key: () => params.id ? `collection-subcollections-${params.id}` : 'collection-subcollections-unknown',
       handler: async () => {

@@ -6,13 +6,24 @@
       type: String,
       default: 'Filters'
     },
-    filters: {
+    fieldFilters: {
       type: Array,
       default: () => []
     },
     activeFilters: {
-      type: Array,
-      default: () => []
+      type: Object,
+      default: () => ({
+        fields: [],
+        collections: {
+          any: false,
+          only: [],
+          exclude: []
+        }
+      })
+    },
+    collectionFilters: {
+      type: [Array, Boolean],
+      default: null
     },
     syncWithUrl: {
       type: Boolean,
@@ -25,7 +36,139 @@
   const route = useRoute();
 
   const internalValue = defineModel({ type: Boolean, default: false });
-  const localFilters = ref([...props.activeFilters]);
+
+  const showCollectionFilters = computed(() => {
+    return Array.isArray(props.collectionFilters);
+  });
+
+  const collectionOptions = computed(() => {
+    const options = Array.isArray(props.collectionFilters)
+      ? props.collectionFilters
+      : [];
+
+    return options
+      .filter((option) => option?.value)
+      .map((option) => ({
+        title: option.title || option.value,
+        value: option.value
+      }));
+  });
+
+  const localFieldFilters = ref([]);
+  const localCollectionFilters = ref([]);
+  const collectionMatchAny = ref(false);
+  const newCollectionFilter = ref({
+    mode: 'only',
+    collectionId: null
+  });
+
+  const collectionCustomOptionValue = '__custom__';
+
+  const collectionDropdownCustomOption = Object.freeze({
+    title: 'Other collection...',
+    value: collectionCustomOptionValue
+  });
+
+  const collectionPickerVisible = ref(false);
+  const collectionPickerSelection = ref([]);
+  const collectionPickerTargetIndex = ref(null);
+
+  const getCollectionTitle = (collectionId) => {
+    return collectionOptions.value.find((option) => option.value === collectionId)?.title || collectionId;
+  };
+
+  const getCollectionSelectionOptions = (selectedCollectionId = null) => {
+    const usedCollectionIds = new Set(localCollectionFilters.value
+      .map((row) => row.collectionId)
+      .filter((collectionId) => collectionId !== selectedCollectionId));
+
+    const options = collectionOptions.value.filter((option) => {
+      return option.value === selectedCollectionId || !usedCollectionIds.has(option.value);
+    });
+
+    if (selectedCollectionId && !options.some((option) => option.value === selectedCollectionId)) {
+      options.unshift({
+        title: getCollectionTitle(selectedCollectionId),
+        value: selectedCollectionId
+      });
+    }
+
+    return [
+      ...options,
+      collectionDropdownCustomOption
+    ];
+  };
+
+  const hydrateFromFilters = (payload) => {
+    const fields = Array.isArray(payload?.fields) ? payload.fields : [];
+    const collections = payload?.collections || { any: false, only: [], exclude: [] };
+
+    localFieldFilters.value = [...fields];
+
+    if (!showCollectionFilters.value) {
+      localCollectionFilters.value = [];
+      collectionMatchAny.value = false;
+      return;
+    }
+
+    collectionMatchAny.value = !!collections.any;
+    localCollectionFilters.value = [
+      ...((Array.isArray(collections.only) ? collections.only : []).map((collectionId) => ({
+        mode: 'only',
+        collectionId
+      }))),
+      ...((Array.isArray(collections.exclude) ? collections.exclude : []).map((collectionId) => ({
+        mode: 'exclude',
+        collectionId
+      })))
+    ];
+
+    newCollectionFilter.value = {
+      mode: 'only',
+      collectionId: null
+    };
+  };
+
+  const configuredCollectionRows = computed(() => {
+    return localCollectionFilters.value;
+  });
+
+  const totalActiveFilters = computed(() => {
+    return localFieldFilters.value.length + (showCollectionFilters.value ? configuredCollectionRows.value.length : 0);
+  });
+
+  const buildFiltersForEmit = () => {
+    const fieldFilters = [...localFieldFilters.value].map((filter) => {
+      const filterDef = getFilterDefinition(filter.field);
+      if (filterDef && filterDef.type?.name === 'Array' && !Array.isArray(filter.value)) {
+        return {
+          ...filter,
+          value: [filter.value]
+        };
+      }
+
+      return filter;
+    });
+
+    const collectionFilters = {
+      any: showCollectionFilters.value ? collectionMatchAny.value : false,
+      only: showCollectionFilters.value
+        ? configuredCollectionRows.value
+          .filter((row) => row.mode !== 'exclude')
+          .map((row) => row.collectionId)
+        : [],
+      exclude: showCollectionFilters.value
+        ? configuredCollectionRows.value
+          .filter((row) => row.mode === 'exclude')
+          .map((row) => row.collectionId)
+        : []
+    };
+
+    return {
+      fields: fieldFilters,
+      collections: collectionFilters
+    };
+  };
 
   // Handle URL synchronization manually for compressed data
   const syncFiltersWithUrl = async (filters) => {
@@ -52,12 +195,9 @@
 
     try {
       const param = route.query.filters;
-      const filters = await decodeFromQuery(param);
-
-      if (Array.isArray(filters) && filters.length > 0) {
-        localFilters.value = filters;
-        emit('apply', filters);
-      }
+      const decoded = await decodeFromQuery(param);
+      hydrateFromFilters(decoded);
+      emit('apply', buildFiltersForEmit());
     } catch (err) {
       console.error('Failed to decode filters from URL:', err);
     }
@@ -75,17 +215,51 @@
   };
 
   watch(() => props.activeFilters, (newVal) => {
-    // Only update local filters if they're empty or the new value is not empty
-    if (localFilters.value.length === 0 || newVal.length > 0) {
-      localFilters.value = [...newVal];
+    const hasIncoming = (newVal?.fields?.length || 0) > 0
+      || (newVal?.collections?.only?.length || 0) > 0
+      || (newVal?.collections?.exclude?.length || 0) > 0;
+    const hasLocal = localFieldFilters.value.length > 0 || localCollectionFilters.value.length > 0;
+
+    if (!internalValue.value || !hasLocal || hasIncoming) {
+      hydrateFromFilters(newVal);
     }
-  }, { deep: true });
+  }, { deep: true, immediate: true });
+
+  watch(showCollectionFilters, (enabled) => {
+    if (!enabled) {
+      collectionMatchAny.value = false;
+      localCollectionFilters.value = [];
+      collectionPickerVisible.value = false;
+      collectionPickerSelection.value = [];
+      collectionPickerTargetIndex.value = null;
+      newCollectionFilter.value = {
+        mode: 'only',
+        collectionId: null
+      };
+    }
+  }, { immediate: true });
 
   const newFilter = ref({
     field: null,
     operation: null,
     value: null
   });
+
+  const hasFilterValue = (value) => {
+    if (value === null || value === undefined) {
+      return false;
+    }
+
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+
+    if (typeof value === 'string') {
+      return value.trim().length > 0;
+    }
+
+    return true;
+  };
 
   watch(() => newFilter.value.field, () => {
     if (newFilter.value.field && !newFilter.value.operation) {
@@ -147,7 +321,7 @@
 
   // Utility functions for filter operations
   const getFilterDefinition = (fieldValue) =>
-    props.filters.find(filter => filter.value === fieldValue);
+    props.fieldFilters.find(filter => filter.value === fieldValue);
 
   const getOperationOptions = (fieldValue) => {
     if (!fieldValue) { return []; }
@@ -212,29 +386,29 @@
   };
 
   const addFilter = () => {
-    if (!newFilter.value.field || !newFilter.value.operation || !newFilter.value.value) {
+    if (!newFilter.value.field || !newFilter.value.operation || !hasFilterValue(newFilter.value.value)) {
       return;
     }
 
     // Don't duplicate filters for the same field and operation
-    const existingIndex = localFilters.value.findIndex(f =>
+    const existingIndex = localFieldFilters.value.findIndex(f =>
       f.field === newFilter.value.field && f.operation === newFilter.value.operation);
 
     if (existingIndex !== -1) {
-      localFilters.value.splice(existingIndex, 1, { ...newFilter.value });
+      localFieldFilters.value.splice(existingIndex, 1, { ...newFilter.value });
     } else {
-      localFilters.value.push({ ...newFilter.value });
+      localFieldFilters.value.push({ ...newFilter.value });
     }
 
     resetNewFilter();
   };
 
   const removeFilter = (index) => {
-    localFilters.value.splice(index, 1);
+    localFieldFilters.value.splice(index, 1);
   };
 
   const updateFilter = (index, field, value) => {
-    const updatedFilter = { ...localFilters.value[index] };
+    const updatedFilter = { ...localFieldFilters.value[index] };
     updatedFilter[field] = value;
 
     // If operation is changed to 'in', initialize value as empty array if it's not already an array
@@ -247,25 +421,123 @@
       updatedFilter.value = updatedFilter.value.length > 0 ? updatedFilter.value[0] : null;
     }
 
-    localFilters.value.splice(index, 1, updatedFilter);
+    localFieldFilters.value.splice(index, 1, updatedFilter);
 
     // If operation changed, reset value to null
     if (field === 'operation') {
-      localFilters.value[index].value = null;
+      localFieldFilters.value[index].value = null;
     }
   };
 
-  const applyFilters = () => {
-    const filters = [...localFilters.value].map(filter => {
-      const filterDef = getFilterDefinition(filter.field);
-      if (filterDef && filterDef.type?.name === 'Array' && !Array.isArray(filter.value)) {
-        return {
-          ...filter,
-          value: [filter.value]
-        };
-      }
-      return filter;
+  const setCollectionMode = (index, mode) => {
+    const row = localCollectionFilters.value[index];
+    if (!row) {
+      return;
+    }
+
+    row.mode = mode;
+  };
+
+  const openCollectionPicker = (rowIndex = null) => {
+    collectionPickerSelection.value = [];
+    collectionPickerTargetIndex.value = rowIndex;
+    collectionPickerVisible.value = true;
+  };
+
+  const closeCollectionPicker = () => {
+    collectionPickerVisible.value = false;
+    collectionPickerSelection.value = [];
+    collectionPickerTargetIndex.value = null;
+  };
+
+  const setCollectionSelection = (index, selectionValue) => {
+    if (!localCollectionFilters.value[index]) {
+      return;
+    }
+
+    if (!selectionValue) {
+      removeCollectionRow(index);
+      return;
+    }
+
+    if (selectionValue === collectionCustomOptionValue) {
+      openCollectionPicker(index);
+      return;
+    }
+
+    const duplicateIndex = localCollectionFilters.value.findIndex((candidate, candidateIndex) => {
+      return candidateIndex !== index && candidate.collectionId === selectionValue;
     });
+
+    if (duplicateIndex !== -1) {
+      localCollectionFilters.value.splice(duplicateIndex, 1);
+      if (duplicateIndex < index) {
+        index -= 1;
+      }
+    }
+
+    localCollectionFilters.value[index].collectionId = selectionValue;
+  };
+
+  const removeCollectionRow = (index) => {
+    localCollectionFilters.value.splice(index, 1);
+  };
+
+  const setNewCollectionMode = (mode) => {
+    newCollectionFilter.value.mode = mode;
+  };
+
+  const addCollectionFilter = () => {
+    if (!newCollectionFilter.value.collectionId) {
+      return;
+    }
+
+    const existingIndex = localCollectionFilters.value.findIndex((row) => {
+      return row.collectionId === newCollectionFilter.value.collectionId;
+    });
+
+    if (existingIndex !== -1) {
+      localCollectionFilters.value.splice(existingIndex, 1, { ...newCollectionFilter.value });
+    } else {
+      localCollectionFilters.value.push({ ...newCollectionFilter.value });
+    }
+
+    newCollectionFilter.value = {
+      mode: 'only',
+      collectionId: null
+    };
+  };
+
+  const setNewCollectionSelection = (selectionValue) => {
+    if (selectionValue === collectionCustomOptionValue) {
+      openCollectionPicker();
+      return;
+    }
+
+    newCollectionFilter.value.collectionId = selectionValue;
+    addCollectionFilter();
+  };
+
+  const applyCollectionPicker = () => {
+    const selectedCollectionId = collectionPickerSelection.value?.[0]?.id;
+
+    if (!selectedCollectionId) {
+      closeCollectionPicker();
+      return;
+    }
+
+    if (collectionPickerTargetIndex.value === null) {
+      newCollectionFilter.value.collectionId = selectedCollectionId;
+      addCollectionFilter();
+    } else {
+      setCollectionSelection(collectionPickerTargetIndex.value, selectedCollectionId);
+    }
+
+    closeCollectionPicker();
+  };
+
+  const applyFilters = () => {
+    const filters = buildFiltersForEmit();
 
     emit('apply', filters);
     internalValue.value = false;
@@ -274,7 +546,16 @@
   };
 
   const clearFilters = () => {
-    localFilters.value = [];
+    localFieldFilters.value = [];
+    collectionMatchAny.value = false;
+    localCollectionFilters.value = [];
+    collectionPickerVisible.value = false;
+    collectionPickerSelection.value = [];
+    collectionPickerTargetIndex.value = null;
+    newCollectionFilter.value = {
+      mode: 'only',
+      collectionId: null
+    };
     internalValue.value = false;
     emit('clear');
     clearFiltersFromUrl();
@@ -301,9 +582,175 @@
         {{ title }}
       </v-card-title>
       <v-card-text>
+        <template v-if="showCollectionFilters">
+          <div class="d-flex align-center justify-space-between">
+            <strong>Collections</strong>
+
+            <div
+              v-tooltip:top="'By default multiple inclusion filters use AND logic. Check this to use OR logic instead.'"
+              class="d-flex align-center cursor-pointer"
+              @click="collectionMatchAny = !collectionMatchAny"
+            >
+              <span>Match any</span>
+              <v-switch
+                v-model="collectionMatchAny"
+                class="mx-4"
+                density="compact"
+                hide-details
+              />
+            </div>
+          </div>
+
+          <v-list class="mb-8 mt-0">
+            <v-list-item
+              v-for="(row, index) in localCollectionFilters"
+              :key="`${row.mode}-${row.collectionId}-${index}`"
+              class="pa-0"
+              :class="{ 'faded': !activeIndexSet.has(`collection-${index}`) && !hoveredIndexSet.has(`collection-${index}`) }"
+              @mouseenter="hoveredIndexSet.add(`collection-${index}`)"
+              @mouseleave="hoveredIndexSet.delete(`collection-${index}`)"
+            >
+              <v-row
+                align="center"
+                dense
+              >
+                <v-col cols="3">
+                  <v-btn-toggle
+                    class="border w-100"
+                    density="comfortable"
+                    mandatory
+                    :model-value="row.mode"
+                    @update:model-value="value => setCollectionMode(index, value)"
+                  >
+                    <v-btn
+                      v-tooltip:top="'Exclude'"
+                      class="w-50"
+                      color="error"
+                      :value="'exclude'"
+                    >
+                      <v-icon icon="mdi-close" />
+                    </v-btn>
+                    <v-btn
+                      v-tooltip:top="'Only'"
+                      class="w-50"
+                      color="success"
+                      :value="'only'"
+                    >
+                      <v-icon icon="mdi-check" />
+                    </v-btn>
+                  </v-btn-toggle>
+                </v-col>
+                <v-col cols="8">
+                  <v-select
+                    density="compact"
+                    hide-details
+                    item-title="title"
+                    item-value="value"
+                    :items="getCollectionSelectionOptions(row.collectionId)"
+                    label="Collection"
+                    :model-value="row.collectionId"
+                    @update:model-value="value => setCollectionSelection(index, value)"
+                  />
+                </v-col>
+                <v-col cols="1">
+                  <v-btn
+                    color="error"
+                    density="compact"
+                    icon="mdi-close"
+                    rounded
+                    variant="text"
+                    @click="removeCollectionRow(index)"
+                  />
+                </v-col>
+              </v-row>
+            </v-list-item>
+
+            <v-list-item class="pa-0">
+              <v-row
+                align="center"
+                dense
+              >
+                <v-col cols="3">
+                  <v-btn-toggle
+                    class="border w-100"
+                    density="comfortable"
+                    mandatory
+                    :model-value="newCollectionFilter.mode"
+                    @update:model-value="setNewCollectionMode"
+                  >
+                    <v-btn
+                      v-tooltip:top="'Exclude'"
+                      class="w-50"
+                      color="error"
+                      :value="'exclude'"
+                    >
+                      <v-icon icon="mdi-close" />
+                    </v-btn>
+                    <v-btn
+                      v-tooltip:top="'Only'"
+                      class="w-50"
+                      color="success"
+                      :value="'only'"
+                    >
+                      <v-icon icon="mdi-check" />
+                    </v-btn>
+                  </v-btn-toggle>
+                </v-col>
+                <v-col cols="8">
+                  <v-select
+                    density="compact"
+                    hide-details
+                    item-title="title"
+                    item-value="value"
+                    :items="getCollectionSelectionOptions()"
+                    label="Collection"
+                    :model-value="newCollectionFilter.collectionId"
+                    @update:model-value="setNewCollectionSelection"
+                  />
+                </v-col>
+              </v-row>
+            </v-list-item>
+          </v-list>
+
+          <v-dialog
+            v-model="collectionPickerVisible"
+            max-width="760"
+          >
+            <v-card>
+              <v-card-title>Select collection</v-card-title>
+              <v-card-text>
+                <table-collections
+                  v-model="collectionPickerSelection"
+                  :max-selection="1"
+                  show-select
+                />
+              </v-card-text>
+              <v-divider />
+              <v-card-actions>
+                <v-btn
+                  variant="text"
+                  @click="closeCollectionPicker"
+                >
+                  Cancel
+                </v-btn>
+                <v-spacer />
+                <v-btn
+                  :disabled="!collectionPickerSelection.length"
+                  variant="tonal"
+                  @click="applyCollectionPicker"
+                >
+                  Select
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <strong>Fields</strong>
+        </template>
+
         <v-list>
           <v-list-item
-            v-for="(filter, index) in localFilters"
+            v-for="(filter, index) in localFieldFilters"
             :key="index"
             class="pa-0"
             :class="{ 'faded': !activeIndexSet.has(index) && !hoveredIndexSet.has(index) }"
@@ -313,8 +760,6 @@
             <v-row
               align="center"
               dense
-              @focusin="activeIndexSet.add(index)"
-              @focusout="activeIndexSet.delete(index)"
             >
               <v-col cols="3">
                 <v-select
@@ -322,7 +767,7 @@
                   hide-details
                   item-title="title"
                   item-value="value"
-                  :items="filters"
+                  :items="fieldFilters"
                   label="Field"
                   :model-value="filter.field"
                   @update:model-value="value => updateFilter(index, 'field', value)"
@@ -441,7 +886,7 @@
                   hide-details
                   item-title="title"
                   item-value="value"
-                  :items="filters"
+                  :items="fieldFilters"
                   label="Field"
                 />
               </v-col>
@@ -561,12 +1006,12 @@
         </v-btn>
         <v-btn
           color="primary"
-          :disabled="localFilters.length === 0"
+          :disabled="totalActiveFilters === 0"
           text
           variant="tonal"
           @click="applyFilters"
         >
-          Apply {{ localFilters.length }} filter{{ localFilters.length > 1 ? 's' : '' }}
+          Apply {{ totalActiveFilters }} filter{{ totalActiveFilters > 1 ? 's' : '' }}
         </v-btn>
       </v-card-actions>
     </v-card>
