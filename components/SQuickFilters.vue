@@ -30,6 +30,7 @@
   // Get active filter directly from the URL, matching it against our encoded filters
   const activeFilter = computed(() => {
     if (!route.query.filters) { return null; }
+
     return encodedFilters.value.find(filter =>
       decodeURIComponent(filter.value) === route.query.filters
     )?.value || null;

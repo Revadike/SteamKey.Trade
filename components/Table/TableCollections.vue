@@ -149,31 +149,37 @@
   const quickFilters = [
     {
       title: 'Currently active',
-      value: [{
-        field: Collection.fields.startsAt,
-        operation: 'lte',
-        value: new Date().toISOString()
-      }, {
-        field: Collection.fields.endsAt,
-        operation: 'gte',
-        value: new Date().toISOString()
-      }]
+      value: {
+        fields: [{
+          field: Collection.fields.startsAt,
+          operation: 'lte',
+          value: new Date().toISOString()
+        }, {
+          field: Collection.fields.endsAt,
+          operation: 'gte',
+          value: new Date().toISOString()
+        }]
+      }
     },
     {
       title: 'Upcoming',
-      value: [{
-        field: Collection.fields.startsAt,
-        operation: 'gt',
-        value: new Date().toISOString()
-      }]
+      value: {
+        fields: [{
+          field: Collection.fields.startsAt,
+          operation: 'gt',
+          value: new Date().toISOString()
+        }]
+      }
     },
     ...collectionTypes.map(({ title, value }) => ({
       title,
-      value: [{
-        field: Collection.fields.type,
-        operation: 'eq',
-        value
-      }]
+      value: {
+        fields: [{
+          field: Collection.fields.type,
+          operation: 'eq',
+          value
+        }]
+      }
     }))
   ];
 

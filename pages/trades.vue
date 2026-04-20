@@ -50,26 +50,32 @@
   const quickFilters = [
     {
       title: 'Active',
-      value: [{
-        field: Trade.fields.status,
-        operation: 'in',
-        value: [Trade.enums.status.pending, Trade.enums.status.accepted]
-      }]
+      value: {
+        fields: [{
+          field: Trade.fields.status,
+          operation: 'in',
+          value: [Trade.enums.status.pending, Trade.enums.status.accepted]
+        }]
+      }
     },
     {
       title: 'Disputed',
-      value: [{
-        operation: 'or',
-        value: `${Trade.fields.senderDisputed}.eq.true,${Trade.fields.receiverDisputed}.eq.true`
-      }]
+      value: {
+        fields: [{
+          operation: 'or',
+          value: `${Trade.fields.senderDisputed}.eq.true,${Trade.fields.receiverDisputed}.eq.true`
+        }]
+      }
     },
     ...statuses.map(({ title, value }) => ({
       title,
-      value: [{
-        field: Trade.fields.status,
-        operation: 'eq',
-        value
-      }]
+      value: {
+        fields: [{
+          field: Trade.fields.status,
+          operation: 'eq',
+          value
+        }]
+      }
     }))
   ];
 

@@ -216,24 +216,14 @@
 
     try {
       const filters = await decodeFromQuery(route.query.filters);
-      const hasValidShape = filters
-        && typeof filters === 'object'
-        && Array.isArray(filters.fields)
-        && filters.collections
-        && typeof filters.collections === 'object'
-        && Array.isArray(filters.collections.only)
-        && Array.isArray(filters.collections.exclude);
-
-      activeFilters.value = hasValidShape
-        ? filters
-        : {
-          fields: [],
-          collections: {
-            any: false,
-            only: [],
-            exclude: []
-          }
-        };
+      activeFilters.value = {
+        fields: filters.fields || [],
+        collections: {
+          any: filters.collections?.any || false,
+          only: filters.collections?.only || [],
+          exclude: filters.collections?.exclude || []
+        }
+      };
     } catch (error) {
       console.error(error);
       activeFilters.value = {
@@ -298,7 +288,14 @@
   });
 
   const applyFilters = (filters) => {
-    activeFilters.value = filters;
+    activeFilters.value = {
+      fields: filters.fields || [],
+      collections: {
+        any: filters.collections?.any || false,
+        only: filters.collections?.only || [],
+        exclude: filters.collections?.exclude || []
+      }
+    };
     waitingForUrlFilters.value = false;
     loadItems({ itemsPerPage: itemsPerPage.value, page: 1, search: search.value, sortBy: sortBy.value });
   };

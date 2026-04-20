@@ -100,7 +100,7 @@
   };
 
   const hydrateFromFilters = (payload) => {
-    const fields = Array.isArray(payload?.fields) ? payload.fields : [];
+    const fields = payload?.fields || [];
     const collections = payload?.collections || { any: false, only: [], exclude: [] };
 
     localFieldFilters.value = [...fields];
@@ -113,11 +113,11 @@
 
     collectionMatchAny.value = !!collections.any;
     localCollectionFilters.value = [
-      ...((Array.isArray(collections.only) ? collections.only : []).map((collectionId) => ({
+      ...((collections.only || []).map((collectionId) => ({
         mode: 'only',
         collectionId
       }))),
-      ...((Array.isArray(collections.exclude) ? collections.exclude : []).map((collectionId) => ({
+      ...((collections.exclude || []).map((collectionId) => ({
         mode: 'exclude',
         collectionId
       })))
@@ -194,8 +194,7 @@
     }
 
     try {
-      const param = route.query.filters;
-      const decoded = await decodeFromQuery(param);
+      const decoded = await decodeFromQuery(route.query.filters);
       hydrateFromFilters(decoded);
       emit('apply', buildFiltersForEmit());
     } catch (err) {
