@@ -6,16 +6,26 @@
     }
   });
 
-  const { user, isLoggedIn } = storeToRefs(useAuthStore());
-  const { TradeMessage, Trade } = useORM();
-  const supabase = useSupabaseClient();
+  const { isLoggedIn } = storeToRefs(useAuthStore());
+  const snackbarStore = useSnackbarStore();
 
-  const isSending = ref(false);
+  const {
+    messages,
+    status,
+    error,
+    isSending,
+    sendMessage,
+    editMessage,
+    deleteMessage
+  } = useTradeChat(props.tradeId);
+
   const messageInput = ref(null);
   const editingMessage = ref(null);
   const body = ref('');
 
-  const { data: messages, status, error } = useSupabaseData('messages', { tradeId: props.tradeId });
+  /**
+   * Scrolls the message list to the most recent message.
+   */
 
   const scrollToBottom = () => {
     const chatMessages = document.querySelector('.chat-messages');
@@ -30,92 +40,21 @@
     }
   });
 
-  const handleRealtimeMessage = payload => {
-    if (payload.eventType === 'INSERT') {
-      const exists = messages.value.some(msg => msg.id === payload.new.id);
-      if (!exists) {
-        messages.value.push(TradeMessage.fromDB(payload.new));
-      }
-    } else if (payload.eventType === 'UPDATE') {
-      const index = messages.value.findIndex(msg => msg.id === payload.new.id);
-      if (index !== -1) {
-        messages.value.splice(index, 1, TradeMessage.fromDB(payload.new));
-      }
-    } else if (payload.eventType === 'DELETE') {
-      // Does not work.... @see https://supabase.com/docs/guides/realtime/postgres-changes#delete-events-are-not-filterable
-      // messages.value.splice(messages.value.findIndex(msg => msg.id === payload.old.id), 1);
-    }
-
-    if (isLoggedIn.value) {
-      const instance = new Trade(props.tradeId);
-      instance.view(user.value.id); // Mark the trade as viewed
-    }
-
-    nextTick(() => {
+  watch(
+    () => messages.value?.length,
+    () => nextTick(() => {
       scrollToBottom();
       messageInput.value?.focus();
-    });
-  };
+    })
+  );
 
-  watch(() => props.tradeId, async (tradeId, _, onCleanup) => {
-    if (!tradeId) {
-      return;
-    }
-
-    const channel = supabase
-      .channel(`${TradeMessage.table}_${tradeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: TradeMessage.table,
-          filter: `${TradeMessage.fields.tradeId}=eq.${tradeId}`
-        },
-        handleRealtimeMessage
-      )
-      .subscribe();
-
-    onCleanup(() => supabase.removeChannel(channel));
-  }, { immediate: true });
-
-  const snackbarStore = useSnackbarStore();
-  const sendMessage = async () => {
-    if (body.value.trim() === '') {
-      if (editingMessage.value) {
-        editingMessage.value = null;
-      }
-      return;
-    }
-
-    isSending.value = true;
-
-    try {
-      if (editingMessage.value) {
-        if (editingMessage.value.body !== body.value) {
-          const instance = new TradeMessage(editingMessage.value.id);
-          instance.body = body.value;
-          await instance.save();
-        }
-
-        editingMessage.value = null;
-      } else {
-        const instance = new TradeMessage();
-        instance.tradeId = props.tradeId;
-        instance.userId = user.value.id;
-        instance.body = body.value;
-        await instance.save();
-      }
-      body.value = '';
-    } catch (error) {
-      console.error(error);
-      snackbarStore.set('error', 'Unable to send message');
-    } finally {
-      isSending.value = false;
-    }
-  };
-
-  const editMessage = async message => {
+  /**
+   * Enters edit mode for the given message. Calling it again with the same
+   * message cancels the edit.
+   *
+   * @param {{ id: string, body: string }} message
+   */
+  const startEdit = async (message) => {
     if (message.id === editingMessage.value?.id) {
       cancelEdit();
       return;
@@ -128,20 +67,48 @@
     messageInput.value?.select();
   };
 
+  /**
+   * Clears the edit state and empties the input.
+   */
   const cancelEdit = () => {
     body.value = '';
     editingMessage.value = null;
   };
 
-  const deleteMessage = async message => {
-    try {
-      const instance = new TradeMessage(message);
-      await instance.delete();
-      messages.value.splice(messages.value.findIndex(msg => msg.id === message.id), 1);
-    } catch (error) {
-      console.error(error);
-      snackbarStore.set('error', 'Unable to delete message');
+  /**
+   * Sends a new message or saves an edit, then resets local state on success.
+   * Surfaces errors via the snackbar.
+   */
+  const handleSubmit = () => {
+    if (body.value.trim() === '') {
+      cancelEdit();
+      return;
     }
+
+    if (editingMessage.value) {
+      if (editingMessage.value.body === body.value) {
+        cancelEdit();
+        return;
+      }
+
+      editMessage(editingMessage.value.id, body.value)
+        .then(cancelEdit)
+        .catch(() => snackbarStore.set('error', 'Unable to edit message'));
+    } else {
+      sendMessage(body.value)
+        .then(() => { body.value = ''; })
+        .catch(() => snackbarStore.set('error', 'Unable to send message'));
+    }
+  };
+
+  /**
+   * Deletes a message and surfaces any error via the snackbar.
+   *
+   * @param {{ id: string }} message
+   */
+  const handleDelete = (message) => {
+    deleteMessage(message)
+      .catch(() => snackbarStore.set('error', 'Unable to delete message'));
   };
 </script>
 
@@ -176,8 +143,8 @@
         v-for="(message, index) in messages"
         :key="index"
         :message="message"
-        @delete="deleteMessage"
-        @edit="editMessage"
+        @delete="handleDelete"
+        @edit="startEdit"
       />
     </v-card-text>
 
@@ -190,15 +157,15 @@
         :disabled="isSending"
         hide-details
         placeholder="Type your message..."
-        @keydown.enter.prevent="sendMessage"
+        @keydown.enter.prevent="handleSubmit"
         @keydown.escape="cancelEdit"
-        @keydown.up="editMessage(messages[messages.length - 1])"
+        @keydown.up="startEdit(messages[messages.length - 1])"
       >
         <template #append>
           <v-btn
             :disabled="isSending || !body.trim()"
             icon
-            @click="sendMessage"
+            @click="handleSubmit"
           >
             <v-icon :icon="editingMessage ? 'mdi-pencil' : 'mdi-send'" />
           </v-btn>
@@ -218,8 +185,8 @@
 
   .chat-messages {
     /* height: 400px; */
-      flex: 1 1 auto;
-      overflow-y: auto;
-      height: 0px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    height: 0px;
   }
 </style>
