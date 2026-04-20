@@ -45,20 +45,20 @@
   const isCounter = !!props.counterId;
   const isCopy = !!props.copyId;
 
-  let tradeKey = 'trade';
-  let appsKey = 'trade-apps';
+  let tradeKey = 'trade-edit';
+  let appsKey = 'trade-edit-apps';
   if (props.id) {
-    tradeKey = `trade-${props.id}`;
-    appsKey = `trade-apps-${props.id}`;
+    tradeKey = `trade-edit-${props.id}`;
+    appsKey = `trade-edit-apps-${props.id}`;
   } else if (props.copyId) {
-    tradeKey = `trade-copy-${props.copyId}`;
-    appsKey = `trade-apps-copy-${props.copyId}`;
+    tradeKey = `trade-edit-copy-${props.copyId}`;
+    appsKey = `trade-edit-apps-copy-${props.copyId}`;
   } else if (props.counterId) {
-    tradeKey = `trade-counter-${props.counterId}`;
-    appsKey = `trade-apps-counter-${props.counterId}`;
+    tradeKey = `trade-edit-counter-${props.counterId}`;
+    appsKey = `trade-edit-apps-counter-${props.counterId}`;
   } else if (isNew) {
-    tradeKey = 'trade-new';
-    appsKey = 'trade-apps-new';
+    tradeKey = 'trade-edit-new';
+    appsKey = 'trade-edit-apps-new';
   }
 
   const { data: trade, status: tradeStatus, error: tradeError } = useLazyAsyncData(tradeKey, async () => {
