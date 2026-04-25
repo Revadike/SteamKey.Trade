@@ -109,7 +109,6 @@ export const useAuthStore = defineStore('auth', () => {
       setUser(null);
       setPreferences(null);
       setPassword(null);
-      setFromPath(null);
 
       collectionsStore.reset();
 

@@ -2,11 +2,16 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const { setFromPath } = useAuthStore();
   const { isLoggedIn } = storeToRefs(useAuthStore());
 
-  if (isLoggedIn.value || to.path.startsWith('/login') || to.path.startsWith('/logout') || from.path.startsWith('/login') || from.path.startsWith('/logout')) {
-    return;
+  // Prevent logged-out users from being redirected to an authenticated page
+  if (!isLoggedIn.value && from.fullPath.startsWith('/logout')) {
+    return navigateTo('/');
   }
 
-  setFromPath(from.fullPath);
+  if (!to.fullPath.startsWith('/login') && !to.fullPath.startsWith('/logout')) {
+    setFromPath(to.fullPath);
+  }
 
-  return navigateTo('/login');
+  if (!isLoggedIn.value) {
+    return navigateTo('/login');
+  }
 });

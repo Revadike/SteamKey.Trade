@@ -1,11 +1,12 @@
 <script setup>
   const client = useSupabaseClient();
+  const { fromPath } = storeToRefs(useAuthStore());
 
   const logout = async () => {
     clearTimeout(timeoutId);
 
     await client.auth.signOut();
-    await navigateTo('/');
+    await navigateTo(fromPath.value || '/');
   };
 
   const timeoutId = setTimeout(logout, 500);

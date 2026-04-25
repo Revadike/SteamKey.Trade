@@ -35,7 +35,7 @@
       }
 
       loggingIn.value = false;
-      await navigateTo(fromPath.value || '/');
+      await navigateTo(fromPath.value || '/', { replace: true });
     } else {
       await signInWithSteam();
     }
