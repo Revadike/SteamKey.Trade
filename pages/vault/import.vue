@@ -2,8 +2,6 @@
   import { FunctionsHttpError } from '@supabase/supabase-js';
   import { useDisplay } from 'vuetify';
 
-  import { toAccountID } from '~/assets/js/steamid';
-
   const { Collection, VaultEntry } = useORM();
   const { user, updateUserCollections } = useAuthStore();
   const { encrypt } = useVaultSecurity();
@@ -53,7 +51,7 @@
           score: 0,
           suggestions: [],
           type: VaultEntry.enums.type.gift,
-          values: Array(count).fill(`https://steamcommunity.com/tradeoffer/new/?partner=${toAccountID(user.steamId)}`)
+          values: Array(count).fill(null)
         });
       }
 
@@ -71,7 +69,7 @@
             score: results[0]?.score ?? 1,
             suggestions: results.slice(0, 10),
             type: VaultEntry.enums.type.gift,
-            values: Array(count).fill(`https://steamcommunity.com/tradeoffer/new/?partner=${toAccountID(user.steamId)}`)
+            values: Array(count).fill(null)
           });
         });
       }

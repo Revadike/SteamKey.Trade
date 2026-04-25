@@ -436,7 +436,10 @@
                 <rich-profile-link :user-id="trade.senderId" /> offered
                 <strong class="text-primary">{{ trade.senderTotal }}</strong> {{ trade.senderTotal === 1 ? 'app' : 'apps' }}
                 <template v-if="senderTotalValue > 0">
-                  (<strong class="text-primary">${{ senderTotalValue.toFixed(2) }}</strong>)
+                  (<strong
+                    v-tooltip:top="`The total market value of the ${trade.senderTotal} selected ${trade.senderTotal === 1 ? 'app' : 'apps'} is ~$${senderTotalValue.toFixed(2)}`"
+                    class="text-primary"
+                  >${{ senderTotalValue.toFixed(2) }}</strong>)
                 </template>:
               </div>
 
@@ -466,7 +469,10 @@
               <div class="text-center mb-2 text-disabled">
                 requesting <strong class="text-primary">{{ trade.receiverTotal }}</strong> {{ trade.receiverTotal === 1 ? 'app' : 'apps' }}
                 <template v-if="receiverTotalValue > 0">
-                  (<strong class="text-primary">${{ receiverTotalValue.toFixed(2) }}</strong>)
+                  (<strong
+                    v-tooltip:top="`The total market value of the ${trade.receiverTotal} selected ${trade.receiverTotal === 1 ? 'app' : 'apps'} is ~$${receiverTotalValue.toFixed(2)}`"
+                    class="text-primary"
+                  >${{ receiverTotalValue.toFixed(2) }}</strong>)
                 </template>
                 from <rich-profile-link :user-id="trade.receiverId" />:
               </div>

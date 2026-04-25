@@ -61,9 +61,38 @@
     emit('update:encrypted', false);
   };
 
-  const getInputIcon = value => {
-    if (props.encrypted) { return 'mdi-lock'; }
-    return ['https://', 'http://'].some(prefix => value.startsWith(prefix)) ? 'mdi-link' : 'mdi-key';
+  const getInputIcon = () => {
+    if (props.encrypted) {
+      return 'mdi-lock';
+    }
+
+    switch (model.value.type) {
+      case VaultEntry.enums.type.key:
+        return 'mdi-key';
+      case VaultEntry.enums.type.curator:
+        return 'mdi-steam';
+      case VaultEntry.enums.type.gift:
+        return 'mdi-gift';
+      case VaultEntry.enums.type.link:
+        return 'mdi-link';
+      default:
+        return 'mdi-key';
+    }
+  };
+
+  const getPlaceholder = () => {
+    switch (model.value.type) {
+      case VaultEntry.enums.type.key:
+        return 'XXXXX-XXXXX-XXXXX';
+      case VaultEntry.enums.type.curator:
+        return 'https://store.steampowered.com/curator/XXXXXXXX/admin/pending';
+      case VaultEntry.enums.type.gift:
+        return 'https://store.steampowered.com/account/ackgift/XXXXXXXXXXXXXXXX';
+      case VaultEntry.enums.type.link:
+        return 'https://humblebundle.com/gift?key=XXXXXXXXXXXXXXXX';
+      default:
+        return '';
+    }
   };
 </script>
 
@@ -101,7 +130,8 @@
     density="compact"
     :disabled="disabled"
     hide-details
-    :prepend-inner-icon="getInputIcon(model.values[index])"
+    :placeholder="getPlaceholder()"
+    :prepend-inner-icon="getInputIcon()"
     :tabindex="index + 1"
     variant="outlined"
     @blur="focusedIndex = null"
