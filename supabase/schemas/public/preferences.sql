@@ -1,6 +1,6 @@
 -- Create widget type enum
 create type widget as enum (
-  'welcome', 'stats', 'trade_activity', 'users_online', 'bundles'
+  'welcome', 'stats', 'trade_activity', 'users_online', 'bundles', 'changelog'
 );
 
 -- Create preferences table
@@ -15,7 +15,7 @@ create table preferences (
   ]'::jsonb,
   app_columns text[] default array['title', 'type', 'retail_price', 'market_price', 'plus_one', 'cards', 'achievements', 'tradelists', 'wishlists']::text[],
   dark_mode boolean default true,
-  dashboard_widgets widget[] default array['welcome', 'users_online', 'stats', 'trade_activity']::widget[],
+  dashboard_widgets widget[] default array['welcome', 'users_online', 'stats', 'trade_activity', 'bundles', 'changelog']::widget[],
   enabled_notifications notification[] default array['new_trade', 'accepted_trade', 'new_vault_entry', 'unread_messages', 'disputed_trade', 'resolved_trade']::notification[],
   track_vault_copies boolean default false,
   automatic_library_sync boolean default true,

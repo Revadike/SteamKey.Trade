@@ -1573,7 +1573,13 @@ export type Database = {
         | "ggdeals_bundles_check"
         | "app_update"
       vault_entry_type: "key" | "gift" | "link" | "curator"
-      widget: "welcome" | "stats" | "trade_activity" | "users_online"
+      widget:
+        | "welcome"
+        | "stats"
+        | "trade_activity"
+        | "users_online"
+        | "bundles"
+        | "changelog"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2039,7 +2045,14 @@ export const Constants = {
         "app_update",
       ],
       vault_entry_type: ["key", "gift", "link", "curator"],
-      widget: ["welcome", "stats", "trade_activity", "users_online"],
+      widget: [
+        "welcome",
+        "changelog",
+        "stats",
+        "trade_activity",
+        "users_online",
+        "bundles",
+      ],
     },
   },
 } as const

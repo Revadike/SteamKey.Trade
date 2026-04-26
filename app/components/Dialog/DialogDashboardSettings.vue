@@ -12,7 +12,8 @@
     { value: User.enums.widget.usersOnline, title: User.labels.usersOnline },
     { value: User.enums.widget.tradeActivity, title: User.labels.tradeActivity },
     { value: User.enums.widget.stats, title: User.labels.stats },
-    { value: User.enums.widget.bundles, title: User.labels.bundles }
+    { value: User.enums.widget.bundles, title: User.labels.bundles },
+    { value: User.enums.widget.changelog, title: User.labels.changelog }
   ];
 
   // Create local copy of preferences that we can modify

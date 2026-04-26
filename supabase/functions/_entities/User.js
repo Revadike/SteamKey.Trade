@@ -129,7 +129,8 @@ export class User extends Entity {
         usersOnline: 'users_online',
         stats: 'stats',
         tradeActivity: 'trade_activity',
-        bundles: 'bundles'
+        bundles: 'bundles',
+        changelog: 'changelog'
       }),
       notification: Object.freeze({
         newTrade: 'new_trade',
@@ -178,6 +179,7 @@ export class User extends Entity {
       }, {}),
 
       welcome: 'Welcome',
+      changelog: 'Changelog',
       stats: 'Statistics',
       tradeActivity: 'Trade Activity',
       usersOnline: 'Users Online',

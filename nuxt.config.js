@@ -116,13 +116,12 @@ export default {
         'ajv',
         'ajv-formats',
 
-        // Utilities
+        // others
         'lodash/debounce',
         'uuid',
         'json-to-csv-export',
         'jsonata',
-
-        // Image cropping
+        'markdown-it',
         'cropperjs/dist/cropper.esm'
       ]
     }
