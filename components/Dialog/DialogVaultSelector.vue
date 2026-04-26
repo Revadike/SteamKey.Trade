@@ -75,6 +75,31 @@
   });
 
   const vaultEntries = ref([]);
+  const selectedVaultEntryIds = computed(() => {
+    const selectedIds = model.value.flatMap(item => item.vaultEntries || []).filter(Boolean);
+    return new Set(selectedIds);
+  });
+
+  const getVaultEntryOptions = appId => {
+    const options = new Map();
+
+    vaultEntries.value.forEach(entry => {
+      if (entry.appId === appId) {
+        options.set(entry.id, {
+          ...entry,
+          label: entry.value
+        });
+      } else if (selectedVaultEntryIds.value.has(entry.id)) {
+        options.set(entry.id, {
+          ...entry,
+          label: `Reuse: ${entry.value}`
+        });
+      }
+    });
+
+    return [...options.values()];
+  };
+
   watch([
     () => internalValue.value,
     () => model.value,
@@ -213,9 +238,9 @@
                     clearable
                     :disabled="missingPartnerVault"
                     hide-details
-                    item-title="value"
+                    item-title="label"
                     item-value="id"
-                    :items="vaultEntries.filter(entry => entry.appId === item.appId)"
+                    :items="getVaultEntryOptions(item.appId)"
                     :label="`Vault entry${item.total > 1 ? ' #' + idx : ''}`"
                   >
                     <template #no-data>

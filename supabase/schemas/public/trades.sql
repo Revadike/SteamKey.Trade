@@ -449,7 +449,7 @@ declare
   v_master_tradelist_id text;
   v_count integer;
   v_selected_apps integer[];
-  v_vault_entry_id uuid;
+  v_ta_record record;
 begin
   -- Skip if the trade is not completed or if vaultless, we are done
   if new.status != 'completed' or new.sender_vaultless = true then
@@ -458,14 +458,14 @@ begin
   -- We assume that the trade is valid (checked in the status change trigger)
 
   -- Create received vault entries for each selected app and each vault entry in the array
-  for v_vault_entry_id in
-    select unnest(ta.vault_entries) as vault_entry_id
+  for v_ta_record in
+    select ta.app_id, unnest(ta.vault_entries) as vault_entry_id
     from public.trade_apps ta
     where ta.trade_id = new.id
       and ta.selected = true
       and ta.vault_entries is not null
   loop
-    select * into v_vault_entry from public.vault_entries where id = v_vault_entry_id;
+    select * into v_vault_entry from public.vault_entries where id = v_ta_record.vault_entry_id;
     -- Create new vault entry
     insert into public.vault_entries (
       user_id,
@@ -478,7 +478,7 @@ begin
       else new.sender_id
       end,
       v_vault_entry.type,
-      v_vault_entry.app_id,
+      v_ta_record.app_id,
       new.id
     ) returning * into v_new_vault_entry;
 
