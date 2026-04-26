@@ -191,7 +191,10 @@
           :items="items"
           :max-items="items.length"
         />
-        <span class="text-warning text-no-wrap d-flex align-center">
+        <span
+          v-tooltip:top="'Even if the whole database leaks, your vault stays encrypted. The real risk is forgetting, leaking, or using a weak password.'"
+          class="text-warning text-no-wrap d-flex align-center cursor-help"
+        >
           <v-icon
             class="mr-1"
             color="warning"
