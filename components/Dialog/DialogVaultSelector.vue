@@ -75,6 +75,38 @@
   });
 
   const vaultEntries = ref([]);
+  const selectedVaultEntryIds = computed(() => {
+    return [...new Set(model.value
+      .flatMap(item => item.vaultEntries || [])
+      .filter(Boolean))];
+  });
+
+  const getVaultEntryOptions = appId => {
+    const options = new Map();
+
+    vaultEntries.value
+      .filter(entry => entry.appId === appId)
+      .forEach(entry => {
+        options.set(entry.id, {
+          ...entry,
+          label: entry.value
+        });
+      });
+
+    vaultEntries.value
+      .filter(entry => selectedVaultEntryIds.value.includes(entry.id) && entry.appId !== appId)
+      .forEach(entry => {
+        if (!options.has(entry.id)) {
+          options.set(entry.id, {
+            ...entry,
+            label: `Reuse: ${entry.value}`
+          });
+        }
+      });
+
+    return [...options.values()];
+  };
+
   watch([
     () => internalValue.value,
     () => model.value,
@@ -213,9 +245,9 @@
                     clearable
                     :disabled="missingPartnerVault"
                     hide-details
-                    item-title="value"
+                    item-title="label"
                     item-value="id"
-                    :items="vaultEntries.filter(entry => entry.appId === item.appId)"
+                    :items="getVaultEntryOptions(item.appId)"
                     :label="`Vault entry${item.total > 1 ? ' #' + idx : ''}`"
                   >
                     <template #no-data>
