@@ -49,7 +49,7 @@
   :deep(h2) {
     margin-bottom: 0;                // merge with list
     padding: 0.75rem 1rem;
-    border-radius: 10px 10px 0 0;    // only top corners
+    border-radius: 4px 4px 0 0;    // only top corners
     background: rgba(var(--v-theme-on-surface), 0.04);
     font-size: 1.05rem;
   }
@@ -58,7 +58,7 @@
   :deep(h2 + ol) {
     margin-top: 0;
     border-top: none;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 4px 4px;
     padding: 0.5rem 1.5rem;
     position: relative;
   }
