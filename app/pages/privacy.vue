@@ -90,24 +90,24 @@
       <ul>
         <li>
           GitHub Issues: <a
-            href="https://github.com/Revadike/SteamKey.Trade/issues/"
+            href="/github"
             rel="noopener"
             target="_blank"
-          >https://github.com/Revadike/SteamKey.Trade/issues/</a>
+          >https://steamkey.trade/github</a>
         </li>
         <li>
           Discord: <a
             href="/discord"
             rel="noopener"
             target="_blank"
-          >/discord</a>
+          >https://steamkey.trade/discord</a>
         </li>
         <li>
           Steam Community: <a
             href="/steam"
             rel="noopener"
             target="_blank"
-          >/steam</a>
+          >https://steamkey.trade/steam</a>
         </li>
         <li>
           Email (GDPR requests only): <a
