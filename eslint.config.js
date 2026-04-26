@@ -3,7 +3,7 @@ import js from '@eslint/js';
 import vue from 'eslint-plugin-vue';
 import vueEslintParser from 'vue-eslint-parser';
 import vuetify from 'eslint-config-vuetify';
-import withNuxt from './.nuxt/eslint.config.mjs';
+import withNuxt from '.nuxt/eslint.config.mjs';
 
 export default withNuxt(
   js.configs.recommended,

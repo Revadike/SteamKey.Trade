@@ -1,7 +1,7 @@
 <script setup>
-  import AppCollections from '~/components/App/AppCollections.vue';
-  import AppRelatedApps from '~/components/App/AppRelatedApps.vue';
-  import AppTrades from '~/components/App/AppTrades.vue';
+  import AppCollections from '@/components/App/AppCollections.vue';
+  import AppRelatedApps from '@/components/App/AppRelatedApps.vue';
+  import AppTrades from '@/components/App/AppTrades.vue';
 
   import { formatDate, formatNumber, slugify } from '~/assets/js/format';
 

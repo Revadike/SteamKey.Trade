@@ -1,9 +1,9 @@
 <script setup>
-  import welcome from '~/components/Widget/WidgetWelcome.vue';
-  import usersOnline from '~/components/Widget/WidgetUsersOnline.vue';
-  import stats from '~/components/Widget/WidgetStats.vue';
-  import tradeActivity from '~/components/Widget/WidgetTradeActivity.vue';
-  import bundles from '~/components/Widget/WidgetActiveBundles.vue';
+  import welcome from '@/components/Widget/WidgetWelcome.vue';
+  import usersOnline from '@/components/Widget/WidgetUsersOnline.vue';
+  import stats from '@/components/Widget/WidgetStats.vue';
+  import tradeActivity from '@/components/Widget/WidgetTradeActivity.vue';
+  import bundles from '@/components/Widget/WidgetActiveBundles.vue';
 
   const { User } = useORM();
   const { preferences, isLoggedIn } = storeToRefs(useAuthStore());

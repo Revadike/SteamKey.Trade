@@ -1,6 +1,6 @@
 <script setup>
   import { isSteamID64 } from '~/assets/js/validate';
-  import countries from '~/supabase/functions/_assets/countries.json';
+  import countries from '@@/supabase/functions/_assets/countries.json';
 
   const { user: authUser, preferences, setPhotoUrl, setPreferences } = useAuthStore();
   const { User } = useORM();

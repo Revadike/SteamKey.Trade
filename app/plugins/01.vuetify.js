@@ -1,5 +1,5 @@
 import '@mdi/font/css/materialdesignicons.css';
-import '@/public/icomoon/style.css';
+import '@@/public/icomoon/style.css';
 import '@/styles/main.scss';
 
 import { createVuetify } from 'vuetify';
