@@ -446,7 +446,7 @@
           nav
         >
           <v-list-item
-            href="https://github.com/Revadike/SteamKey.Trade/"
+            href="/github"
             rel="noopener"
             target="_blank"
           >
@@ -464,7 +464,7 @@
           </v-list-item>
 
           <v-list-item
-            href="https://steamcommunity.com/groups/steamkeytrade"
+            href="/steam"
             rel="noopener"
             target="_blank"
           >
@@ -482,7 +482,7 @@
           </v-list-item>
 
           <v-list-item
-            href="https://discord.gg/ngJ7RmePM4"
+            href="/discord"
             rel="noopener"
             target="_blank"
           >

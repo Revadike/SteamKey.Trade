@@ -97,17 +97,17 @@
         </li>
         <li>
           Discord: <a
-            href="https://discord.gg/ngJ7RmePM4"
+            href="/discord"
             rel="noopener"
             target="_blank"
-          >https://discord.gg/ngJ7RmePM4</a>
+          >/discord</a>
         </li>
         <li>
           Steam Community: <a
-            href="https://steamcommunity.com/groups/steamkeytrade"
+            href="/steam"
             rel="noopener"
             target="_blank"
-          >https://steamcommunity.com/groups/steamkeytrade</a>
+          >/steam</a>
         </li>
         <li>
           Email (GDPR requests only): <a

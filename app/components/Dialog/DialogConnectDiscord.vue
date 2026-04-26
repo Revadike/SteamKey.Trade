@@ -102,12 +102,12 @@
         <v-card-text>
           <p>
             Connect your Discord account to receive notifications on our <a
-              href="https://discord.gg/ngJ7RmePM4"
+              href="/discord"
               target="_blank"
             >
               {{ 'Discord server' }}
             </a> for new and accepted trade offers. Alternatively, receive notifications via the <a href="steam://friends/joinchat/103582791474397691">group chat</a> of our <a
-              href="https://steamcommunity.com/groups/SteamKeyTrade"
+              href="/steam"
               target="_blank"
             >Steam group</a>.
           </p>
