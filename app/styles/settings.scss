@@ -1,9 +1,0 @@
-//$color-pack: false // TODO: add when not using default vuetify material colors
-
-@use 'vuetify/settings' with (
-  $button-elevation: (
-    default: 0,
-    hover: 2,
-    active: 4
-  )
-);

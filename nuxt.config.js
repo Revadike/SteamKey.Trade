@@ -1,5 +1,3 @@
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify';
-
 const primaryColor = '#555';
 const isProduction = process.env.NODE_ENV === 'production';
 const siteName = process.env.SITE_NAME || 'SteamKey.Trade';
@@ -56,6 +54,11 @@ export default {
     }
   },
 
+  css: [
+    '@mdi/font/css/materialdesignicons.css',
+    '@@/public/icomoon/style.css'
+  ],
+
   runtimeConfig: {
     public: {
       siteName,
@@ -68,22 +71,17 @@ export default {
   },
 
   modules: [
-    (_options, nuxt) => {
-      nuxt.hooks.hook('vite:extendConfig', config => {
-        config.plugins.push(vuetify({
-          autoImport: true,
-          styles: {
-            configFile: './styles/settings.scss'
-          }
-        }));
-      });
-    },
+    'vuetify-nuxt-module',
     '@nuxtjs/supabase',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/eslint',
     '@nuxt/fonts'
   ],
+
+  vuetify: {
+    vuetifyOptions: './app/vuetify.config.js'
+  },
 
   supabase: {
     redirect: false // We handle redirects ourselves with Nuxt middleware
@@ -96,11 +94,6 @@ export default {
   },
 
   vite: {
-    vue: {
-      template: {
-        transformAssetUrls
-      }
-    },
     optimizeDeps: {
       include: [
         // Supabase and its dependencies

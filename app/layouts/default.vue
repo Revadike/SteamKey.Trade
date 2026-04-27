@@ -55,22 +55,6 @@
     { title: 'Leaderboard', icon: 'mdi-podium-gold', to: '/leaderboard' }
   ]).filter(Boolean));
 
-  const { refreshFacets } = useAppsStore();
-  const { refreshTags } = useTagsStore();
-  onMounted(async () => {
-    document.addEventListener('keydown', event => {
-      if (event.key === 'f' && (event.ctrlKey || event.metaKey) && !searchIsExpanded.value) {
-        event.preventDefault();
-        searchIsExpanded.value = true;
-        $search.value.focus();
-      }
-    });
-
-    // Refresh stores
-    refreshFacets();
-    refreshTags();
-  });
-
   const { setOnline } = usePresenceStore();
   const online = supabase.channel('online_list');
   online
@@ -109,6 +93,11 @@
 
   const theme = useTheme();
   const isDark = computed(() => theme.global.current.value.dark);
+  const restoreTheme = () => {
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    theme.change(savedTheme);
+  };
+
   const toggleTheme = () => {
     theme.change(isDark.value ? 'light' : 'dark');
     localStorage.setItem('theme', theme.global.name.value);
@@ -116,6 +105,24 @@
 
   const showFullLogo = computed(() => {
     return !searchIsExpanded.value || !display.mdAndDown.value;
+  });
+
+  const { refreshFacets } = useAppsStore();
+  const { refreshTags } = useTagsStore();
+  onMounted(async () => {
+    document.addEventListener('keydown', event => {
+      if (event.key === 'f' && (event.ctrlKey || event.metaKey) && !searchIsExpanded.value) {
+        event.preventDefault();
+        searchIsExpanded.value = true;
+        $search.value.focus();
+      }
+    });
+
+    restoreTheme();
+
+    // Refresh stores
+    refreshFacets();
+    refreshTags();
   });
 
   useHead({
