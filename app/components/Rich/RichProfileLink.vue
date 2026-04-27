@@ -71,7 +71,7 @@
     return userError.value?.message || statsError.value?.message || tradesError.value?.message;
   });
 
-  const { online } = storeToRefs(useUsersStore());
+  const { online } = storeToRefs(usePresenceStore());
   const isOnline = computed(() => {
     return online.value?.[props.userId] || props.userId === null; // System user is always online (I hope)
   });

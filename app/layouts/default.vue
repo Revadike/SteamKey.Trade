@@ -157,7 +157,7 @@
     loading.value = false;
   };
 
-  const { setOnline } = useUsersStore();
+  const { setOnline } = usePresenceStore();
   const online = supabase.channel('online_list');
   online
     .on('presence', { event: 'sync' }, () => {

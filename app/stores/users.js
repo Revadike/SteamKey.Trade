@@ -1,11 +1,11 @@
 /**
- * Store for users.
+ * Store for user presence.
  *
- * @type {StoreDefinition<"users", {
+ * @type {StoreDefinition<"presence", {
  *   online: Object
  * }>}
  */
-export const useUsersStore = defineStore('users', () => {
+export const usePresenceStore = defineStore('presence', () => {
   const online = ref({});
 
   function setOnline(presenceState) {

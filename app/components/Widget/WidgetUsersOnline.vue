@@ -1,5 +1,5 @@
 <script setup>
-  const { online } = storeToRefs(useUsersStore());
+  const { online } = storeToRefs(usePresenceStore());
 </script>
 
 <template>
