@@ -27,13 +27,17 @@
 </script>
 
 <template>
-  <s-page-content :breadcrumbs="breadcrumbs">
+  <s-page-content
+    :breadcrumbs="breadcrumbs"
+    class="position-relative"
+  >
     <template #actions>
       <dialog-dashboard-settings v-if="isLoggedIn">
         <template #activator="attrs">
           <v-icon
             v-bind="attrs.props"
             icon="mdi-cog"
+            style="position: absolute; right: 16px; top: 16px;"
             variant="text"
           />
         </template>
