@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const fromPath = ref(null);
   const password = ref(null);
   const passwordExpiry = ref(null);
+  const notificationCount = ref(0);
 
   const isLoggedIn = computed(() => !!user.value);
 
@@ -76,6 +77,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function setNotificationCount(count) {
+    notificationCount.value = count;
+  }
+
   function updateUserCollections() {
     const supabase = useSupabaseClient();
     const { Collection } = useORM();
@@ -103,12 +108,12 @@ export const useAuthStore = defineStore('auth', () => {
     const gotLoggedIn = !oldUser && !!newUser;
     const gotLoggedOut = !!oldUser && !newUser;
 
-    // console.log({ authEvent, session, gotLoggedIn, gotLoggedOut });
     if (gotLoggedOut) {
       supabase.removeAllChannels();
       setUser(null);
       setPreferences(null);
       setPassword(null);
+      setNotificationCount(0);
 
       collectionsStore.reset();
 
@@ -149,6 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
     fromPath,
     password,
     passwordExpiry,
+    notificationCount,
     isLoggedIn,
     me,
     setPassword,
@@ -157,6 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
     setFromPath,
     setPhotoUrl,
     setPublicKey,
+    setNotificationCount,
     updateUserCollections,
     onAuthStateChange
   };

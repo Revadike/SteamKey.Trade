@@ -5,8 +5,7 @@
   const { $vuetify: { display } } = useNuxtApp();
   const { currentRoute } = useRouter();
   const { public: { siteName } } = useRuntimeConfig();
-  const { user, isLoggedIn } = storeToRefs(useAuthStore());
-  const { User } = useORM();
+  const { user, isLoggedIn, notificationCount } = storeToRefs(useAuthStore());
 
   const searchQuery = ref(currentRoute.value?.query?.query || '');
 
@@ -72,91 +71,6 @@
     refreshTags();
   });
 
-  const notifications = ref([]);
-  const unreadCount = computed(() => notifications.value.filter(({ read }) => !read).length);
-  let page = 0;
-  const pageSize = 5;
-
-  const loadMore = async () => {
-    page++;
-
-    const { data, error } = await supabase
-      .from(User.notifications.table)
-      .select('*')
-      .eq(User.notifications.fields.userId, user.value.id)
-      .order(User.notifications.fields.createdAt, { ascending: false }) // from newest to oldest
-      .range((page - 1) * pageSize, page * pageSize - 1);
-
-    if (error) {
-      console.error(error);
-    } else {
-      notifications.value = [
-        ...notifications.value,
-        ...data.map(notification => User.fromDB(notification, User.notifications.fields))
-      ];
-    }
-  };
-
-  if (isLoggedIn.value) {
-    loadMore();
-
-    supabase
-      .channel(User.notifications.table)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: User.notifications.table,
-          filter: `${User.notifications.fields.userId}=eq.${user.value.id}`
-        },
-        async (payload) => {
-          notifications.value = [
-            User.fromDB(payload.new, User.notifications.fields),
-            ...notifications.value
-          ];
-        }
-      )
-      .subscribe();
-  }
-
-  const openNotification = ({ id, link }) => {
-    markAsRead(id);
-    if (link) {
-      return navigateTo(link);
-    }
-  };
-
-  const markAsRead = async id => {
-    const { error } = await supabase
-      .from(User.notifications.table)
-      .update({ read: true })
-      .eq(User.notifications.fields.id, id);
-
-    if (!error) {
-      const index = notifications.value.findIndex(notification => notification.id === id);
-      notifications.value[index].read = true;
-    }
-  };
-
-  const loading = ref(false);
-  const markAllAsRead = async () => {
-    loading.value = true;
-
-    const { error } = await supabase
-      .from(User.notifications.table)
-      .update({ read: true })
-      .eq(User.notifications.fields.userId, user.value.id);
-
-    if (!error) {
-      notifications.value.forEach(notification => {
-        notification.read = true;
-      });
-    }
-
-    loading.value = false;
-  };
-
   const { setOnline } = usePresenceStore();
   const online = supabase.channel('online_list');
   online
@@ -183,13 +97,13 @@
     if (titleChunk) {
       title = `${titleChunk} - ${title}`;
     }
-    if (notifications.value.length && unreadCount.value) {
-      title = `(${unreadCount.value}) ${title}`;
+    if (notificationCount.value) {
+      title = `(${notificationCount.value}) ${title}`;
     }
     return title;
   };
 
-  watch(() => unreadCount.value, () => {
+  watch(() => notificationCount.value, () => {
     document.title = getDocumentTitle(lastTitleChunk);
   });
 
@@ -282,78 +196,7 @@
           :icon=" isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' "
           @click="toggleTheme"
         />
-        <v-menu v-if="isLoggedIn">
-          <template #activator="attrs">
-            <v-badge
-              color="error"
-              :content="unreadCount"
-              :model-value="!!unreadCount"
-              offset-x="5"
-              offset-y="5"
-              v-bind="attrs.props"
-            >
-              <v-btn
-                icon="mdi-bell"
-                v-bind="attrs.props"
-              />
-            </v-badge>
-          </template>
-
-          <v-list class="pt-0">
-            <v-btn
-              block
-              class="mb-2"
-              :disabled="unreadCount === 0"
-              variant="tonal"
-              @click="markAllAsRead"
-            >
-              <v-icon
-                icon="mdi-check-all"
-                start
-              />
-              Mark all as read
-            </v-btn>
-            <v-list-item
-              v-if="!notifications.length"
-              disabled
-            >
-              <v-list-item-title class="text-disabled text-center">
-                No notifications
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item
-              v-for="notification in notifications"
-              :key="notification.id"
-              :class="{ 'text-disabled': notification.read }"
-              @click="openNotification(notification)"
-            >
-              <v-list-item-title>
-                {{ User.getNotificationText(notification.type) }}
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <rich-date
-                  class="text-caption"
-                  :date="notification.createdAt"
-                />
-              </v-list-item-subtitle>
-            </v-list-item>
-
-            <v-btn
-              v-if="notifications.length"
-              block
-              class="mt-2 text-caption"
-              :disabled="page * pageSize >= notifications.length"
-              variant="text"
-              @click.stop="loadMore"
-            >
-              <v-icon
-                icon="mdi-arrow-down"
-                start
-              />
-              Load more
-            </v-btn>
-          </v-list>
-        </v-menu>
+        <user-notifications v-if="isLoggedIn" />
 
         <v-btn
           v-if="!isLoggedIn"
