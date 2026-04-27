@@ -121,7 +121,6 @@ export default {
         'uuid',
         'json-to-csv-export',
         'jsonata',
-        'markdown-it',
         'cropperjs/dist/cropper.esm'
       ]
     }
