@@ -50,6 +50,11 @@ export default defineNuxtPlugin(app => {
         }
       }
     },
+    defaults: {
+      VWindow: {
+        touch: false
+      }
+    },
     components: {
       VPie,
       VAvatarGroup

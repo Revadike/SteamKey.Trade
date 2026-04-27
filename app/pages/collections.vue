@@ -77,7 +77,6 @@
       <v-window
         v-model="activeTab"
         class="h-100"
-        :touch="false"
       >
         <v-window-item
           class="h-100"
