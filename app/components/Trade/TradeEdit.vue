@@ -480,6 +480,10 @@
         await originalTrade.decline();
       }
 
+      // Force trade view to refetch data and show the updated trade
+      clearNuxtData(`trade-${savedInstance.id}`);
+      clearNuxtData(`trade-apps-${savedInstance.id}`);
+
       snackbarStore.set('success', isNew ? 'Trade sent' : 'Trade saved');
       await navigateTo(`/trade/${savedInstance.id}`);
     } catch (error) {
