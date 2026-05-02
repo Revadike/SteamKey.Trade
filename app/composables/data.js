@@ -38,7 +38,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           }
           throw err;
         }
-      }
+      },
+      cache: true
     },
 
     'user-id': {
@@ -55,7 +56,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           return users[0].id;
         }
         return null;
-      }
+      },
+      cache: true
     },
 
     'user-stats': {
@@ -66,7 +68,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         const user = new User(params.id);
         return user.getStatistics();
-      }
+      },
+      cache: true
     },
 
     'user-trades-with-partner': {
@@ -77,7 +80,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         const user = new User(authUser.id);
         return user.getTotalTradesWithUser(params.partnerId);
-      }
+      },
+      cache: true
     },
 
     'user-partners': {
@@ -85,7 +89,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
       handler: async () => {
         const user = new User(params.id);
         return user.getTradePartners();
-      }
+      },
+      cache: true
     },
 
     'user-review': {
@@ -106,7 +111,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           userId: authUser.id,
           subjectId: params.subjectId
         };
-      }
+      },
+      cache: false
     },
 
     'trade': {
@@ -130,7 +136,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           }
           throw err;
         }
-      }
+      },
+      cache: false
     },
 
     'trade-apps': {
@@ -145,7 +152,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           sender: apps.filter(app => app.trade.senderId === app.userId),
           receiver: apps.filter(app => app.trade.receiverId === app.userId)
         };
-      }
+      },
+      cache: false
     },
 
     'trade-views': {
@@ -156,7 +164,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         const instance = new Trade(params.id);
         return instance.getViews(true);
-      }
+      },
+      cache: false
     },
 
     'my-recent-trades': {
@@ -173,7 +182,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           { filter: 'order', params: [Trade.fields.createdAt, { ascending: false }] },
           { filter: 'limit', params: [params.limit || 10] }
         ]);
-      }
+      },
+      cache: false
     },
 
     'vault-counts': {
@@ -213,7 +223,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           sent: sent.count || 0,
           received: received.count || 0
         };
-      }
+      },
+      cache: false
     },
 
     'collection': {
@@ -237,7 +248,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           }
           throw err;
         }
-      }
+      },
+      cache: false
     },
 
     'master-collections': {
@@ -261,6 +273,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
 
         return collections.filter(Boolean);
       },
+      cache: false,
       defaultOptions: {
         default: () => []
       }
@@ -276,6 +289,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         const subcollections = await instance.getSubcollections();
         return subcollections.map(instance => instance.toObject());
       },
+      cache: false,
       defaultOptions: {
         default: () => []
       }
@@ -292,7 +306,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           { filter: 'eq', params: [TradeMessage.fields.tradeId, params.tradeId] },
           { filter: 'order', params: [TradeMessage.fields.createdAt, { ascending: true }] }
         ]);
-      }
+      },
+      cache: false
     },
 
     'steamdeck-compatibility': {
@@ -309,6 +324,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         return data;
       },
+      cache: true,
       defaultOptions: {
         immediate: false
       }
@@ -335,7 +351,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
             fatal: true
           });
         }
-      }
+      },
+      cache: true
     },
 
     'total-users': {
@@ -345,7 +362,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           .from(User.table)
           .select('', { count: 'exact', head: true });
         return count;
-      }
+      },
+      cache: true
     },
 
     'leaderboard-top3': {
@@ -371,7 +389,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           throw error;
         }
         return data.map(record => User.fromDB(record, User.statistics.fields));
-      }
+      },
+      cache: true
     },
 
     'active-bundles': {
@@ -401,6 +420,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
             parents: undefined // Clean up the parents field
           }));
       },
+      cache: true,
       defaultOptions: {
         default: () => []
       }
@@ -416,7 +436,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
     lazy: true,
     server: false,
     deep: true,
-    getCachedData: (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key],
+    getCachedData: source.cache ? (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key] : undefined,
     ...source.defaultOptions,
     ...options
   });

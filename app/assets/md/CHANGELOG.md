@@ -1,3 +1,7 @@
+## May 3, 2026
+* Clearer error messages with improved trade checks
+* Prevent loading stale data for certain pages, so you always see accurate information
+
 ## April 26, 2026
 
 * Added changelog widget to the homepage
