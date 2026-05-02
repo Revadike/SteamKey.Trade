@@ -80,84 +80,96 @@ begin
           raise exception 'Only receiver can decline pending trades';
         end if;
       when 'completed' then
-        if old.status not in ('accepted', 'pending') or 
-          -- Enforce both vaultless flags to be equal.
-          new.sender_vaultless <> new.receiver_vaultless or
-          -- If both are false then check that all selected trade apps have a vault entry assigned.
-          (
-            new.sender_vaultless = false and 
-            exists (
-              select 1 from public.trade_apps
-              where trade_id = new.id
-                and selected = true
-                and (vault_entries is null or array_length(vault_entries, 1) = 0)
+        if old.status not in ('accepted', 'pending') then
+          raise exception 'Trade cannot be completed yet.';
+        end if;
+
+        -- Enforce both vaultless flags to be equal.
+        if coalesce(new.sender_vaultless, false) <> coalesce(new.receiver_vaultless, false) then
+          raise exception 'Both sides must agree to do this trade off-platform or not.';
+        end if;
+
+        -- Disallow trades where neither side has any selected trade apps.
+        if coalesce(new.sender_total, 0) = 0
+          and coalesce(new.receiver_total, 0) = 0 then
+          raise exception 'At least one side must have an app selected.';
+        end if;
+
+        -- If both are false then check that all selected trade apps have a vault entry assigned.
+        if coalesce(new.sender_vaultless, false) = false and exists (
+          select 1 from public.trade_apps
+          where trade_id = new.id
+            and selected = true
+            and (vault_entries is null or array_length(vault_entries, 1) = 0)
+        ) then
+          raise exception 'Every selected trade app must have a vault entry assigned.';
+        end if;
+
+        -- If both are false then check that all assigned vault entries have a value for both sender and receiver.
+        if coalesce(new.sender_vaultless, false) = false and exists (
+          select 1 from public.vault_entries ve
+          join public.trade_apps ta on ve.id = any(ta.vault_entries)
+          where ta.trade_id = new.id
+            and ta.selected = true
+            and ve.trade_id is null
+            and (
+              not exists (
+                select 1 from public.vault_values vv
+                where vv.vault_entry_id = ve.id
+                  and vv.receiver_id = new.sender_id
+              ) or
+              not exists (
+                select 1 from public.vault_values vv
+                where vv.vault_entry_id = ve.id
+                  and vv.receiver_id = new.receiver_id
+              )
             )
-          ) or
-          -- If both are false then check that all assigned vault entries have a value for both sender and receiver.
-          (
-            new.sender_vaultless = false and 
-            exists (
-              select 1 from public.vault_entries ve
-              join public.trade_apps ta on ve.id = any(ta.vault_entries)
-              where ta.trade_id = new.id
-                and ta.selected = true
-                and ve.trade_id is null
-                and (
-                  not exists (
-                    select 1 from public.vault_values vv
-                    where vv.vault_entry_id = ve.id
-                      and vv.receiver_id = new.sender_id
-                  ) or 
-                  not exists (
-                    select 1 from public.vault_values vv
-                    where vv.vault_entry_id = ve.id
-                      and vv.receiver_id = new.receiver_id
-                  )
-                )
-            )
-          ) or
-          -- Check that assigned vault entries for selected trade apps don't already have a trade assigned.
-          (
-            new.sender_vaultless = false and 
-            exists (
-              select 1 from public.vault_entries ve
-              join public.trade_apps ta on ve.id = any(ta.vault_entries)
-              where ta.trade_id = new.id
-                and ta.selected = true
-                and ve.trade_id is not null
-            )
-          ) or
-          -- Check that for each selected trade_app, the number of distinct vault_entries matches total
-          (
-            new.sender_vaultless = false and
-            exists (
-              select 1 from public.trade_apps ta
-              where ta.trade_id = new.id
-                and ta.selected = true
-                and ta.vault_entries is not null
-                and array_length(array(select distinct unnest(ta.vault_entries)), 1) != ta.total
-            )
-          ) or
-          -- Verify that the count of selected sender trade apps equals the expected sender_total.
-          not exists (
-            select 1 from public.trade_apps
-            where trade_id = new.id
-              and user_id = new.sender_id
-              and selected = true
-            group by trade_id
-            having count(*) = new.sender_total
-          ) or
-          -- Verify that the count of selected receiver trade apps equals the expected receiver_total.
-          not exists (
-            select 1 from public.trade_apps
-            where trade_id = new.id
-              and user_id = new.receiver_id
-              and selected = true
-            group by trade_id
-            having count(*) = new.receiver_total
-          )
-        then
-            raise exception 'Invalid conditions for completing trade';
+        ) then
+          raise exception 'One or more assigned vault entries are not ready to be sent.';
+        end if;
+
+        -- Check that assigned vault entries for selected trade apps don't already have a trade assigned.
+        if coalesce(new.sender_vaultless, false) = false and exists (
+          select 1 from public.vault_entries ve
+          join public.trade_apps ta on ve.id = any(ta.vault_entries)
+          where ta.trade_id = new.id
+            and ta.selected = true
+            and ve.trade_id is not null
+        ) then
+          raise exception 'One or more assigned vault entries are already linked to another trade.';
+        end if;
+
+        -- Check that for each selected trade_app, the number of distinct vault_entries matches total.
+        if coalesce(new.sender_vaultless, false) = false and exists (
+          select 1 from public.trade_apps ta
+          where ta.trade_id = new.id
+            and ta.selected = true
+            and ta.vault_entries is not null
+            and array_length(array(select distinct unnest(ta.vault_entries)), 1) != ta.total
+        ) then
+          raise exception 'Each selected trade app must contain the expected number of unique vault entries.';
+        end if;
+
+        -- Verify that the count of selected sender trade apps equals the expected sender_total.
+        if (
+          select count(*)
+          from public.trade_apps
+          where trade_id = new.id
+            and user_id = new.sender_id
+            and selected = true
+        ) != coalesce(new.sender_total, 0) then
+          raise exception 'The sender does not have the required number of selected apps.';
+        end if;
+
+        -- Verify that the count of selected receiver trade apps equals the expected receiver_total.
+        if (
+          select count(*)
+          from public.trade_apps
+          where trade_id = new.id
+            and user_id = new.receiver_id
+            and selected = true
+        ) != coalesce(new.receiver_total, 0) then
+          raise exception 'The receiver does not have the required number of selected apps.';
         end if;
     else
         raise exception 'Invalid status change';
@@ -244,7 +256,7 @@ begin
   end if;
 
   -- Construct user link (prefer custom_url, fallback to steam_id)
-  user_link := format('https://steamkey.trade/user/%s', 
+  user_link := format('https://steamkey.trade/user/%s',
     coalesce(other_user.custom_url, other_user.steam_id));
 
   -- Construct message based on notification type
@@ -265,7 +277,7 @@ begin
   end if;
 
   -- Retrieve Discord credentials from vault
-  select 
+  select
     (select decrypted_secret from vault.decrypted_secrets where name = 'discord_token' limit 1) as token,
     (select decrypted_secret from vault.decrypted_secrets where name = 'discord_channel' limit 1) as channel
   into discord_config;
@@ -309,7 +321,7 @@ begin
     ) then
       insert into public.notifications (user_id, type, link)
       values (new.receiver_id, 'new_trade', '/trade/' || new.id);
-      
+
       -- Send Discord notification
       perform public.send_discord_notification(new, 'new_trade');
     end if;
@@ -325,12 +337,12 @@ begin
     ) then
       insert into public.notifications (user_id, type, link)
       values (new.sender_id, 'accepted_trade', '/trade/' || new.id);
-      
+
       -- Send Discord notification
       perform public.send_discord_notification(new, 'accepted_trade');
     end if;
   end if;
-  
+
   -- For updates, create a notification for the receiver if trade got disputed by the sender
   if tg_op = 'UPDATE' and new.sender_disputed and not old.sender_disputed then
     -- Only send notification if the user has enabled 'disputed_trade' notifications
@@ -398,23 +410,23 @@ begin
     -- Record creation
     insert into public.trade_activity (trade_id, user_id, type)
     values (new.id, new.sender_id, 'created');
-    
+
     -- Record counter if applicable
     if new.original_id is not null then
       insert into public.trade_activity (trade_id, user_id, type)
       values (new.original_id, new.sender_id, 'countered');
-      
+
       -- abort original trade
       update public.trades set status = 'declined' where id = new.original_id;
     end if;
-  
+
   -- For updates
   elsif tg_op = 'UPDATE' then
     -- Status changes
     if new.status != old.status then
       insert into public.trade_activity (trade_id, user_id, type)
       values (new.id, (select auth.uid()), new.status::text::public.trade_activity_type);
-    
+
     -- Dispute changes
     elsif (new.sender_disputed != old.sender_disputed or new.receiver_disputed != old.receiver_disputed) then
       if new.sender_disputed or new.receiver_disputed then
@@ -424,14 +436,14 @@ begin
         insert into public.trade_activity (trade_id, user_id, type)
         values (new.id, (select auth.uid()), 'resolved');
       end if;
-    
+
     -- Other changes
     else
       insert into public.trade_activity (trade_id, user_id, type)
       values (new.id, (select auth.uid()), 'edited');
     end if;
   end if;
-  
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -473,7 +485,7 @@ begin
       app_id,
       trade_id
     ) values (
-      case 
+      case
       when v_vault_entry.user_id = new.sender_id then new.receiver_id
       else new.sender_id
       end,
@@ -488,14 +500,14 @@ begin
       receiver_id,
       value
     )
-    select 
+    select
       v_new_vault_entry.id as vault_entry_id,
       receiver_id,
       value
     from public.vault_values
     where vault_entry_id = v_vault_entry.id
     and receiver_id = v_new_vault_entry.user_id;
-    
+
     -- Update the original entry with the completed trade ID (marking it as sent)
     update public.vault_entries
     set trade_id = new.id
