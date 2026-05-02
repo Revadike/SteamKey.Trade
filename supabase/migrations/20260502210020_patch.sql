@@ -1,3 +1,4 @@
+-- Create trigger function to validate status changes
 create or replace function trades_validate_status_change()
 returns trigger
 set search_path = ''
@@ -34,14 +35,54 @@ begin
           raise exception 'At least one side must have an app selected.';
         end if;
 
-        -- If both are false then check that all selected trade apps have a vault entry assigned.
+        -- If both are false then check that all selected trade apps from sender have a valid vault entry assigned.
         if coalesce(new.sender_vaultless, false) = false and exists (
-          select 1 from public.trade_apps
-          where trade_id = new.id
-            and selected = true
-            and (vault_entries is null or array_length(vault_entries, 1) = 0)
+          select 1
+          from public.trade_apps ta
+          where ta.trade_id = new.id
+            and ta.user_id = new.sender_id
+            and ta.selected = true
+            and (
+              ta.vault_entries is null
+              or array_length(ta.vault_entries, 1) = 0
+              or exists (
+                select 1
+                from unnest(ta.vault_entries) as x(vault_entry_id)
+                left join public.vault_entries ve on ve.id = x.vault_entry_id
+                where x.vault_entry_id is null
+                   or ve.id is null
+                   or ve.app_id is null
+                   or ve.app_id <> ta.app_id
+                   or (ve.trade_id is not null and ve.trade_id <> new.id)
+              )
+            )
         ) then
-          raise exception 'Every selected trade app must have a vault entry assigned.';
+          raise exception 'Sender has invalid vault entries assigned. Please re-assign the vault entries.';
+        end if;
+
+        -- If both are false then check that all selected trade apps from receiver have a valid vault entry assigned.
+        if coalesce(new.receiver_vaultless, false) = false and exists (
+          select 1
+          from public.trade_apps ta
+          where ta.trade_id = new.id
+            and ta.user_id = new.receiver_id
+            and ta.selected = true
+            and (
+              ta.vault_entries is null
+              or array_length(ta.vault_entries, 1) = 0
+              or exists (
+                select 1
+                from unnest(ta.vault_entries) as x(vault_entry_id)
+                left join public.vault_entries ve on ve.id = x.vault_entry_id
+                where x.vault_entry_id is null
+                   or ve.id is null
+                   or ve.app_id is null
+                   or ve.app_id <> ta.app_id
+                   or (ve.trade_id is not null and ve.trade_id <> new.id)
+              )
+            )
+        ) then
+          raise exception 'Receiver has invalid vault entries assigned. Please re-assign the vault entries.';
         end if;
 
         -- If both are false then check that all assigned vault entries have a value for both sender and receiver.
@@ -110,7 +151,7 @@ begin
         ) != coalesce(new.receiver_total, 0) then
           raise exception 'The receiver does not have the required number of selected apps.';
         end if;
-    else
+      else
         raise exception 'Invalid status change';
     end case;
   end if;
