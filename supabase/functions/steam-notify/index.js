@@ -4,7 +4,7 @@ import { serve } from '../_helpers/edge.js';
 import { supabaseAdmin } from '../_helpers/supabase.js';
 import { Trade } from '../_entities/Trade.js';
 import { User } from '../_entities/User.js';
-import { toAccountID } from '../../../assets/js/steamid.js';
+import { toAccountID } from '../../../app/assets/js/steamid.js';
 
 /**
  * Steam Notify Bot Class
