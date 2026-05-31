@@ -31,9 +31,6 @@
   const { data: fetchedCollection, status: collectionStatus, error: collectionError } = useSupabaseData('collection', { id: props.id });
   const { data: fetchedSubcollections, status: subStatus, error: subError } = useSupabaseData('collection-subcollections', { id: props.id });
 
-  const collection = computed(() => isNew ? newCollectionData() : fetchedCollection.value);
-  const subcollections = computed(() => isNew ? [] : (fetchedSubcollections.value || []).map(({ id }) => id));
-
   // Watch for loading errors
   watch([
     () => collectionError.value,
@@ -45,20 +42,27 @@
     }
   });
 
+  const appsTable = useTemplateRef('appsTable');
+  const activeTab = ref('apps');
+  const appidsToAdd = ref([]);
+  const appidsToRemove = ref([]);
+  const subcollectionsToAdd = ref([]);
+  const subcollectionsToRemove = ref([]);
+  const newApp = ref(null);
+  const selectedApps = ref([]);
+  const selectedCollections = ref([]);
+
+  const collection = computed(() => isNew ? newCollectionData() : fetchedCollection.value);
+  const subcollections = computed(() => (isNew ? [] : (fetchedSubcollections.value || []).map(({ id }) => id))
+    .filter(id => !subcollectionsToRemove.value.includes(id))
+    .concat(subcollectionsToAdd.value)
+    .filter((id, index, self) => self.indexOf(id) === index));
+
   watch(() => collection.value?.master, master => {
     if (master) {
       collection.value.private = false;
     }
   });
-
-  const appsTable = useTemplateRef('appsTable');
-  const activeTab = ref('apps');
-  const appidsToAdd = ref([]);
-  const appidsToRemove = ref([]);
-  const collectionsToRemove = ref([]);
-  const newApp = ref(null);
-  const selectedApps = ref([]);
-  const selectedCollections = ref([]);
 
   const addApp = async appid => {
     if (!appid) {
@@ -100,12 +104,14 @@
   };
 
   const addCollections = collections => {
-    subcollections.value.push(...collections);
+    const newIds = collections.map(collection => collection.id);
+    subcollectionsToAdd.value.push(...newIds.filter(id => !subcollectionsToAdd.value.includes(id)));
+    subcollectionsToRemove.value = subcollectionsToRemove.value.filter(id => !subcollectionsToAdd.value.includes(id));
   };
 
   const removeCollections = () => {
-    collectionsToRemove.value.push(...selectedCollections.value);
-    subcollections.value = subcollections.value.filter(collection => !selectedCollections.value.includes(collection));
+    subcollectionsToRemove.value.push(...selectedCollections.value.map(({ id }) => id));
+    subcollectionsToAdd.value = subcollectionsToAdd.value.filter(id => !subcollectionsToRemove.value.includes(id));
     selectedCollections.value = [];
   };
 
@@ -143,7 +149,7 @@
       }
 
       // Handle subcollections to remove
-      await Promise.all(collectionsToRemove.value.map(data => {
+      await Promise.all(subcollectionsToRemove.value.map(data => {
         const subInstance = new Collection(data);
         return instance.removeSubcollection(subInstance);
       }));
@@ -449,7 +455,8 @@
               <table-collections
                 v-model="selectedCollections"
                 class="flex-grow-1"
-                :items="subcollections"
+                :items="subcollections.length > 0 ? undefined : []"
+                :only-collections="subcollections"
                 show-select
               />
             </v-card-text>

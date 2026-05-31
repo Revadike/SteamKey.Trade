@@ -287,6 +287,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         }
         const instance = new Collection(params.id);
         const subcollections = await instance.getSubcollections();
+        // await Promise.all(subcollections.map(async (sub) => sub.load()));
         return subcollections.map(instance => instance.toObject());
       },
       cache: false,
