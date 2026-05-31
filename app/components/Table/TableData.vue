@@ -540,7 +540,8 @@
     remap,
     refresh,
     currentPage,
-    itemsPerPage
+    itemsPerPage,
+    totalItems
   });
 </script>
 

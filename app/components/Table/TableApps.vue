@@ -656,7 +656,9 @@
       : { 'click:row': clickRow };
   });
 
+  const totalItems = computed(() => Array.isArray(props.items) ? props.items.length : table.value?.totalItems || 0);
   defineExpose({
+    totalItems,
     refresh
   });
 </script>

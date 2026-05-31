@@ -13,12 +13,19 @@
   });
 
   const loading = ref(false);
+  const appTable = ref(null);
   const activeTab = ref('apps');
 
   const { data: collection, status, error } = useSupabaseData('collection', { id: props.id });
   const { data: fetchedSubcollections, error: subcollectionsError } = useSupabaseData('collection-subcollections', { id: props.id });
 
   const subcollections = computed(() => (fetchedSubcollections.value || []).map(sc => sc.id));
+
+  watch(() => appTable.value?.totalItems, total => {
+    if (total === 0 && subcollections.value.length > 0) {
+      activeTab.value = 'collections';
+    }
+  });
 
   watch([
     () => error.value,
@@ -222,7 +229,7 @@
       <v-divider class="mt-4" />
 
       <v-tabs
-        v-if="subcollections?.length"
+        v-if="appTable?.totalItems > 0 && subcollections?.length"
         v-model="activeTab"
       >
         <v-tab
@@ -237,7 +244,6 @@
         </v-tab>
         <v-divider vertical />
         <v-tab
-          v-if="subcollections?.length"
           class="w-50"
           value="collections"
         >
@@ -256,6 +262,7 @@
       >
         <v-window-item value="apps">
           <table-apps
+            ref="appTable"
             class="h-100 mt-4"
             :only-collections="[collection.id]"
           />
