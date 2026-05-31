@@ -436,6 +436,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
     lazy: true,
     server: false,
     deep: true,
+    dedupe: 'defer', // reuse in-flight request
     getCachedData: source.cache ? (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key] : undefined,
     ...source.defaultOptions,
     ...options
