@@ -1,12 +1,12 @@
 {
   "imports": {
-    "@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.49.1",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.114.0",
     "ajv-formats": "npm:ajv-formats@^3.0.1",
-    "ajv": "npm:ajv@^8.17.1",
+    "ajv": "npm:ajv@^8.20.0",
     "error-serializer": "npm:error-serializer@^8.0.0",
-    "fflate": "npm:fflate@^0.8.2",
-    "linkedom": "npm:linkedom@^0.18.10",
+    "fflate": "npm:fflate@^0.8.3",
+    "linkedom": "npm:linkedom@^0.18.13",
     "steam-signin": "npm:steam-signin@^1.0.5",
-    "steam-user": "npm:steam-user@^5.2.0"
+    "steam-user": "npm:steam-user@^5.3.0"
   }
 }

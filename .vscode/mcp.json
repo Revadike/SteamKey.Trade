@@ -1,11 +1,9 @@
 {
   "servers": {
-    "postgres": {
+    "io.github.fallow/fallow-mcp": {
       "command": "npx",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres:postgres@localhost:54322/postgres"
+        "fallow-mcp"
       ]
     }
   }

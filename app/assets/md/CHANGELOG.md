@@ -1,3 +1,6 @@
+## September 3, 2026
+* Upgraded dependencies to latest versions
+
 ## May 31, 2026
 * Minor optimization
 * Fixed removing subcollections from collections

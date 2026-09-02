@@ -5,6 +5,10 @@
     "dbaeumer.vscode-eslint",
     "tamasfe.even-better-toml",
     "github.copilot-chat",
-    "vue.volar"
+    "vue.volar",
+    "nuxtr.nuxt-vscode-extentions",
+    "cloudlesslakitu.npm-scripts-nvm",
+    "johnsoncodehk.volar",
+    "denoland.vscode-deno"
   ]
 }

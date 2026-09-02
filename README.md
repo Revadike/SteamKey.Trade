@@ -4,7 +4,7 @@ SteamKey.Trade is a community-driven platform where gamers can safely and easily
 
 ## Requirements
 
-- **[Node.js v22](https://nodejs.org/)** – A JavaScript runtime with improved security and performance.
+- **[Node.js v24](https://nodejs.org/)** – A JavaScript runtime with improved security and performance.
 - **[Docker](https://www.docker.com/)** – A platform for containerized application deployment.
 - **[Deno](https://deno.com/)** - A open-source JavaScript runtime for the modern web.
 
@@ -80,7 +80,7 @@ Changes to the database are tracked through migration files, located in `supabas
 
 1. **(Recommended) Edit Schema Definitions:**
 
-   You can edit the [declarative database schemas](https://supabase.com/docs/guides/local-development/declarative-database-schemas) located in `supabase/schemas`. You can alter and test the schema definitions (including RLS and triggers), and if you're happy with the change, you can generate a new migration using `supabase stop && supabase db diff -s public -f my_change` (replace `my_change` with a name describing the change), or [supabase:diff](#npm-scripts). *Always review your generated migration files for correctness.*
+   You can edit the [declarative database schemas](https://supabase.com/docs/guides/local-development/declarative-database-schemas) located in `supabase/schemas`. You can alter and test the schema definitions (including RLS and triggers), and if you're happy with the change, you can generate a new migration using `supabase stop && supabase db diff -s public -f patch` (replace `patch` with a name describing the change), or [supabase:diff](#npm-scripts). *Always review your generated migration files for correctness.*
    
 3. **Via Studio:**
 
@@ -88,7 +88,7 @@ Changes to the database are tracked through migration files, located in `supabas
 
 5. **Manually:**
 
-   If you rather want to write your own migration files, start with `npx supabase migration new my_change` (replace `my_change` with a name describing the change). This will generate a new empty migration in `supabase/migrations/<timestamp>_my_change.sql`. In here, you can write in SQL the changes you wish to apply to the database. Once done, test them by applying these changes to your local database via [supabase:push](#npm-scripts). Make sure to update the `supabase/schemas` files with the changes you made in the migration.
+   If you rather want to write your own migration files, start with `npx supabase migration new patch` (replace `patch` with a name describing the change). This will generate a new empty migration in `supabase/migrations/<timestamp>_patch.sql`. In here, you can write in SQL the changes you wish to apply to the database. Once done, test them by applying these changes to your local database via [supabase:push](#npm-scripts). Make sure to update the `supabase/schemas` files with the changes you made in the migration.
 
 ### Functions
 Supabase has so-called Edge functions, which are serverside functions developed with Deno. To create a new function, create `index.js` in `supabase/functions/my-function/` (replace `my-function` with the name of your function). In here, you can write your Deno code. Find more information on how to write these functions [here](https://supabase.com/docs/guides/functions). Finally, add the function to `supabase/config.toml`: 

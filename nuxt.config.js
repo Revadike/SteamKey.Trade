@@ -6,14 +6,16 @@ const siteDescription = process.env.SITE_DESCRIPTION || 'SteamKey.Trade is a com
 const ogImage = '/opengraph.png';
 
 export default {
-  ssr: false,
+  modules: [
+    'vuetify-nuxt-module',
+    '@nuxtjs/supabase',
+    '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
+    '@nuxt/eslint',
+    '@nuxt/fonts'
+  ],
 
-  nitro: {
-    preset: 'cloudflare-pages',
-    prerender: {
-      ignore: ['/404']
-    }
-  },
+  ssr: false,
 
   app: {
     head: {
@@ -70,26 +72,12 @@ export default {
     transpile: ['vuetify']
   },
 
-  modules: [
-    'vuetify-nuxt-module',
-    '@nuxtjs/supabase',
-    '@pinia/nuxt',
-    'pinia-plugin-persistedstate/nuxt',
-    '@nuxt/eslint',
-    '@nuxt/fonts'
-  ],
+  compatibilityDate: '2024-08-13',
 
-  vuetify: {
-    vuetifyOptions: './app/vuetify.config.js'
-  },
-
-  supabase: {
-    redirect: false // We handle redirects ourselves with Nuxt middleware
-  },
-
-  eslint: {
-    config: {
-      stylistic: false
+  nitro: {
+    preset: 'cloudflare-pages',
+    prerender: {
+      ignore: ['/404']
     }
   },
 
@@ -120,6 +108,12 @@ export default {
     }
   },
 
+  eslint: {
+    config: {
+      stylistic: true
+    }
+  },
+
   fonts: {
     defaults: {
       weights: [400, 500, 700],
@@ -131,5 +125,14 @@ export default {
     storage: 'localStorage'
   },
 
-  compatibilityDate: '2024-08-13'
+  supabase: {
+    redirect: false // We handle redirects ourselves with Nuxt middleware
+  },
+
+  vuetify: {
+    moduleOptions: {
+      prefixComposables: ['useLayout']
+    },
+    vuetifyOptions: './app/vuetify.config.js'
+  }
 };

@@ -11,5 +11,7 @@
   "nuxtr.defaultPackageManager": "NPM",
   "search.exclude": {
     "**/supabase/migrations/**": true
-  }
+  },
+  "npm.packageManager": "npm",
+  "npm.scriptRunner": "npm"
 }
