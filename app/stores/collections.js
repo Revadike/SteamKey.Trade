@@ -43,7 +43,7 @@ export const useCollectionsStore = defineStore('collections', () => {
     return inCollection.value('blacklist', appid);
   });
 
-  function setCollection(type, appids) {
+  const setCollection = (type, appids) => {
     if (typeof type !== 'string' || !Array.isArray(appids)) {
       return;
     }
@@ -53,31 +53,32 @@ export const useCollectionsStore = defineStore('collections', () => {
       return;
     }
 
-    collection.value = [...new Set(markRaw(appids).map(Number).filter(Boolean))];
-  }
+    collection.value = [...new Set(markRaw(appids).map(Number)
+      .filter(Boolean))];
+  };
 
-  function setLibrary(appids) {
+  const setLibrary = (appids) => {
     return setCollection('library', appids);
-  }
+  };
 
-  function setWishlist(appids) {
+  const setWishlist = (appids) => {
     return setCollection('wishlist', appids);
-  }
+  };
 
-  function setTradelist(appids) {
+  const setTradelist = (appids) => {
     return setCollection('tradelist', appids);
-  }
+  };
 
-  function setBlacklist(appids) {
+  const setBlacklist = (appids) => {
     return setCollection('blacklist', appids);
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     library.value = [];
     wishlist.value = [];
     tradelist.value = [];
     blacklist.value = [];
-  }
+  };
 
   return {
     library,

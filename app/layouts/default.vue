@@ -75,7 +75,7 @@
   });
 
   let lastTitleChunk = '';
-  const getDocumentTitle = titleChunk => {
+  const getDocumentTitle = (titleChunk) => {
     lastTitleChunk = titleChunk;
     let title = siteName;
     if (titleChunk) {
@@ -84,6 +84,7 @@
     if (notificationCount.value) {
       title = `(${notificationCount.value}) ${title}`;
     }
+
     return title;
   };
 
@@ -110,7 +111,7 @@
   const { refreshFacets } = useAppsStore();
   const { refreshTags } = useTagsStore();
   onMounted(async () => {
-    document.addEventListener('keydown', event => {
+    document.addEventListener('keydown', (event) => {
       if (event.key === 'f' && (event.ctrlKey || event.metaKey) && !searchIsExpanded.value) {
         event.preventDefault();
         searchIsExpanded.value = true;

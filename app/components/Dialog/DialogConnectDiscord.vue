@@ -10,10 +10,14 @@
 
   // Check if dialog should be shown
   const shouldShowDialog = computed(() => {
-    if (!user) { return false; }
+    if (!user) {
+      return false;
+    }
 
     // If user already has Discord ID, don't show
-    if (user.discordId) { return false; }
+    if (user.discordId) {
+      return false;
+    }
 
     // Check if updatedAt is null or before max(createdAt, 2025-09-16)
     const cutoffDate = new Date('2025-09-16');
@@ -35,7 +39,9 @@
   }, { immediate: true });
 
   const submitDiscordId = async () => {
-    if (!valid.value) { return; }
+    if (!valid.value) {
+      return;
+    }
 
     isLoading.value = true;
 
@@ -127,7 +133,7 @@
             prepend-inner-icon="icon-discord"
             :rules="[
               v => !!v || 'Discord ID is required',
-              v => /^\d{17,19}$/.test(v) || 'Invalid Discord ID format'
+              v => /^\d{17,19}$/.test(v) || 'Invalid Discord ID format',
             ]"
             variant="outlined"
           />
@@ -163,7 +169,7 @@
         <v-card-actions>
           <v-btn
             :disabled="isLoading"
-            text
+            variant="text"
             @click="dismiss"
           >
             Maybe Later

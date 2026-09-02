@@ -15,7 +15,7 @@ export const useAppsStore = defineStore('apps', () => {
    *
    * @returns {Promise<void>}
    */
-  async function refreshFacets() {
+  const refreshFacets = async () => {
     // Refresh facets if they are not set or if they are older than 24 hours
     if (facets.value && facetsRefreshedAt.value && Date.now() - facetsRefreshedAt.value < 24 * 60 * 60 * 1000) {
       return;
@@ -31,12 +31,12 @@ export const useAppsStore = defineStore('apps', () => {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     facets.value = null;
     facetsRefreshedAt.value = null;
-  }
+  };
 
   return {
     facets,

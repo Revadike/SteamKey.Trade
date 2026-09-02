@@ -1,9 +1,7 @@
 import Steam from 'npm:steam-user';
 import ESteamDeckCompatibilityCategory from 'npm:steam-user/enums/ESteamDeckCompatibilityCategory.js';
-
 import tags from '../_assets/tags.json' with { type: 'json' }; // Cached at 2025-04-27
 import categories from '../_assets/categories.json' with { type: 'json' }; // Cached at 2025-04-27
-
 import { App } from '../_entities/index.js';
 import { saveToDatabase } from '../_helpers/updater.js';
 
@@ -46,6 +44,7 @@ const sortByParentFirst = (records) => {
       if (!idToChildren.has(item[App.fields.parentId])) {
         idToChildren.set(item[App.fields.parentId], []);
       }
+
       idToChildren.get(item[App.fields.parentId]).push(item);
     }
   }
@@ -228,6 +227,7 @@ export const processSteamPICS = async (appids, client) => {
         if (data.extended?.publisher) {
           publishers.push(data.extended.publisher);
         }
+
         record[App.fields.developers] = developers.map(name => name?.trim()).filter((item, i, self) => item && self.indexOf(item) === i); // Remove duplicates
         record[App.fields.publishers] = publishers.map(name => name?.trim()).filter((item, i, self) => item && self.indexOf(item) === i); // Remove duplicates
 
@@ -238,12 +238,14 @@ export const processSteamPICS = async (appids, client) => {
 
         // Categories
         if (data.common.categories) {
-          record[App.fields.categories] = Object.values(data.common.categories).filter(id => categories[id]).map(id => categories[id].trim().toLowerCase());
+          record[App.fields.categories] = Object.values(data.common.categories).filter(id => categories[id])
+            .map(id => categories[id].trim().toLowerCase());
         }
 
         // Tags
         if (data.common.store_tags) {
-          record[App.fields.tags] = Object.values(data.common.store_tags).filter(id => tags[id]).map(id => tags[id].trim().toLowerCase());
+          record[App.fields.tags] = Object.values(data.common.store_tags).filter(id => tags[id])
+            .map(id => tags[id].trim().toLowerCase());
         }
 
         // Languages

@@ -76,7 +76,9 @@
         .select('*')
         .single();
 
-      if (statsError) { throw statsError; }
+      if (statsError) {
+        throw statsError;
+      }
 
       // Fetch latest trade and user information
       const [latestTrade, latestUser] = await Promise.all([

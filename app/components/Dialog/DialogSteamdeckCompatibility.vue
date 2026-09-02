@@ -53,7 +53,9 @@
   const formatLabel = (labelKey, ...args) => {
     labelKey = labelKey.replace(/^#/, ''); // Remove leading hash
     if (!labels[labelKey]) {
-      return labelKey.split('_').pop().replace(/([A-Z])/g, ' $1').trim();
+      return labelKey.split('_').pop()
+        .replace(/([A-Z])/g, ' $1')
+        .trim();
     }
 
     return labels[labelKey].replace(/%(\d+)\$s/g, (_, i) => args[i - 1]);
@@ -99,14 +101,14 @@
     ]
   });
 
-  watch(() => report.value, report => {
+  watch(() => report.value, (report) => {
     if (report) {
       loaded.value = true;
     }
   });
 
   const snackbarStore = useSnackbarStore();
-  watch(() => error.value, error => {
+  watch(() => error.value, (error) => {
     if (error) {
       console.error(error);
       snackbarStore.set('error', 'Error loading Steam Deck compatibility report');
@@ -170,7 +172,7 @@
           {{ formatLabel(
             'SteamDeckVerified_DescriptionHeader',
             categories[report.resolved_category].label,
-            labels[`SteamDeckVerified_DescriptionHeader_${categories[report.resolved_category].label}`]
+            labels[`SteamDeckVerified_DescriptionHeader_${categories[report.resolved_category].label}`],
           ) }}
         </p>
 
@@ -182,7 +184,7 @@
 
         <table style="border-collapse: separate; border-spacing: 0 .5em;">
           <tr
-            v-for="{ display_type, loc_token	} in report.resolved_items"
+            v-for="{ display_type, loc_token } in report.resolved_items"
             :key="loc_token"
           >
             <td>

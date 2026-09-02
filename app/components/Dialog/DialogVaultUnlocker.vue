@@ -16,8 +16,10 @@
       if (persistPassword) {
         setPassword(pwd, forget.value ? 60 * 60 * 1000 : false);
       }
+
       emit('unlocked');
     }
+
     validPassword.value = valid;
   };
 

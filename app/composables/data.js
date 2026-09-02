@@ -23,6 +23,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return null;
         }
+
         try {
           const user = new User(params.id);
           await user.load();
@@ -36,6 +37,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
               fatal: true
             });
           }
+
           throw err;
         }
       },
@@ -48,6 +50,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.steamId) {
           return null;
         }
+
         const users = await User.query(supabase, [
           { filter: 'eq', params: [User.fields.steamId, params.steamId] },
           { filter: 'limit', params: [1] }
@@ -55,6 +58,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (users?.length > 0) {
           return users[0].id;
         }
+
         return null;
       },
       cache: true
@@ -66,6 +70,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return null;
         }
+
         const user = new User(params.id);
         return user.getStatistics();
       },
@@ -78,6 +83,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!isLoggedIn || !params.partnerId || authUser.id === params.partnerId) {
           return null;
         }
+
         const user = new User(authUser.id);
         return user.getTotalTradesWithUser(params.partnerId);
       },
@@ -99,6 +105,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.subjectId) {
           return null;
         }
+
         const reviews = await Review.query(supabase, [
           { filter: 'eq', params: [Review.fields.subjectId, params.subjectId] },
           { filter: 'eq', params: [Review.fields.userId, authUser.id] }
@@ -106,6 +113,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (reviews.length) {
           return reviews[0].toObject();
         }
+
         return {
           ...new Review().toObject(),
           userId: authUser.id,
@@ -121,6 +129,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return null;
         }
+
         try {
           const instance = new Trade(params.id);
           await instance.load();
@@ -134,6 +143,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
               fatal: true
             });
           }
+
           throw err;
         }
       },
@@ -146,6 +156,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return { sender: [], receiver: [] };
         }
+
         const instance = new Trade(params.id);
         const apps = await instance.getApps(true);
         return {
@@ -162,6 +173,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return [];
         }
+
         const instance = new Trade(params.id);
         return instance.getViews(true);
       },
@@ -174,6 +186,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!isLoggedIn) {
           return [];
         }
+
         return Trade.query(supabase, [
           {
             filter: 'or',
@@ -233,6 +246,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return null;
         }
+
         try {
           const instance = new Collection(params.id);
           await instance.load();
@@ -246,6 +260,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
               fatal: true
             });
           }
+
           throw err;
         }
       },
@@ -285,6 +300,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return [];
         }
+
         const instance = new Collection(params.id);
         const subcollections = await instance.getSubcollections();
         // await Promise.all(subcollections.map(async (sub) => sub.load()));
@@ -303,6 +319,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.tradeId) {
           return [];
         }
+
         return TradeMessage.query(supabase, [
           { filter: 'eq', params: [TradeMessage.fields.tradeId, params.tradeId] },
           { filter: 'order', params: [TradeMessage.fields.createdAt, { ascending: true }] }
@@ -317,12 +334,14 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.appid) {
           return null;
         }
+
         const { error, data } = await supabase.functions.invoke('steamdeck-compatibility-report', {
           body: { appid: params.appid }
         });
         if (error) {
           throw error;
         }
+
         return data;
       },
       cache: true,
@@ -338,6 +357,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.id) {
           return instance.toObject();
         }
+
         try {
           await instance.load();
           return instance.toObject();
@@ -345,6 +365,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
           if (err.code === 'PGRST116') {
             return instance.toObject();
           }
+
           throw createError({
             statusCode: 500,
             statusMessage: 'Internal Server Error',
@@ -373,6 +394,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (!params.stat) {
           return [];
         }
+
         const { data, error } = await supabase
           .from(User.statistics.table)
           .select(`
@@ -389,6 +411,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (error) {
           throw error;
         }
+
         return data.map(record => User.fromDB(record, User.statistics.fields));
       },
       cache: true
@@ -411,6 +434,7 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
         if (error) {
           throw error;
         }
+
         // Filter to only parent bundles (no parents) and transform
         return (data || [])
           .filter(bundle => !bundle.parents || bundle.parents.length === 0)

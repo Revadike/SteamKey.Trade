@@ -31,17 +31,17 @@
     model.value.values = [...model.value.values.filter(Boolean), ''];
   };
 
-  const handleBackspace = index => {
+  const handleBackspace = (index) => {
     if (model.value.values[index] === '') {
       inputRefs.value[index - 1]?.focus();
     }
   };
 
-  const handleEnter = index => {
+  const handleEnter = (index) => {
     inputRefs.value[index + 1]?.focus();
   };
 
-  const handlePaste = event => {
+  const handlePaste = (event) => {
     event.preventDefault();
     const pastedText = event.clipboardData.getData('text');
     const items = pastedText.split('\n').filter(Boolean);
@@ -58,6 +58,7 @@
     if (!model.value.values.includes('')) {
       model.value.values.push('');
     }
+
     emit('update:encrypted', false);
   };
 
@@ -104,7 +105,7 @@
     hide-details
     :items="Object.keys(VaultEntry.enums.type).map(type => ({
       title: VaultEntry.labels[type],
-      value: VaultEntry.enums.type[type]
+      value: VaultEntry.enums.type[type],
     }))"
     label="Type"
     prepend-inner-icon="mdi-tag"

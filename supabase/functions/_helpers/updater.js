@@ -1,5 +1,4 @@
 import { strToU8, gzipSync } from 'fflate';
-
 import { supabaseAdmin } from './supabase.js';
 import { App } from '../_entities/App.js';
 
@@ -45,7 +44,7 @@ export const dumpAppsMetadata = async () => {
   }
 
   // Process data
-  const processedData = data.map((app) => App.fromDB(app));
+  const processedData = data.map(app => App.fromDB(app));
 
   // Convert data to JSON string
   const jsonString = JSON.stringify(processedData);
@@ -79,7 +78,7 @@ export const dumpAppsMetadata = async () => {
  * @param {number} count - The maximum number of apps to retrieve.
  * @returns {Promise<Array<number>>} An array of app IDs.
  */
-export async function dequeueApps(count = 200) {
+export const dequeueApps = async (count = 200) => {
   const { data, error } = await supabaseAdmin.rpc('updater_dequeue', { p_count: count });
 
   if (error) {
@@ -87,7 +86,7 @@ export async function dequeueApps(count = 200) {
   }
 
   return data;
-}
+};
 
 /**
  * Pushes apps to the updater queue by invoking the public.updater_enqueue RPC.
@@ -95,7 +94,7 @@ export async function dequeueApps(count = 200) {
  * @returns {Promise<boolean>} True if successful, false otherwise.
  * @throws Will throw an error if the RPC call fails.
  */
-export async function enqueueApps(appIds) {
+export const enqueueApps = async (appIds) => {
   if (!appIds || appIds.length === 0) {
     return true;
   }
@@ -104,15 +103,16 @@ export async function enqueueApps(appIds) {
   if (error) {
     throw error;
   }
+
   return !error;
-}
+};
 
 /**
  * Gets the latest check timestamp from the updater queue for a specific type
  * @param {string} type - The type of check to retrieve
  * @returns {Promise<string|null>} The value of the latest check or null if not found
  */
-export async function getLastCheck(type) {
+export const getLastCheck = async (type) => {
   const { data, error } = await supabaseAdmin
     .from('updater_queue')
     .select('value')
@@ -125,7 +125,7 @@ export async function getLastCheck(type) {
   }
 
   return data[0].value;
-}
+};
 
 /**
  * Updates the check timestamp in the updater queue
@@ -133,7 +133,7 @@ export async function getLastCheck(type) {
  * @param {string|number} value - The value to store
  * @returns {Promise<boolean>} True if successful, false otherwise
  */
-export async function updateLastCheck(type, value) {
+export const updateLastCheck = async (type, value) => {
   // Delete existing records of this type
   await supabaseAdmin
     .from('updater_queue')
@@ -149,14 +149,14 @@ export async function updateLastCheck(type, value) {
     });
 
   return !error;
-}
+};
 
 /**
  * Adds an app to the update queue
  * @param {number} appId - The app ID to queue for update
  * @returns {Promise<boolean>} True if successful, false otherwise
  */
-export async function queueAppForUpdate(appId) {
+export const queueAppForUpdate = async (appId) => {
   const { error } = await supabaseAdmin
     .from('updater_queue')
     .insert({
@@ -165,7 +165,7 @@ export async function queueAppForUpdate(appId) {
     });
 
   return !error;
-}
+};
 
 /**
  * Saves records to the database using bulk update
@@ -176,7 +176,7 @@ export async function queueAppForUpdate(appId) {
  * @param {number} [maxRetries=3] - Maximum number of retries for failed operations
  * @returns {Promise<Object>} Object containing success and failure information
  */
-export async function saveToDatabase(table, records, conflictField = 'id', batchSize = 1000, maxRetries = 3) {
+export const saveToDatabase = async (table, records, conflictField = 'id', batchSize = 1000, maxRetries = 3) => {
   const conflictFields = Array.isArray(conflictField) ? conflictField : [conflictField];
 
   // Ensure we have valid data to process
@@ -193,7 +193,9 @@ export async function saveToDatabase(table, records, conflictField = 'id', batch
     try {
       return await operation();
     } catch (err) {
-      if (retries <= 0) { throw err; }
+      if (retries <= 0) {
+        throw err;
+      }
 
       // Exponential backoff with jitter
       const delay = Math.floor(Math.random() * 1000) + 1000 * Math.pow(2, maxRetries - retries);
@@ -209,7 +211,8 @@ export async function saveToDatabase(table, records, conflictField = 'id', batch
 
   for (const record of records) {
     // Create a signature based on the fields present in the record
-    const fieldSignature = Object.keys(record).sort().join(',');
+    const fieldSignature = Object.keys(record).sort()
+      .join(',');
 
     if (!recordsByFields[fieldSignature]) {
       recordsByFields[fieldSignature] = {
@@ -220,7 +223,7 @@ export async function saveToDatabase(table, records, conflictField = 'id', batch
 
     // Check if this record is already included based on conflict fields
     const existingRecords = recordsByFields[fieldSignature].records;
-    if (!existingRecords.some((r) => conflictFields.every((field) => r[field] === record[field]))) {
+    if (!existingRecords.some(r => conflictFields.every(field => r[field] === record[field]))) {
       existingRecords.push(record);
     }
   }
@@ -247,7 +250,10 @@ export async function saveToDatabase(table, records, conflictField = 'id', batch
             p_conflict_fields: conflictFields
           });
 
-          if (error) { throw error; }
+          if (error) {
+            throw error;
+          }
+
           return { error: null };
         };
 
@@ -269,4 +275,4 @@ export async function saveToDatabase(table, records, conflictField = 'id', batch
   }
 
   return { errors, successful, failed };
-}
+};

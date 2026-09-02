@@ -47,8 +47,8 @@
       : [];
 
     return options
-      .filter((option) => option?.value)
-      .map((option) => ({
+      .filter(option => option?.value)
+      .map(option => ({
         title: option.title || option.value,
         value: option.value
       }));
@@ -74,19 +74,19 @@
   const collectionPickerTargetIndex = ref(null);
 
   const getCollectionTitle = (collectionId) => {
-    return collectionOptions.value.find((option) => option.value === collectionId)?.title || collectionId;
+    return collectionOptions.value.find(option => option.value === collectionId)?.title || collectionId;
   };
 
   const getCollectionSelectionOptions = (selectedCollectionId = null) => {
     const usedCollectionIds = new Set(localCollectionFilters.value
-      .map((row) => row.collectionId)
-      .filter((collectionId) => collectionId !== selectedCollectionId));
+      .map(row => row.collectionId)
+      .filter(collectionId => collectionId !== selectedCollectionId));
 
     const options = collectionOptions.value.filter((option) => {
       return option.value === selectedCollectionId || !usedCollectionIds.has(option.value);
     });
 
-    if (selectedCollectionId && !options.some((option) => option.value === selectedCollectionId)) {
+    if (selectedCollectionId && !options.some(option => option.value === selectedCollectionId)) {
       options.unshift({
         title: getCollectionTitle(selectedCollectionId),
         value: selectedCollectionId
@@ -113,11 +113,11 @@
 
     collectionMatchAny.value = !!collections.any;
     localCollectionFilters.value = [
-      ...((collections.only || []).map((collectionId) => ({
+      ...((collections.only || []).map(collectionId => ({
         mode: 'only',
         collectionId
       }))),
-      ...((collections.exclude || []).map((collectionId) => ({
+      ...((collections.exclude || []).map(collectionId => ({
         mode: 'exclude',
         collectionId
       })))
@@ -154,13 +154,13 @@
       any: showCollectionFilters.value ? collectionMatchAny.value : false,
       only: showCollectionFilters.value
         ? configuredCollectionRows.value
-          .filter((row) => row.mode !== 'exclude')
-          .map((row) => row.collectionId)
+          .filter(row => row.mode !== 'exclude')
+          .map(row => row.collectionId)
         : [],
       exclude: showCollectionFilters.value
         ? configuredCollectionRows.value
-          .filter((row) => row.mode === 'exclude')
-          .map((row) => row.collectionId)
+          .filter(row => row.mode === 'exclude')
+          .map(row => row.collectionId)
         : []
     };
 
@@ -206,7 +206,9 @@
   onMounted(() => loadFiltersFromUrl());
 
   const clearFiltersFromUrl = () => {
-    if (!props.syncWithUrl) { return; }
+    if (!props.syncWithUrl) {
+      return;
+    }
 
     const query = { ...route.query };
     delete query.filters;
@@ -319,14 +321,18 @@
   ];
 
   // Utility functions for filter operations
-  const getFilterDefinition = (fieldValue) =>
+  const getFilterDefinition = fieldValue =>
     props.fieldFilters.find(filter => filter.value === fieldValue);
 
   const getOperationOptions = (fieldValue) => {
-    if (!fieldValue) { return []; }
+    if (!fieldValue) {
+      return [];
+    }
 
     const filterDef = getFilterDefinition(fieldValue);
-    if (!filterDef) { return []; }
+    if (!filterDef) {
+      return [];
+    }
 
     const typeName = filterDef.type?.name || 'String';
     return filterOperations[typeName];
@@ -334,13 +340,16 @@
 
   const getValueOptions = (fieldValue) => {
     const filterDef = getFilterDefinition(fieldValue);
-    if (!filterDef) { return []; }
+    if (!filterDef) {
+      return [];
+    }
 
     if (Array.isArray(filterDef.options) && filterDef.options.length > 0) {
       // Already in the correct format with title/value
       if (typeof filterDef.options[0] === 'object' && filterDef.options[0] !== null) {
         return filterDef.options;
       }
+
       // Simple array values need to be converted to objects with title/value
       return filterDef.options.map(option => ({
         title: option.toString(),
@@ -359,19 +368,28 @@
   };
 
   const isDateType = (fieldValue) => {
-    if (!fieldValue) { return false; }
+    if (!fieldValue) {
+      return false;
+    }
+
     const filterDef = getFilterDefinition(fieldValue);
     return filterDef?.type?.name === 'Date';
   };
 
   const isBooleanType = (fieldValue) => {
-    if (!fieldValue) { return false; }
+    if (!fieldValue) {
+      return false;
+    }
+
     const filterDef = getFilterDefinition(fieldValue);
     return filterDef?.type?.name === 'Boolean';
   };
 
   const isNumberType = (fieldValue) => {
-    if (!fieldValue) { return false; }
+    if (!fieldValue) {
+      return false;
+    }
+
     const filterDef = getFilterDefinition(fieldValue);
     return filterDef?.type?.name === 'Number';
   };
@@ -605,7 +623,7 @@
               v-for="(row, index) in localCollectionFilters"
               :key="`${row.mode}-${row.collectionId}-${index}`"
               class="pa-0"
-              :class="{ 'faded': !activeIndexSet.has(`collection-${index}`) && !hoveredIndexSet.has(`collection-${index}`) }"
+              :class="{ faded: !activeIndexSet.has(`collection-${index}`) && !hoveredIndexSet.has(`collection-${index}`) }"
               @mouseenter="hoveredIndexSet.add(`collection-${index}`)"
               @mouseleave="hoveredIndexSet.delete(`collection-${index}`)"
             >
@@ -752,7 +770,7 @@
             v-for="(filter, index) in localFieldFilters"
             :key="index"
             class="pa-0"
-            :class="{ 'faded': !activeIndexSet.has(index) && !hoveredIndexSet.has(index) }"
+            :class="{ faded: !activeIndexSet.has(index) && !hoveredIndexSet.has(index) }"
             @mouseenter="hoveredIndexSet.add(index)"
             @mouseleave="hoveredIndexSet.delete(index)"
           >
@@ -990,7 +1008,7 @@
       <v-card-actions>
         <v-btn
           color="error"
-          text
+          variant="text"
           @click="clearFilters"
         >
           Clear Filters
@@ -1006,7 +1024,6 @@
         <v-btn
           color="primary"
           :disabled="totalActiveFilters === 0"
-          text
           variant="tonal"
           @click="applyFilters"
         >

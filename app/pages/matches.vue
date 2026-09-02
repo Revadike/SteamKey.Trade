@@ -37,6 +37,7 @@
     if (singleUser.value !== isSingleUser) {
       singleUser.value = isSingleUser;
     }
+
     const isSingleApp = newApp !== null;
     if (singleApp.value !== isSingleApp) {
       singleApp.value = isSingleApp;
@@ -120,9 +121,10 @@
     if (selectedUser.value) {
       return; // Don't load from cache in single user mode
     }
+
     matches.value = [];
     const userIds = Object.keys(matchesStore.users);
-    userIds.forEach(userId => {
+    userIds.forEach((userId) => {
       const entry = matchesStore.getUserMatches(userId);
       if (entry && filterMatches({ have: entry.have, want: entry.want })) {
         matches.value.push({ user: userId, have: entry.have, want: entry.want });
@@ -169,7 +171,9 @@
 
       let validMatchesFound = false;
       for (const userId of users) {
-        if (!collectionsData.value[userId]) { continue; }
+        if (!collectionsData.value[userId]) {
+          continue;
+        }
 
         const theirHave = collectionsData.value[userId].tradelist;
         const theirWant = collectionsData.value[userId].wishlist;
@@ -189,6 +193,7 @@
           } else {
             matches.value[existingIndex] = { user: userId, have, want };
           }
+
           matchesStore.setUserMatches(userId, have, want);
           validMatchesFound = true;
         }

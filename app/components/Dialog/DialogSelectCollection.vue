@@ -24,7 +24,6 @@
     internalValue.value = false;
     selected.value = [];
   };
-
 </script>
 
 <template>

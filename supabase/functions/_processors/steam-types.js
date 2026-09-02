@@ -6,7 +6,7 @@ import { saveToDatabase } from '../_helpers/updater.js';
  * @param {string|null} lastCheck - Timestamp of the last check
  * @returns {Promise<Object>} Object containing updated apps, timestamp, and results
  */
-export const processSteamTypes = async function (lastCheck) {
+export const processSteamTypes = async function(lastCheck) {
   try {
     const secretApiHost = Deno.env.get('SECRET_API_HOST');
     if (!secretApiHost) {

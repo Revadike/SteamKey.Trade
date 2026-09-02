@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
 
-export function useDebouncedRef(initialValue, delay = 300) {
+export const useDebouncedRef = (initialValue, delay = 300) => {
   const state = ref(initialValue);
 
   return customRef((track, trigger) => ({
@@ -13,4 +13,4 @@ export function useDebouncedRef(initialValue, delay = 300) {
       trigger();
     }, delay)
   }));
-}
+};

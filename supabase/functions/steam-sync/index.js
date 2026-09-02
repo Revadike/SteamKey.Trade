@@ -157,6 +157,7 @@ const steamSync = async ({ userId, type }) => {
     if (error) {
       throw new Error('Either provide a user ID or authenticate the request');
     }
+
     userId = data.user.id;
   }
 

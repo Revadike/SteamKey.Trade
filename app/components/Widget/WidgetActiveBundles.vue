@@ -3,7 +3,9 @@
 
   // Helper function to strip parent bundle name from subcollection title
   const getSubcollectionTitle = (subcollectionTitle, parentTitle) => {
-    if (!subcollectionTitle || !parentTitle) { return subcollectionTitle; }
+    if (!subcollectionTitle || !parentTitle) {
+      return subcollectionTitle;
+    }
 
     // Try to remove "ParentName - " prefix
     const pattern = new RegExp(`^${parentTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-–—]\\s*`, 'i');
@@ -13,14 +15,18 @@
   };
 
   // Helper function to get time remaining text
-  const getTimeRemaining = endsAt => {
-    if (!endsAt) { return null; }
+  const getTimeRemaining = (endsAt) => {
+    if (!endsAt) {
+      return null;
+    }
 
     const now = new Date();
     const end = new Date(endsAt);
     const diff = end - now;
 
-    if (diff <= 0) { return 'Expired'; }
+    if (diff <= 0) {
+      return 'Expired';
+    }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

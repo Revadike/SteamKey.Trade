@@ -33,9 +33,9 @@ export const useSearchParam = (paramKey, defaultValue = null, options = {}) => {
   // Default transformation functions
   const defaultOptions = {
     // Transform the value from URL to the internal value
-    get: (val) => val,
+    get: val => val,
     // Transform the internal value to URL format
-    set: (val) => val
+    set: val => val
   };
 
   // Merge default and provided options
@@ -46,6 +46,7 @@ export const useSearchParam = (paramKey, defaultValue = null, options = {}) => {
     if (route.query[paramKey] !== undefined) {
       return mergedOptions.get(route.query[paramKey]);
     }
+
     return defaultValue;
   };
 
@@ -65,9 +66,9 @@ export const useSearchParam = (paramKey, defaultValue = null, options = {}) => {
   watch(param, (newValue) => {
     const newQuery = { ...route.query };
 
-    if (newValue === null || newValue === undefined ||
-        (Array.isArray(newValue) && newValue.length === 0) ||
-        (typeof newValue === 'string' && newValue === '')) {
+    if (newValue === null || newValue === undefined
+      || (Array.isArray(newValue) && newValue.length === 0)
+      || (typeof newValue === 'string' && newValue === '')) {
       // Remove parameter from URL if it's empty
       delete newQuery[paramKey];
     } else {

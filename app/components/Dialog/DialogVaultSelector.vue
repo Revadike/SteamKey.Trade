@@ -28,7 +28,7 @@
 
   const { data: user, error: userError } = useSupabaseData('user', { id: props.userId });
 
-  watch(() => userError.value, error => {
+  watch(() => userError.value, (error) => {
     if (error) {
       snackbarStore.set('error', 'Failed to load user');
     }
@@ -39,10 +39,11 @@
   watch(
     () => model.value.map(item => item.total),
     () => {
-      model.value.forEach(item => {
+      model.value.forEach((item) => {
         if (!Array.isArray(item.vaultEntries)) {
           item.vaultEntries = [];
         }
+
         // Ensure length matches total
         while (item.vaultEntries.length < (item.total || 1)) {
           item.vaultEntries.push(null);
@@ -55,7 +56,7 @@
     { immediate: true, deep: true }
   );
 
-  const isIncomplete = computed(() => !props.onlyApps.every(appid => {
+  const isIncomplete = computed(() => !props.onlyApps.every((appid) => {
     const entry = model.value.find(item => item.appId === appid);
     if (!entry) {
       return false;

@@ -89,6 +89,7 @@
     } else if (isLoggedIn.value && activeTab.value === 'sent') {
       query = query.eq(Trade.fields.senderId, user.value.id);
     }
+
     // For 'community' tab, no user filtering (same as logged out)
     return query;
   };

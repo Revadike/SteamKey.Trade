@@ -1,5 +1,4 @@
 import SteamUser from 'steam-user';
-
 import { serve } from '../_helpers/edge.js';
 import { supabaseAdmin } from '../_helpers/supabase.js';
 import { Trade } from '../_entities/Trade.js';
@@ -337,7 +336,7 @@ if (Deno?.env?.get?.('SB_EXECUTION_ID')) {
     .then((result) => {
       console.log('Steam notify bot started successfully:', result);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error starting steam notify bot:', error);
     });
 }

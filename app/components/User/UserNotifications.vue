@@ -37,7 +37,7 @@
 
   const unreadCount = computed(() => notifications.value.filter(({ read }) => !read).length);
 
-  watch(unreadCount, count => {
+  watch(unreadCount, (count) => {
     setNotificationCount(count);
   }, {
     immediate: true
@@ -58,7 +58,7 @@
           table: User.notifications.table,
           filter: `${User.notifications.fields.userId}=eq.${user.value.id}`
         },
-        payload => {
+        (payload) => {
           const notification = User.fromDB(payload.new, User.notifications.fields);
 
           if (notifications.value.some(({ id }) => id === notification.id)) {
@@ -133,7 +133,7 @@
     loadMore();
   });
 
-  const markAsRead = async id => {
+  const markAsRead = async (id) => {
     const { error } = await supabase
       .from(User.notifications.table)
       .update({ read: true })
@@ -165,7 +165,7 @@
       .eq(User.notifications.fields.userId, user.value.id);
 
     if (!error) {
-      notifications.value.forEach(notification => {
+      notifications.value.forEach((notification) => {
         notification.read = true;
       });
     }

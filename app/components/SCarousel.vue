@@ -15,9 +15,10 @@
   const dialog = ref(false);
   const selectedItem = ref({});
 
-  const detectMediaType = url => {
+  const detectMediaType = (url) => {
     const parsedUrl = new URL(url);
-    const extension = parsedUrl.pathname.split('.').pop().toLowerCase();
+    const extension = parsedUrl.pathname.split('.').pop()
+      .toLowerCase();
     const videoExtensions = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
 
@@ -36,9 +37,9 @@
 
     return {
       type: 'image',
-      mimeType: imageExtensions.includes(extension) ?
-        `image/${extension === 'svg' ? 'svg+xml' : extension}` :
-        'image/*'
+      mimeType: imageExtensions.includes(extension)
+        ? `image/${extension === 'svg' ? 'svg+xml' : extension}`
+        : 'image/*'
     };
   };
 
@@ -52,7 +53,7 @@
 
   let timer = null;
 
-  watch(currentIndex, newIndex => {
+  watch(currentIndex, (newIndex) => {
     clearTimeout(timer);
 
     const items = mediaItems.value;
@@ -80,12 +81,12 @@
     }
   });
 
-  const openDialog = item => {
+  const openDialog = (item) => {
     selectedItem.value = item;
     dialog.value = true;
   };
 
-  const handleMediaError = src => {
+  const handleMediaError = (src) => {
     if (!brokenitems.value.includes(src)) {
       brokenitems.value.push(src);
     }
@@ -108,7 +109,7 @@
 <template>
   <v-carousel
     v-model="currentIndex"
-    :class="{ carousel: true, 'rounded': rounded }"
+    :class="{ carousel: true, rounded: rounded }"
     height="auto"
     hide-delimiters
     :show-arrows="mediaItems.length > 1 ? 'hover' : false"

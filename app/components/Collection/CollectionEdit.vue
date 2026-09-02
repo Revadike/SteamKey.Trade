@@ -35,7 +35,7 @@
   watch([
     () => collectionError.value,
     () => subError.value
-  ], error => {
+  ], (error) => {
     if (error) {
       console.error(error);
       snackbarStore.set('error', error.message);
@@ -58,13 +58,13 @@
     .concat(subcollectionsToAdd.value)
     .filter((id, index, self) => self.indexOf(id) === index));
 
-  watch(() => collection.value?.master, master => {
+  watch(() => collection.value?.master, (master) => {
     if (master) {
       collection.value.private = false;
     }
   });
 
-  const addApp = async appid => {
+  const addApp = async (appid) => {
     if (!appid) {
       return;
     }
@@ -72,6 +72,7 @@
     if (!appidsToAdd.value.includes(Number(appid))) {
       appidsToAdd.value.push(Number(appid));
     }
+
     appidsToRemove.value = appidsToRemove.value.filter(appid => !appidsToAdd.value.includes(appid));
     newApp.value = undefined;
 
@@ -96,6 +97,7 @@
       if (appsTable.value) {
         await appsTable.value.refresh();
       }
+
       snackbarStore.set('success', 'Collection updated');
     } catch (error) {
       snackbarStore.set('error', error.message || 'Failed to empty collection');
@@ -103,7 +105,7 @@
     loading.value = false;
   };
 
-  const addCollections = collections => {
+  const addCollections = (collections) => {
     const newIds = collections.map(collection => collection.id);
     subcollectionsToAdd.value.push(...newIds.filter(id => !subcollectionsToAdd.value.includes(id)));
     subcollectionsToRemove.value = subcollectionsToRemove.value.filter(id => !subcollectionsToAdd.value.includes(id));
@@ -149,13 +151,13 @@
       }
 
       // Handle subcollections to remove
-      await Promise.all(subcollectionsToRemove.value.map(data => {
+      await Promise.all(subcollectionsToRemove.value.map((data) => {
         const subInstance = new Collection(data);
         return instance.removeSubcollection(subInstance);
       }));
 
       // Handle subcollections to add
-      await Promise.all(subcollections.value.map(data => {
+      await Promise.all(subcollections.value.map((data) => {
         const subInstance = new Collection(data);
         return instance.addSubcollection(subInstance);
       }));
@@ -175,8 +177,8 @@
   };
 
   const isLoading = computed(() =>
-    collectionStatus.value === 'pending' ||
-    subStatus.value === 'pending'
+    collectionStatus.value === 'pending'
+    || subStatus.value === 'pending'
   );
 
   const title = computed(() => {
@@ -230,7 +232,7 @@
                   .map(type => ({
                     title: Collection.labels[type],
                     value: type,
-                    props: { prependIcon: Collection.icons[type] }
+                    props: { prependIcon: Collection.icons[type] },
                   }))"
                 :label="Collection.labels.type"
                 menu-icon=""

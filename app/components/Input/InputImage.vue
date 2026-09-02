@@ -80,7 +80,7 @@
     };
   };
 
-  const dragEnter = event => {
+  const dragEnter = (event) => {
     const { types } = event.dataTransfer;
 
     if (!types.includes('Files')) {
@@ -90,7 +90,7 @@
     overDropzone.value = true;
   };
 
-  const dropFile = async event => {
+  const dropFile = async (event) => {
     await onFile({
       target: {
         files: Array.from(event.dataTransfer.files)
@@ -143,7 +143,7 @@
         }
       },
 
-      crop: event => {
+      crop: (event) => {
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
@@ -192,7 +192,7 @@
     };
   };
 
-  watch(() => internalValue.value?.url, async url => {
+  watch(() => internalValue.value?.url, async (url) => {
     if (!url) {
       return;
     }

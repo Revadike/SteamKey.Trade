@@ -1,9 +1,7 @@
 import SteamSignIn from 'npm:steam-signin';
-
 import { serve } from '../_helpers/edge.js';
 import { supabaseAdmin } from '../_helpers/supabase.js';
 import { steamApiRequest } from '../_helpers/steamAPI.js';
-
 import { Collection, User } from '../_entities/index.js';
 
 /**
@@ -14,7 +12,7 @@ import { Collection, User } from '../_entities/index.js';
  *
  * @throws Will throw an error if updating the database or synchronizing collections fails.
  */
-async function register(authUser, steamID64) {
+const register = async (authUser, steamID64) => {
   console.log(`Registering user ${authUser.id} with Steam ID ${steamID64}`);
 
   const user = new User(supabaseAdmin); // new user
@@ -39,6 +37,7 @@ async function register(authUser, steamID64) {
     if (loccountrycode) {
       user.region = loccountrycode;
     }
+
     isPublicProfile = communityvisibilitystate === 3;
   } catch (error) {
     console.error('Failed to set user information from Steam', error);
@@ -100,7 +99,7 @@ async function register(authUser, steamID64) {
   if (authUpdateError) {
     throw authUpdateError;
   }
-}
+};
 
 /**
  * Verifies a user's Steam OpenID login and creates a custom token for them.

@@ -66,7 +66,9 @@
 
   // Convert legacy items to the new format
   const normalizeItems = () => {
-    if (!model.value) { return; }
+    if (!model.value) {
+      return;
+    }
 
     for (let i = 0; i < model.value.length; i++) {
       const item = model.value[i];
@@ -101,7 +103,7 @@
     let url = search.value;
     // Add protocol if missing
     if (!/^https?:\/\//i.test(url)) {
-      url = 'https://' + url;
+      url = `https://${url}`;
     }
 
     if (!isValidUrl(url)) {
@@ -110,7 +112,7 @@
     }
 
     // Check if URL already exists
-    if (model.value.some(item => {
+    if (model.value.some((item) => {
       const itemUrl = typeof item === 'string' ? item : item.url;
       return itemUrl === url;
     })) {
@@ -173,8 +175,10 @@
     showLinkEditor.value = true;
   };
 
-  const onKeydown = event => {
-    if (showLinkEditor.value) { return; }
+  const onKeydown = (event) => {
+    if (showLinkEditor.value) {
+      return;
+    }
 
     if (['Enter', ' ', 'Tab'].includes(event.key)) {
       event.preventDefault();
@@ -183,7 +187,9 @@
   };
 
   const onUpdate = (val) => {
-    if (internalUpdate.value) { return; }
+    if (internalUpdate.value) {
+      return;
+    }
 
     if (!val) {
       model.value = [];

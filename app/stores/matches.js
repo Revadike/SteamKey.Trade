@@ -18,42 +18,47 @@ export const useMatchesStore = defineStore('matches', () => {
    * @param {Array} have
    * @param {Array} want
    */
-  function setUserMatches(userId, have, want) {
+  const setUserMatches = (userId, have, want) => {
     users.value[userId] = markRaw({
       have,
       want,
       refreshedAt: Date.now()
     });
-  }
+  };
 
   /**
    * Get matches for a user if cache is fresh (<24h)
    * @param {string|number} userId
    * @returns {null|{have:Array, want:Array}}
    */
-  function getUserMatches(userId) {
+  const getUserMatches = (userId) => {
     const entry = users.value[userId];
-    if (!entry) { return null; }
-    if (Date.now() - entry.refreshedAt > 24 * 60 * 60 * 1000) { return null; }
+    if (!entry) {
+      return null;
+    }
+    if (Date.now() - entry.refreshedAt > 24 * 60 * 60 * 1000) {
+      return null;
+    }
+
     return entry;
-  }
+  };
 
   /**
    * Set multiple users' matches at once
    * @param {Object} userMatches - { [userId]: { have, want } }
    */
-  function setFromRecords(userMatches) {
+  const setFromRecords = (userMatches) => {
     Object.entries(userMatches).forEach(([userId, value]) => {
       setUserMatches(userId, value.have, value.want);
     });
-  }
+  };
 
   /**
    * Reset all cached matches
    */
-  function reset() {
+  const reset = () => {
     users.value = {};
-  }
+  };
 
   return {
     users,

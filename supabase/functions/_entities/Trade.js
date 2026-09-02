@@ -323,7 +323,7 @@ export class Trade extends Entity {
     }
 
     return data
-      .map((view) => ({
+      .map(view => ({
         ...this.constructor.fromDB(view, fields),
         ...(withUser ? { user: User.fromDB(view.user) } : {})
       }))
@@ -352,7 +352,7 @@ export class Trade extends Entity {
       throw error;
     }
 
-    return data.map((activity) => this.constructor.fromDB(activity, fields)).reverse();
+    return data.map(activity => this.constructor.fromDB(activity, fields)).reverse();
   }
 
   /**
@@ -373,7 +373,7 @@ export class Trade extends Entity {
       throw error;
     }
 
-    return data.map((app) => ({
+    return data.map(app => ({
       ...this.constructor.fromDB(app, fields),
       ...(withTrade ? { trade: this.constructor.fromDB(app.trade) } : {})
     }));
@@ -390,7 +390,7 @@ export class Trade extends Entity {
    */
   async setApps(apps, onlyUpdate = false, replace = false) {
     const { table, fields } = this.constructor.apps;
-    const records = apps.map((app) => this.constructor.toDB({
+    const records = apps.map(app => this.constructor.toDB({
       ...app,
       tradeId: this.id
     }, fields));
@@ -465,6 +465,6 @@ export class Trade extends Entity {
       throw error;
     }
 
-    return data.map((activity) => this.fromDB(activity, fields)).reverse();
+    return data.map(activity => this.fromDB(activity, fields)).reverse();
   }
 }

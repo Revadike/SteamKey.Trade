@@ -1,4 +1,5 @@
 import { parseDate, relativeDate } from './date.js';
+
 export { relativeDate, parseDate };
 
 /**
@@ -26,7 +27,7 @@ export const formatNumber = (number, maxDigits = 1, minDigits = 0) => {
  * @param {string} url - The URL from which to extract the hostname.
  * @returns {string} The hostname of the given URL.
  */
-export const formatUrl = url => {
+export const formatUrl = (url) => {
   try {
     return new URL(url).hostname;
   } catch {
@@ -64,9 +65,11 @@ export const formatDate = (date, withTime = true) => {
  * @param {string|null} text - The input string to be converted into a slug.
  * @returns {string|null} The slugified string or null if the input was null.
  */
-export const slugify = text => {
+export const slugify = (text) => {
   // If input is null, return null.
-  if (text == null) { return null; }
+  if (text == null) {
+    return null;
+  }
 
   // Lowercase the input
   let slug = text.toLowerCase();

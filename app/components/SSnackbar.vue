@@ -14,7 +14,7 @@
     :width="$vuetify.display.xs ? 'calc(100% - 24px)' : undefined"
   >
     {{ store.message }}
-    <template #action="{ attrs }">
+    <template #actions="{ attrs }">
       <v-btn
         :color="store.type"
         icon

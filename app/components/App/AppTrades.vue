@@ -29,7 +29,7 @@
     class="h-100"
     :default-sort-by="[{
       key: Trade.fields.createdAt,
-      order: 'desc'
+      order: 'desc',
     }]"
     :headers="headers"
     must-sort

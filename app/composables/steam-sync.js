@@ -1,6 +1,6 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
 
-export function useSteamSync(type) {
+export const useSteamSync = (type) => {
   const supabase = useSupabaseClient();
   const snackbarStore = useSnackbarStore();
   const { user, updateUserCollections } = useAuthStore();
@@ -18,7 +18,10 @@ export function useSteamSync(type) {
       const { data, error } = await supabase.functions.invoke('steam-sync', {
         body: { userId: user.id, type }
       });
-      if (error) { throw error; }
+      if (error) {
+        throw error;
+      }
+
       await updateUserCollections();
       const isWishlist = type === Collection.enums.type.wishlist;
       const successMsg = isWishlist ? 'Steam Wishlist synchronized' : 'Steam Library synchronized';
@@ -36,10 +39,11 @@ export function useSteamSync(type) {
       } else if (type === Collection.enums.type.library) {
         errorMsg = 'Could not synchronize your Steam Library.';
       }
+
       snackbarStore.set('error', errorMsg);
     }
     loading.value = false;
   };
 
   return { sync, loading };
-}
+};

@@ -1,7 +1,6 @@
 <script setup>
   import TableData from './TableData.vue';
   import { VDataTableVirtual } from 'vuetify/components';
-
   import { formatNumber } from '~/assets/js/format';
 
   const { Collection } = useORM();
@@ -234,7 +233,8 @@
     if (props.showSelect) {
       return null;
     }
-    return (item) => `/collection/${item.id}`;
+
+    return item => `/collection/${item.id}`;
   });
 
   const toggleSelected = (item) => {
@@ -257,13 +257,15 @@
     if (props.showSelect && !props.rowLink) {
       return props.items
         ? { 'click:row': (_, { item }) => toggleSelected(toRaw(item)) }
-        : { 'click:row': (item) => toggleSelected(item) };
+        : { 'click:row': item => toggleSelected(item) };
     }
+
     return {};
   });
 
   const deleteCollection = async (item) => {
-    await supabase.from(Collection.table).delete().eq(Collection.fields.id, item.id);
+    await supabase.from(Collection.table).delete()
+      .eq(Collection.fields.id, item.id);
     table.value?.refresh?.();
   };
 </script>
@@ -303,7 +305,7 @@
       #[`item.${field}`]="{ item }"
     >
       <v-chip
-        small
+        size="small"
         :text="formatNumber(item[field])"
       />
     </template>

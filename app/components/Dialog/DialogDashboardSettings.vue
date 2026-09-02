@@ -21,7 +21,7 @@
   const defaultWidgets = Object.values(User.enums.widget);
 
   // Load current preferences when the dialog opens
-  watch(internalValue, val => {
+  watch(internalValue, (val) => {
     if (val) {
       selectedWidgets.value = [...(preferences.value?.dashboardWidgets || defaultWidgets)];
     }

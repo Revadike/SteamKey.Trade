@@ -19,7 +19,7 @@
   const { data: review, status, error } = useSupabaseData('user-review', { subjectId: props.userId });
 
   const snackbarStore = useSnackbarStore();
-  watch(() => error.value, error => {
+  watch(() => error.value, (error) => {
     if (error) {
       snackbarStore.set('error', 'Failed to load review');
     }
@@ -110,7 +110,7 @@
                 hover
                 :item-labels="[Review.labels.min[key], '', '', '', Review.labels.max[key]]"
                 :length="5"
-                :rules="[ v => !!v || 'Required' ]"
+                :rules="[v => !!v || 'Required']"
                 size="32"
               />
             </v-col>

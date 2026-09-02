@@ -80,7 +80,7 @@
     :breadcrumbs="breadcrumbs"
     :loading="status === 'pending'"
   >
-    <!-- friends leaderboard only if logged in-->
+    <!-- friends leaderboard only if logged in -->
     <!-- TODO: Implement a friend system (See #94) -->
     <!-- <template
       v-if="isLoggedIn && false"

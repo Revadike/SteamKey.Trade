@@ -17,6 +17,8 @@ export default withNuxt(
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false, allowUnboundThis: true }],
       'prefer-const': ['error', { destructuring: 'all' }],
       'prefer-template': 'error',
+      // TODO: Workaround for incorrectly marking "show-arrows" as deprecated in vuetify@3.4.0
+      'vuetify/no-deprecated-props': 'off',
 
       '@stylistic/array-bracket-newline': ['error', 'consistent'],
       '@stylistic/array-bracket-spacing': ['error', 'never'],

@@ -8,7 +8,7 @@ export const useVaultSecurity = () => {
   const supabase = useSupabaseClient();
   const snackbarStore = useSnackbarStore();
 
-  const setup = async password => {
+  const setup = async (password) => {
     if (!isLoggedIn.value) {
       throw new Error('User is not logged in');
     }
@@ -43,7 +43,7 @@ export const useVaultSecurity = () => {
     }
   };
 
-  const validate = async password => {
+  const validate = async (password) => {
     const control = 'control';
     const encryptedControl = await encrypt(control);
     const decryptedControl = await decrypt(encryptedControl, password);

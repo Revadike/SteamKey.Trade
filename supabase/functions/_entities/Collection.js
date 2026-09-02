@@ -1,5 +1,4 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
-
 import { Entity } from './BaseEntity.js';
 import { App } from './App.js';
 import { User } from './User.js';
@@ -221,6 +220,7 @@ export class Collection extends Entity {
         const message = await error.context.json();
         throw new Error(message.error);
       }
+
       throw error;
     }
   }
@@ -241,7 +241,7 @@ export class Collection extends Entity {
       throw error;
     }
 
-    const subcollections = data.map((item) => new Collection(this._client, item[fields.collectionId]));
+    const subcollections = data.map(item => new Collection(this._client, item[fields.collectionId]));
     if (!deep) {
       return subcollections;
     }
@@ -325,7 +325,7 @@ export class Collection extends Entity {
     const collectionIds = [this.id];
     if (includeSubcollections) {
       const subcollections = await this.getSubcollections(true);
-      collectionIds.push(...subcollections.map((subcollection) => subcollection.id));
+      collectionIds.push(...subcollections.map(subcollection => subcollection.id));
     }
 
     const { data: apps, error: appsError } = await this._client
@@ -339,7 +339,7 @@ export class Collection extends Entity {
 
     let appDetails = [];
     if (includeDetails && apps.length > 0) {
-      const appIds = apps.map((app) => app.app_id);
+      const appIds = apps.map(app => app.app_id);
       appDetails = await App.query(this._client, [{
         filter: 'in',
         params: [App.fields.id, appIds]
@@ -360,10 +360,10 @@ export class Collection extends Entity {
       tags = this.constructor.fromDB(tagsData, Collection.tags.fields);
     }
 
-    return apps.map((app) => ({
+    return apps.map(app => ({
       ...Collection.fromDB(app, Collection.apps.fields),
       ...(includeDetails ? { details: appDetails.find(({ id }) => id === app.app_id) } : {}),
-      ...(includeTags ? { tags: tags.filter((tag) => tag.appId === app.app_id && tag.collectionId === app.collection_id) } : {})
+      ...(includeTags ? { tags: tags.filter(tag => tag.appId === app.app_id && tag.collectionId === app.collection_id) } : {})
     }));
   }
 
@@ -388,7 +388,7 @@ export class Collection extends Entity {
       throw new Error('Invalid source');
     }
 
-    const records = appIds.map((appId) => (this.constructor.toDB({
+    const records = appIds.map(appId => (this.constructor.toDB({
       collectionId: this.id,
       appId: Number(appId),
       source
@@ -404,6 +404,7 @@ export class Collection extends Entity {
         if (error.code === '23505') {
           throw new Error('App already exists in collection');
         }
+
         throw error;
       }
     } else {
@@ -453,6 +454,7 @@ export class Collection extends Entity {
         const message = await error.context.json();
         throw new Error(message.error);
       }
+
       throw error;
     }
 
@@ -606,7 +608,7 @@ export class Collection extends Entity {
       throw new Error('Missing required parameters');
     }
 
-    if ([onlyCollectionIds, excludeCollectionIds, includeAppIds].some((ids) => ids && !Array.isArray(ids))) {
+    if ([onlyCollectionIds, excludeCollectionIds, includeAppIds].some(ids => ids && !Array.isArray(ids))) {
       throw new Error('Invalid collection IDs');
     }
 

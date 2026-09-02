@@ -9,7 +9,7 @@
   const supabase = useSupabaseClient();
   const snackbarStore = useSnackbarStore();
 
-  watch(() => internalValue.value, async value => {
+  watch(() => internalValue.value, async (value) => {
     if (value && !topics.value.length) {
       isLoading.value = true;
       const { data, error } = await supabase.functions.invoke('thirdparty-import', {
@@ -35,7 +35,7 @@
 
     const imports = [];
     for (const { appids = [], queries = [] } of selectedTopics.value) {
-      appids.forEach(appid => {
+      appids.forEach((appid) => {
         imports.push({
           query: appid,
           values: [''],

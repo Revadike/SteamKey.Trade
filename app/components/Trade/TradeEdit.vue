@@ -167,7 +167,7 @@
     watch: [() => users.value.receiver]
   });
 
-  const getPartnerSide = (side) => side === 'sender' ? 'receiver' : 'sender';
+  const getPartnerSide = side => side === 'sender' ? 'receiver' : 'sender';
 
   const partnerMasterCollections = computed(() => ({
     sender: senderMasterCollections.value || [],
@@ -177,8 +177,8 @@
   const getQuickFilters = (side) => {
     // Quick filters are built from prefetched partner master collections.
     const collections = partnerMasterCollections.value[getPartnerSide(side)] || [];
-    const wishlistCollection = collections.find((collection) => collection.type === Collection.enums.type.wishlist);
-    const libraryCollection = collections.find((collection) => collection.type === Collection.enums.type.library);
+    const wishlistCollection = collections.find(collection => collection.type === Collection.enums.type.wishlist);
+    const libraryCollection = collections.find(collection => collection.type === Collection.enums.type.library);
     const quickFilters = [];
 
     if (wishlistCollection?.id) {
@@ -286,9 +286,9 @@
         const appIdsToQuery = [...value.sender, ...value.receiver]
           .map(app => app.appId)
           .filter((appId, index, self) =>
-            appId &&
-            self.indexOf(appId) === index &&
-            !existingAppIds.includes(appId)
+            appId
+            && self.indexOf(appId) === index
+            && !existingAppIds.includes(appId)
           );
 
         if (!appIdsToQuery.length) {
@@ -298,7 +298,7 @@
         // Only query apps that aren't already loaded
         App.query(supabase, [
           { filter: 'in', params: [App.fields.id, appIdsToQuery] }
-        ]).then(instances => {
+        ]).then((instances) => {
           const newApps = instances.map(instance => instance.toObject());
           const allApps = Array.from(
             new Map([...selectedApps.value.sender, ...selectedApps.value.receiver, ...newApps]
@@ -349,15 +349,15 @@
 
       selectedApps.value.sender = selectedApps.value.sender.concat(
         allApps.filter(app =>
-          senderIds.includes(app.id) &&
-          !selectedApps.value.sender.some(selectedApp => selectedApp.id === app.id)
+          senderIds.includes(app.id)
+          && !selectedApps.value.sender.some(selectedApp => selectedApp.id === app.id)
         )
       );
 
       selectedApps.value.receiver = selectedApps.value.receiver.concat(
         allApps.filter(app =>
-          receiverIds.includes(app.id) &&
-          !selectedApps.value.receiver.some(selectedApp => selectedApp.id === app.id)
+          receiverIds.includes(app.id)
+          && !selectedApps.value.receiver.some(selectedApp => selectedApp.id === app.id)
         )
       );
     },
@@ -493,7 +493,9 @@
 
   // Calculate square grid values for trade apps display
   const getGridStyle = (count) => {
-    if (!count) { return {}; }
+    if (!count) {
+      return {};
+    }
 
     // Calculate the number of columns to make a square grid
     const columns = Math.ceil(Math.sqrt(count));
@@ -644,7 +646,7 @@
                     :table-props="{
                       showSelect: true,
                       onlyUsers: [users[tab]],
-                      onlyTypes: [Collection.enums.type.tradelist]
+                      onlyTypes: [Collection.enums.type.tradelist],
                     }"
                     @select="items => selectedCollections[tab] = items.map(({ id }) => id)"
                   >

@@ -1,5 +1,4 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
-
 import { Entity } from './BaseEntity.js';
 
 export class VaultEntry extends Entity {
@@ -178,13 +177,13 @@ export class VaultEntry extends Entity {
       }
 
       return data.map((entry) => {
-        const values = entry.values.map((value) => value.value);
+        const values = entry.values.map(value => value.value);
         return {
           ...this.fromDB(entry),
           [VaultEntry.values.fields.value]: values[0]
         };
       });
-    })).then((results) => results.flat());
+    })).then(results => results.flat());
   }
 
   /**
@@ -240,6 +239,7 @@ export class VaultEntry extends Entity {
         const message = await entriesError.context.json();
         throw new Error(message.error);
       }
+
       throw entriesError;
     }
 
@@ -253,6 +253,7 @@ export class VaultEntry extends Entity {
         const message = await valuesError.context.json();
         throw new Error(message.error);
       }
+
       throw valuesError;
     }
 

@@ -8,7 +8,7 @@ import * as entity from '@@/supabase/functions/_entities';
  * @param {*} client - The value to bind as the first argument.
  * @returns {typeof Entity} - A subclass of Entity with client pre-bound and same name.
  */
-function wrapEntity(Entity, client) {
+const wrapEntity = (Entity, client) => {
   class WrappedEntity extends Entity {
     constructor(...args) {
       // If the first argument is an instance of SupabaseClient,
@@ -29,7 +29,7 @@ function wrapEntity(Entity, client) {
   });
 
   return WrappedEntity;
-}
+};
 
 export const useORM = () => {
   const supabase = useSupabaseClient();

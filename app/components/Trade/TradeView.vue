@@ -44,6 +44,7 @@
     if (!tradeViews.value) {
       return [];
     }
+
     return tradeViews.value.map(view => ({
       image: view.user?.avatar || undefined,
       icon: view.user?.avatar ? undefined : 'mdi-account',
@@ -100,7 +101,7 @@
       // Fetch data from the API
       App.query(supabase, [
         { filter: 'in', params: [App.fields.id, appIdsToQuery] }
-      ]).then(instances => {
+      ]).then((instances) => {
         const data = instances.map(instance => instance.toObject());
 
         // Helper function to map app data with snapshot information
@@ -148,8 +149,8 @@
   }, { deep: true });
 
   const isValid = computed(() => {
-    return selectedApps.value.sender.length === trade.value.senderTotal &&
-      selectedApps.value.receiver.length === trade.value.receiverTotal;
+    return selectedApps.value.sender.length === trade.value.senderTotal
+      && selectedApps.value.receiver.length === trade.value.receiverTotal;
   });
 
   const isLoading = computed(() => {
@@ -161,7 +162,7 @@
   });
 
   const submitting = ref(false);
-  const updateStatus = async status => {
+  const updateStatus = async (status) => {
     if (!Object.values(Trade.enums.status).includes(status)) {
       snackbarStore.set('error', 'Invalid status');
       return;
@@ -201,7 +202,7 @@
   };
 
   const isDisputed = computed(() => trade.value && (trade.value.senderDisputed || trade.value.receiverDisputed));
-  const reportTrade = async value => {
+  const reportTrade = async (value) => {
     submitting.value = true;
     const key = trade.value.receiverId === user.id ? 'receiverDisputed' : 'senderDisputed';
     try {
@@ -240,10 +241,10 @@
     }
 
     if (
-      status === Trade.enums.status.completed &&
-      isLoggedIn &&
-      (user.id === trade.value.senderId || user.id === trade.value.receiverId) &&
-      !reviewChecked.value
+      status === Trade.enums.status.completed
+      && isLoggedIn
+      && (user.id === trade.value.senderId || user.id === trade.value.receiverId)
+      && !reviewChecked.value
     ) {
       // Determine partner userId
       const partnerId = user.id === trade.value.senderId ? trade.value.receiverId : trade.value.senderId;

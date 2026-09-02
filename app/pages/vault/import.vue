@@ -186,11 +186,11 @@
     }
   };
 
-  const scoreToPercent = score => {
+  const scoreToPercent = (score) => {
     return Math.round((1 - score) * 1000) / 10;
   };
 
-  const setImports = items => {
+  const setImports = (items) => {
     imports.value = items;
   };
 

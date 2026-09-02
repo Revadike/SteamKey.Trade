@@ -34,7 +34,7 @@ export const useSearchApps = () => {
       const batch = uniqueQueries.slice(i, i + MAX_SEARCH_BATCH_SIZE);
       const rows = await App.search(supabase, batch, limit);
 
-      rows.forEach(row => {
+      rows.forEach((row) => {
         const key = `${row.query ?? ''}`.trim();
         if (!resultsByQuery[key]) {
           resultsByQuery[key] = [];

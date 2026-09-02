@@ -1,5 +1,4 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
-
 import { Entity } from './BaseEntity.js';
 import countries from '../_assets/countries.json' with { type: 'json' };
 
@@ -268,6 +267,7 @@ export class User extends Entity {
         const message = await loginError.context.json();
         throw new Error(message.error);
       }
+
       throw loginError;
     }
 

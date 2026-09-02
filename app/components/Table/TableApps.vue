@@ -108,13 +108,14 @@
     if (!vars.length) {
       return link;
     }
+
     return vars.reduce((acc, varName) => {
       const value = app[varName === 'appid' ? 'id' : varName];
       return acc.replace(`{${varName}}`, value);
     }, link);
   };
 
-  const visibleAppLinks = app => {
+  const visibleAppLinks = (app) => {
     const links = preferences.value?.appLinks || [
       { title: 'Homepage', url: '{website}' },
       { title: 'Steam Store', url: 'https://store.steampowered.com/app/{appid}' },
@@ -122,7 +123,7 @@
       { title: 'SteamDB', url: 'https://steamdb.info/app/{appid}/' },
       { title: 'GG.deals', url: 'https://gg.deals/steam/app/{appid}/' }
     ];
-    return links.filter(({ url }) => getLinkVars(url).every(varName => {
+    return links.filter(({ url }) => getLinkVars(url).every((varName) => {
       const value = app[varName === 'appid' ? 'id' : varName];
       return value !== undefined && value !== null;
     }));
@@ -148,7 +149,7 @@
   };
 
   const { names: tagNames } = storeToRefs(useTagsStore());
-  const getTags = item => {
+  const getTags = (item) => {
     if (!item?.collection?.[0]?.tags?.length && !item.snapshot?.tags?.length) {
       return [];
     }
@@ -156,14 +157,14 @@
     const { fields } = Collection.tags;
     const tags = item.snapshot?.tags?.length
       ? item.snapshot.tags
-      : item.collection[0].tags.filter(tag => {
+      : item.collection[0].tags.filter((tag) => {
         return tag[fields.appId] === item.id;
       });
 
     return tags.map(tag => Collection.fromDB(tag, fields));
   };
 
-  const deleteTag = async tag => {
+  const deleteTag = async (tag) => {
     const { fields, table } = Collection.tags;
     const { error } = await supabase
       .from(table)
@@ -185,7 +186,7 @@
     mandatory.value = mandatory.value.filter(item => isSelected(item.id));
   });
 
-  const select = item => {
+  const select = (item) => {
     if (!props.showSelect) {
       return;
     }
@@ -203,6 +204,7 @@
         if (props.maxSelection && selected.value.length >= props.maxSelection) {
           return;
         }
+
         selected.value.push(item);
       }
       // cycle through selected, mandatory and unselected
@@ -216,6 +218,7 @@
         if (props.maxSelection !== null && selected.value.length >= props.maxSelection) {
           return;
         }
+
         selected.value.push(item);
       } else if (isMandatory(id)) {
         const selectedIndex = selected.value.findIndex(v => v.id.toString() === id.toString());
@@ -231,7 +234,7 @@
     selected.value = [...selected.value];
   };
 
-  const getRowClass = item => {
+  const getRowClass = (item) => {
     return {
       'v-data-table__tr position-relative app-row': true,
       'in-library': inLibrary(item.id),
@@ -513,7 +516,7 @@
 
   const masterCollectionOptions = computed(() => {
     const collections = ownMasterCollections.value || [];
-    return collections.map((collection) => ({
+    return collections.map(collection => ({
       title: collection.title || collection.id,
       value: collection.id
     }));
@@ -810,7 +813,7 @@
                   size="x-small"
                 />
               </div>
-              <div :class="['app-avatar', { 'overlayed': isMandatory(item.id) || isSelected(item.id) }]">
+              <div :class="['app-avatar', { overlayed: isMandatory(item.id) || isSelected(item.id) }]">
                 <div>
                   <v-img
                     :alt="`App ${item.id}`"
@@ -1034,7 +1037,7 @@
                   App.fields.steamPackages,
                   App.fields.steamBundles,
                   App.fields.positiveReviews,
-                  App.fields.negativeReviews
+                  App.fields.negativeReviews,
                 ].includes(header.key)"
               >
                 <span
@@ -1047,7 +1050,7 @@
                       App.fields.retailPrice,
                       App.fields.discountedPrice,
                       App.fields.marketPrice,
-                      App.fields.historicalLow
+                      App.fields.historicalLow,
                     ].includes(header.key)"
                     class="d-flex flex-row align-baseline"
                   >
@@ -1078,7 +1081,7 @@
                         App.fields.retailPrice,
                         App.fields.discountedPrice,
                         App.fields.marketPrice,
-                        App.fields.historicalLow
+                        App.fields.historicalLow,
                       ].includes(header.key)
                         ? `$${formatNumber(item.snapshot.app[header.key], 2, 2)}`
                         : formatNumber(item.snapshot.app[header.key])
@@ -1105,7 +1108,7 @@
                     App.fields.wishlists,
                     App.fields.tradelists,
                     App.fields.blacklists,
-                    App.fields.libraries
+                    App.fields.libraries,
                   ].includes(header.key)"
                   class="d-flex flex-column justify-center text-disabled"
                 >
@@ -1136,7 +1139,7 @@
               <template v-else-if="header.key === 'links'">
                 <v-menu
                   location="bottom"
-                  offset-y
+                  :offset="8"
                   open-delay="0"
                   open-on-click
                   open-on-hover

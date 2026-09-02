@@ -234,7 +234,7 @@
       return false;
     }
 
-    const exactMatches = results.filter(result => {
+    const exactMatches = results.filter((result) => {
       return (result?.item?.names || []).some(name => `${name ?? ''}`.trim().toLowerCase() === normalizedInput);
     });
 
@@ -364,7 +364,7 @@
         }
 
         const batchRows = rows.value.slice(i, i + batchSize);
-        batchRows.forEach(row => {
+        batchRows.forEach((row) => {
           row.status = 'matching';
         });
 

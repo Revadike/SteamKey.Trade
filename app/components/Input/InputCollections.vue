@@ -3,8 +3,7 @@
     type: Array,
     default: () => []
   });
-
- </script>
+</script>
 
 <template>
   <table-collections

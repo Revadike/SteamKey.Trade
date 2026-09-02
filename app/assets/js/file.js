@@ -5,7 +5,7 @@
  *
  * @returns {Promise<?string>}
  */
-export const readAsDataUrl = file => {
+export const readAsDataUrl = (file) => {
   if (!(file instanceof File)) {
     return null;
   }

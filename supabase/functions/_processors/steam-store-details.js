@@ -79,11 +79,12 @@ export const processSteamStoreDetails = async (appids) => {
       }
 
       if (storeInfo.platforms) {
-        record[App.fields.platforms] = Object.entries(storeInfo.platforms).filter(([, value]) => value).map(([key]) => key.trim().toLowerCase());
+        record[App.fields.platforms] = Object.entries(storeInfo.platforms).filter(([, value]) => value)
+          .map(([key]) => key.trim().toLowerCase());
       }
 
       if (storeInfo.demos) {
-        storeInfo.demos.forEach(demo => {
+        storeInfo.demos.forEach((demo) => {
           const existingIndex = appRecords.findIndex(r => r[App.fields.id] === demo.appid);
           if (existingIndex !== -1) {
             appRecords[existingIndex][App.fields.parentId] = appid;

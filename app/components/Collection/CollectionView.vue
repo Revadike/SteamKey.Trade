@@ -21,7 +21,7 @@
 
   const subcollections = computed(() => (fetchedSubcollections.value || []).map(sc => sc.id));
 
-  watch(() => appTable.value?.totalItems, total => {
+  watch(() => appTable.value?.totalItems, (total) => {
     if (total === 0 && subcollections.value.length > 0) {
       activeTab.value = 'collections';
     }
@@ -30,7 +30,7 @@
   watch([
     () => error.value,
     () => subcollectionsError.value
-  ], errors => {
+  ], (errors) => {
     if (errors.some(e => e)) {
       console.error(...errors);
       throw errors.find(e => e);
@@ -59,6 +59,7 @@
     } else if (collection.value.type === Collection.enums.type.library) {
       await useSteamSync(Collection.enums.type.library).sync();
     }
+
     syncing.value = false;
   };
 

@@ -96,7 +96,9 @@
         .catch(() => snackbarStore.set('error', 'Unable to edit message'));
     } else {
       sendMessage(body.value)
-        .then(() => { body.value = ''; })
+        .then(() => {
+          body.value = '';
+        })
         .catch(() => snackbarStore.set('error', 'Unable to send message'));
     }
   };

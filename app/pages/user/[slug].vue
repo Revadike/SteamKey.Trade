@@ -67,7 +67,7 @@
     return userError.value || statsError.value || tradesError.value;
   });
 
-  watch(() => hasError.value, error => {
+  watch(() => hasError.value, (error) => {
     if (error) {
       console.error(error);
       throw createError({

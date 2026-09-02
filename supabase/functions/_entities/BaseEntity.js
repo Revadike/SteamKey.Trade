@@ -192,6 +192,7 @@ export class Entity {
     if (!valid) {
       throw new Error(validator.errors.map(e => e.message).join('\n'));
     }
+
     return true;
   }
 

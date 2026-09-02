@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js';
  * @param {Request} req - The incoming HTTP request
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  */
-export const createAuthenticatedClient = req => {
+export const createAuthenticatedClient = (req) => {
   const authHeader = req.headers.get('Authorization');
   return createClient(
     (Deno.env.get('SUPABASE_URL') ?? '').trim(),

@@ -11,7 +11,7 @@
   const suggestions = ref([]);
   const loading = ref(false);
 
-  const fetchSuggestions = async query => {
+  const fetchSuggestions = async (query) => {
     if (!query || suggestions.value.find(({ title }) => title === query)) {
       return;
     }
@@ -37,7 +37,7 @@
   const debouncedFetchSuggestions = debounce(fetchSuggestions, 300);
 
   // Handler for search input updates
-  const onSearch = searchTerm => {
+  const onSearch = (searchTerm) => {
     debouncedFetchSuggestions(searchTerm);
   };
 </script>

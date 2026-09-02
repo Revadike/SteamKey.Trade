@@ -1,5 +1,4 @@
 import { parseHTML } from 'linkedom';
-
 import { serve } from '../_helpers/edge.js';
 import { createAuthenticatedClient } from '../_helpers/supabase.js';
 
@@ -9,7 +8,7 @@ import { createAuthenticatedClient } from '../_helpers/supabase.js';
  * @param {string} steamid - Steam ID of the user
  * @returns {Promise<Object>}
  */
-async function importBarterVg(steamid) {
+const importBarterVg = async (steamid) => {
   const response = await fetch(`https://bartervg.com/steam/${steamid}/t/json/`);
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -20,7 +19,7 @@ async function importBarterVg(steamid) {
     .filter(({ platform_id }) => platform_id === 1) // filter out subids
     .map(({ sku }) => Number(sku));
   return { appids };
-}
+};
 
 /**
  * Import Steam Inventory
@@ -28,7 +27,7 @@ async function importBarterVg(steamid) {
  * @param {string} steamid - Steam ID of the user
  * @returns {Promise<Object>}
  */
-async function importSteamInventory(steamid) {
+const importSteamInventory = async (steamid) => {
   const appids = [];
   const queries = [];
   const appid = 753;
@@ -37,17 +36,18 @@ async function importSteamInventory(steamid) {
   inventoryUrl.searchParams.set('l', 'english');
   inventoryUrl.searchParams.set('count', '1000'); // Fetch up to 1000 items at once
 
-  let more = true;
+  let moreItems;
 
   do {
     const response = await fetch(inventoryUrl.toString())
-      .then(res => {
+      .then((res) => {
         if (res.status === 403) {
           throw new Error('Steam inventory is private, please change your inventory privacy settings');
         }
         if (!res.ok) {
           throw new Error(`HTTP error! Status: ${res.status}`);
         }
+
         return res.json();
       });
 
@@ -61,10 +61,10 @@ async function importSteamInventory(steamid) {
       throw new Error('No success');
     }
 
-    more = more_items;
+    moreItems = more_items;
     inventoryUrl.searchParams.set('start_assetid', last_assetid); // Set the next asset ID to continue fetching
 
-    assets.forEach(asset => {
+    assets.forEach((asset) => {
       const { type, actions = [], name, market_name, market_hash_name } = descriptions.find(({ classid, instanceid }) => instanceid === asset.instanceid && classid === asset.classid) || {};
       if (type === 'Gift') {
         let appid = null;
@@ -83,10 +83,10 @@ async function importSteamInventory(steamid) {
         }
       }
     });
-  } while (more);
+  } while (moreItems);
 
   return { appids, queries };
-}
+};
 
 /**
  * Import SteamTrades data
@@ -94,7 +94,7 @@ async function importSteamInventory(steamid) {
  * @param {string} steamid - Steam ID of the user
  * @returns {Promise<Object>}
  */
-async function importSteamTrades(steamid) {
+const importSteamTrades = async (steamid) => {
   const baseURL = 'https://www.steamtrades.com';
   const response = await fetch(`${baseURL}/trades/search?user=${steamid}`);
   if (!response.ok) {
@@ -105,7 +105,7 @@ async function importSteamTrades(steamid) {
   const { document } = parseHTML(html);
 
   const topicNodes = [...document.querySelectorAll('.row_inner_wrap:not(.is_faded) .row_trade_name a')];
-  const topics = await Promise.all(topicNodes.map(async node => {
+  const topics = await Promise.all(topicNodes.map(async (node) => {
     const title = node.textContent.trim();
     const appids = [];
     const queries = [];
@@ -166,7 +166,7 @@ async function importSteamTrades(steamid) {
   }));
 
   return topics;
-}
+};
 
 const thirdpartyImport = async ({ source }, req) => {
   const supabase = createAuthenticatedClient(req);

@@ -48,7 +48,7 @@
     class="trades-table"
     :default-sort-by="[{
       key: Trade.fields.createdAt,
-      order: 'desc'
+      order: 'desc',
     }]"
     :headers="headers"
     :map-item="mapItem"

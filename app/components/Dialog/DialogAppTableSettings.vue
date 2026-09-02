@@ -33,14 +33,14 @@
   const customLinks = ref(defaults.appLinks);
 
   // Load current preferences when dialog opens
-  watch(internalValue, val => {
+  watch(internalValue, (val) => {
     if (val) {
       selectedProperties.value = [...preferences.value?.appColumns || defaults.appColumns];
       customLinks.value = [...preferences.value?.appLinks || defaults.appLinks];
     }
   });
 
-  const getPropertyLabel = key => {
+  const getPropertyLabel = (key) => {
     const reversed = Object.fromEntries(
       Object.entries(App.fields).map(([k, v]) => [v, k])
     );
@@ -59,7 +59,7 @@
     }
   };
 
-  const removeLink = index => {
+  const removeLink = (index) => {
     customLinks.value.splice(index, 1);
   };
 
@@ -134,7 +134,7 @@
                 v-for="(link, index) in customLinks"
                 :key="index"
                 class="pa-0"
-                :class="{ 'faded': !activeIndexSet.has(index) && !hoveredIndexSet.has(index) }"
+                :class="{ faded: !activeIndexSet.has(index) && !hoveredIndexSet.has(index) }"
                 @mouseenter="hoveredIndexSet.add(index)"
                 @mouseleave="hoveredIndexSet.delete(index)"
               >

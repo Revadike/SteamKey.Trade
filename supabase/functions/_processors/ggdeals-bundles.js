@@ -75,7 +75,8 @@ export const processGGDealsBundles = async (lastCheck) => {
         baseRecord[Collection.fields.title] += ` ($${tiers[0].price})`;
         baseRecord[Collection.fields.description] = `Bundle with ${tiers[0].games.length} apps: ${tiers[0].games.map(({ title }) => title).join(', ')}`;
 
-        const appIds = tiers[0].games.map(({ steamIds }) => steamIds).flat().filter((id, index, self) => id && self.indexOf(id) === index);
+        const appIds = tiers[0].games.map(({ steamIds }) => steamIds).flat()
+          .filter((id, index, self) => id && self.indexOf(id) === index);
         for (const appId of appIds) {
           const { fields } = Collection.apps;
           appRecords.push({
@@ -97,7 +98,8 @@ export const processGGDealsBundles = async (lastCheck) => {
             [Collection.fields.description]: `Tier with ${games.length} apps: ${games.map(({ title }) => title).join(', ')}`
           };
 
-          const appIds = games.map(({ steamIds }) => steamIds).flat().filter((id, index, self) => id && self.indexOf(id) === index);
+          const appIds = games.map(({ steamIds }) => steamIds).flat()
+            .filter((id, index, self) => id && self.indexOf(id) === index);
           for (const appId of appIds) {
             const { fields } = Collection.apps;
             appRecords.push({

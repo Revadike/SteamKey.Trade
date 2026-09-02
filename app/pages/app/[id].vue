@@ -2,7 +2,6 @@
   import AppCollections from '@/components/App/AppCollections.vue';
   import AppRelatedApps from '@/components/App/AppRelatedApps.vue';
   import AppTrades from '@/components/App/AppTrades.vue';
-
   import { formatDate, formatNumber, slugify } from '~/assets/js/format';
 
   const { App, Collection } = useORM();
@@ -13,7 +12,7 @@
 
   const { data: app, status, error } = useSupabaseData('app', { id: appid });
 
-  watch(() => error.value, error => {
+  watch(() => error.value, (error) => {
     if (error) {
       throw error;
     }
@@ -22,9 +21,9 @@
   const { data: totalUsers } = useSupabaseData('total-users');
 
   const snackbarStore = useSnackbarStore();
-  const addToCollections = async collections => {
+  const addToCollections = async (collections) => {
     try {
-      await Promise.all(collections.map(collection => {
+      await Promise.all(collections.map((collection) => {
         const instance = new Collection(collection);
         return instance.addApps([appid], Collection.enums.source.user, true);
       }));
@@ -576,7 +575,7 @@
                           class="text-decoration-none text-capitalize text-primary"
                           :to="`/collection/type-${slugify(app.type)}`"
                         >
-                          {{ App.labels[Object.entries(App.enums.type).find(([,value]) => value === app.type)?.[0]] }}
+                          {{ App.labels[Object.entries(App.enums.type).find(([, value]) => value === app.type)?.[0]] }}
                         </nuxt-link>
                       </td>
                     </tr>

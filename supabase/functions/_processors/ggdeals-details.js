@@ -32,13 +32,13 @@ export const processGGDealsDetails = async (appids) => {
           }
         });
       } catch (error) {
-        failed.push(...batch.map((appid) => ({ [App.fields.id]: appid })));
+        failed.push(...batch.map(appid => ({ [App.fields.id]: appid })));
         errors.push(error);
         continue;
       }
 
       if (!response.ok) {
-        failed.push(...batch.map((appid) => ({ [App.fields.id]: appid })));
+        failed.push(...batch.map(appid => ({ [App.fields.id]: appid })));
         errors.push(new Error(`GG Deals API returned ${response.status}: ${response.statusText}`));
         continue;
       }
@@ -46,7 +46,7 @@ export const processGGDealsDetails = async (appids) => {
       const { data, success } = await response.json();
 
       if (!data || !success) {
-        failed.push(...batch.map((appid) => ({ [App.fields.id]: appid })));
+        failed.push(...batch.map(appid => ({ [App.fields.id]: appid })));
         errors.push(new Error(`GG Deals API returned an error: ${JSON.stringify(data)}`));
         continue;
       }
@@ -83,7 +83,7 @@ export const processGGDealsDetails = async (appids) => {
     const result = await saveToDatabase(App.table, records, App.fields.id);
     return { errors: errors.concat(result.errors), failed: failed.concat(result.failed), successful: result.successful };
   } catch (error) {
-    const failed = appids.map((appid) => records.find((record) => record[App.fields.id] === appid) || { [App.fields.id]: appid });
+    const failed = appids.map(appid => records.find(record => record[App.fields.id] === appid) || { [App.fields.id]: appid });
     return { errors: [error], failed, successful: [] };
   }
 };

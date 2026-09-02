@@ -30,7 +30,7 @@
   const { data: user, status, error } = useSupabaseData('user', { id: authUser.id });
 
   // Set avatar and background refs when user data loads
-  watch(() => user.value, data => {
+  watch(() => user.value, (data) => {
     if (data?.avatar) {
       avatar.value = { url: data.avatar };
     }
@@ -39,14 +39,16 @@
     }
   }, { immediate: true });
 
-  watch(() => error.value, error => {
+  watch(() => error.value, (error) => {
     if (error) {
       throw error;
     }
   }, { immediate: true });
 
   const uploadFile = async ({ file, crop }, bucket) => {
-    if (!file) { return null; }
+    if (!file) {
+      return null;
+    }
 
     try {
       let processedFile = file;
@@ -97,7 +99,9 @@
           upsert: true
         });
 
-      if (error) { throw error; }
+      if (error) {
+        throw error;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
@@ -298,7 +302,7 @@
                     size="small"
                     @click="() => navigateTo(`https://steamcommunity.com/profiles/${authUser.steamId}`, {
                       external: true,
-                      open: { target: '_blank' }
+                      open: { target: '_blank' },
                     })"
                   >
                     <v-icon

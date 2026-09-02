@@ -87,7 +87,9 @@ export const useTradeChat = (tradeId) => {
    */
   const releaseChannel = () => {
     const entry = channelRegistry.get(tradeId);
-    if (!entry) { return; }
+    if (!entry) {
+      return;
+    }
 
     entry.refs -= 1;
 
@@ -107,7 +109,9 @@ export const useTradeChat = (tradeId) => {
    * @returns {Promise<void>}
    */
   const sendMessage = (body) => {
-    if (!body.trim()) { return Promise.resolve(); }
+    if (!body.trim()) {
+      return Promise.resolve();
+    }
 
     isSending.value = true;
 
@@ -149,12 +153,13 @@ export const useTradeChat = (tradeId) => {
    * @returns {Promise<void>}
    */
   const deleteMessage = (message) => {
-    return new TradeMessage(message).delete().then(() => {
-      messages.value.splice(
-        messages.value.findIndex(msg => msg.id === message.id),
-        1
-      );
-    });
+    return new TradeMessage(message).delete()
+      .then(() => {
+        messages.value.splice(
+          messages.value.findIndex(msg => msg.id === message.id),
+          1
+        );
+      });
   };
 
   onMounted(acquireChannel);

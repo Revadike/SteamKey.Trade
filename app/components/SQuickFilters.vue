@@ -20,7 +20,7 @@
   // Encode all filters when the component is mounted or when filters change
   watchEffect(async () => {
     encodedFilters.value = await Promise.all(
-      props.filters.map(async (filter) => ({
+      props.filters.map(async filter => ({
         title: filter.title,
         value: await encodeForQuery(filter.value)
       }))
@@ -29,7 +29,9 @@
 
   // Get active filter directly from the URL, matching it against our encoded filters
   const activeFilter = computed(() => {
-    if (!route.query.filters) { return null; }
+    if (!route.query.filters) {
+      return null;
+    }
 
     return encodedFilters.value.find(filter =>
       decodeURIComponent(filter.value) === route.query.filters

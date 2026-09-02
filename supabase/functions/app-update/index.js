@@ -32,28 +32,28 @@ const appUpdate = async ({ count = 100 } = {}) => {
   if (!success) {
     if (steamPICSResult.errors.length > 0 || steamPICSResult.failed.length > 0) {
       details.steamPICS = {
-        errors: steamPICSResult.errors.map((error) => error.message),
+        errors: steamPICSResult.errors.map(error => error.message),
         failed: steamPICSResult.failed
       };
     }
 
     if (steamStoreDetailsResult.errors.length > 0 || steamStoreDetailsResult.failed.length > 0) {
       details.steamStoreDetails = {
-        errors: steamStoreDetailsResult.errors.map((error) => error.message),
+        errors: steamStoreDetailsResult.errors.map(error => error.message),
         failed: steamStoreDetailsResult.failed
       };
     }
 
     if (steamReviewsResult.errors.length > 0 || steamReviewsResult.failed.length > 0) {
       details.steamReviews = {
-        errors: steamReviewsResult.errors.map((error) => error.message),
+        errors: steamReviewsResult.errors.map(error => error.message),
         failed: steamReviewsResult.failed
       };
     }
 
     if (ggdealsDetailsResult.errors.length > 0 || ggdealsDetailsResult.failed.length > 0) {
       details.ggdealsDetails = {
-        errors: ggdealsDetailsResult.errors.map((error) => error.message),
+        errors: ggdealsDetailsResult.errors.map(error => error.message),
         failed: ggdealsDetailsResult.failed
       };
     }
@@ -75,10 +75,10 @@ if (Deno?.env?.get?.('SB_EXECUTION_ID')) {
   // Run the function directly
   console.log('App update function initialized');
   appUpdate()
-    .then(result => {
+    .then((result) => {
       console.log('App update function completed:', result);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error in app update function:', error);
     });
 }

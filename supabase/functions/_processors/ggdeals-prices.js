@@ -39,11 +39,11 @@ export const processGGDealsPrices = async (lastCheck) => {
           throw new Error('GG Deals API returned 400: unknown error');
         }
 
-        const isBadSince =
-          !retriedWithoutSince &&
-          errBody.success === false &&
-          errBody.data?.code === 400 &&
-          /Invalid since/.test(errBody.data.message);
+        const isBadSince
+          = !retriedWithoutSince
+            && errBody.success === false
+            && errBody.data?.code === 400
+            && /Invalid since/.test(errBody.data.message);
 
         if (isBadSince) {
           console.warn('GG Deals API rejected \'since\' parameter. Retrying without \'since\'.');

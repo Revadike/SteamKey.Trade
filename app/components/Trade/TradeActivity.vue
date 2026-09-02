@@ -46,6 +46,7 @@
         if (!trades.value || !trades.value.length) {
           return [];
         }
+
         return await Trade.getActivities(supabase, trades.value.map(trade => trade.id), 10);
       } else {
         return await Trade.getActivities(supabase, null, 10);

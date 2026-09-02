@@ -101,7 +101,7 @@
         return parseDate(model.value);
       }
     },
-    set: value => {
+    set: (value) => {
       if (props.range) {
         if (value.length > 0) {
           const dates = [
@@ -157,7 +157,7 @@
 
       return time;
     },
-    set: value => {
+    set: (value) => {
       if (!value) {
         return;
       }
@@ -175,7 +175,7 @@
     }
   });
 
-  const getISOString = value => {
+  const getISOString = (value) => {
     const date = parseDate(value);
 
     if (!date) {
@@ -205,7 +205,7 @@
     return formatDate(proxyModel.value, showTime.value);
   });
 
-  watch(menu, value => {
+  watch(menu, (value) => {
     if (value) {
       return;
     }
@@ -222,7 +222,6 @@
       menu.value = false;
     }
   };
-
 </script>
 
 <template>
@@ -270,7 +269,7 @@
         </v-tab>
       </v-tabs>
       <v-window
-        :model-value="showTime && smAndUp ? [ 'date', 'time' ] : selectedTab"
+        :model-value="showTime && smAndUp ? ['date', 'time'] : selectedTab"
         touch
       >
         <v-window-item value="date">

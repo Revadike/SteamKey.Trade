@@ -63,8 +63,8 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
-            text
             to="/"
+            variant="text"
           >
             Cancel
           </v-btn>

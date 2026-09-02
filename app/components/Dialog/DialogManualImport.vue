@@ -8,11 +8,11 @@
 
   const selectedFormat = ref(0);
 
-  const parseInput = input => {
+  const parseInput = (input) => {
     const data = {};
     switch (selectedFormat.value) {
       case 0:
-        input.split('\n').forEach(line => {
+        input.split('\n').forEach((line) => {
           if (!line) {
             return;
           }
@@ -21,7 +21,7 @@
         });
         break;
       case 1:
-        input.split('\n').forEach(line => {
+        input.split('\n').forEach((line) => {
           if (!line) {
             return;
           }
@@ -40,7 +40,7 @@
       case 2:
         // eslint-disable-next-line no-case-declarations
         let query = null;
-        input.split('\n').forEach(line => {
+        input.split('\n').forEach((line) => {
           if (!line) {
             query = null;
             return;

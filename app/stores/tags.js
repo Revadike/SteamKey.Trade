@@ -12,15 +12,15 @@ export const useTagsStore = defineStore('tags', () => {
   const types = ref(null);
   const refreshedAt = ref(null);
 
-  function setNames(namesList) {
+  const setNames = (namesList) => {
     names.value = markRaw(namesList);
-  }
+  };
 
-  function setTypes(typesList) {
+  const setTypes = (typesList) => {
     types.value = markRaw(typesList);
-  }
+  };
 
-  function setFromRecords(records) {
+  const setFromRecords = (records) => {
     const namesObj = {};
     const typesObj = {};
 
@@ -31,7 +31,7 @@ export const useTagsStore = defineStore('tags', () => {
 
     setNames(namesObj);
     setTypes(typesObj);
-  }
+  };
 
   /**
    * Get all names (of a specific type)
@@ -39,20 +39,20 @@ export const useTagsStore = defineStore('tags', () => {
    * @param {string} typeFilter - The type of tags to get (optional)
    * @returns {Object} - An object mapping tag IDs to names
    */
-  function getNames(typeFilter) {
+  const getNames = (typeFilter) => {
     return Object.fromEntries(
       Object.entries(names.value).filter(([id]) =>
         !typeFilter || types.value[id] === typeFilter
       )
     );
-  }
+  };
 
   /**
    * Refresh tags if they are not yet set or older than 24 hours.
    *
    * @returns {Promise<void>}
    */
-  async function refreshTags() {
+  const refreshTags = async () => {
     // Refresh tags if they are not set or if they are older than 24 hours
     if (Object.keys(names.value || {}).length && Object.keys(types.value || {}).length && refreshedAt.value && Date.now() - refreshedAt.value < 24 * 60 * 60 * 1000) {
       return;
@@ -71,12 +71,12 @@ export const useTagsStore = defineStore('tags', () => {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     names.value = null;
     types.value = null;
-  }
+  };
 
   return {
     names,

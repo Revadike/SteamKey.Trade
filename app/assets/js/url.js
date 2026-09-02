@@ -8,7 +8,9 @@ export const encodeForQuery = async (obj) => {
 };
 
 export const decodeFromQuery = async (param) => {
-  if (!param) { return []; }
+  if (!param) {
+    return [];
+  }
 
   const binary = atob(decodeURIComponent(param));
   const bytes = new Uint8Array([...binary].map(ch => ch.charCodeAt(0)));

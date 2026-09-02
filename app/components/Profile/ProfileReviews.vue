@@ -20,7 +20,8 @@
 
   const supabase = useSupabaseClient();
   const queryGetter = () => {
-    return supabase.from(Review.table).select().eq(Review.fields.subjectId, props.userId);
+    return supabase.from(Review.table).select()
+      .eq(Review.fields.subjectId, props.userId);
   };
 </script>
 
@@ -28,7 +29,7 @@
   <table-data
     :default-sort-by="[{
       key: Review.fields.createdAt,
-      order: 'desc'
+      order: 'desc',
     }]"
     :headers="headers"
     must-sort

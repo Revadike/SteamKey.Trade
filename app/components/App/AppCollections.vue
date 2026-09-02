@@ -14,7 +14,7 @@
     class="h-100"
     :default-sort-by="[{
       key: Collection.fields.updatedAt,
-      order: 'desc'
+      order: 'desc',
     }]"
     :only-apps="[appid]"
     :row-link="(item) => `/collection/${item.id}`"

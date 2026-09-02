@@ -25,11 +25,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) {
       return null;
     }
+
     const { User } = useORM();
     return new User(user.value);
   });
 
-  function setPassword(pwd, expiresIn) {
+  const setPassword = (pwd, expiresIn) => {
     password.value = pwd || null;
     if (expirer) {
       clearTimeout(expirer);
@@ -47,58 +48,58 @@ export const useAuthStore = defineStore('auth', () => {
         expirer = null;
       }, expiresIn);
     }
-  }
+  };
 
-  function setUser(userData) {
+  const setUser = (userData) => {
     user.value = userData;
-  }
+  };
 
-  function setPreferences(preferencesData) {
+  const setPreferences = (preferencesData) => {
     preferences.value = preferencesData;
-  }
+  };
 
-  function setFromPath(path) {
+  const setFromPath = (path) => {
     if (path?.startsWith('/login') || path?.startsWith('/logout')) {
       return;
     }
 
-    fromPath.value = typeof path === 'string' && path || null;
-  }
+    fromPath.value = (typeof path === 'string' && path) || null;
+  };
 
-  function setPhotoUrl(url) {
+  const setPhotoUrl = (url) => {
     if (user.value) {
       user.value.avatar = url;
     }
-  }
+  };
 
-  function setPublicKey(publicKey) {
+  const setPublicKey = (publicKey) => {
     if (user.value) {
       user.value.publicKey = publicKey;
     }
-  }
+  };
 
-  function setNotificationCount(count) {
+  const setNotificationCount = (count) => {
     notificationCount.value = count;
-  }
+  };
 
-  function updateUserCollections() {
+  const updateUserCollections = () => {
     const supabase = useSupabaseClient();
     const { Collection } = useORM();
     const collectionsStore = useCollectionsStore();
 
     Collection.getMasterCollectionsApps(supabase, user.value.id)
-      .then(masterCollections => {
+      .then((masterCollections) => {
         for (const type in masterCollections) {
           const appIds = masterCollections[type] || [];
           collectionsStore.setCollection(type, appIds);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error fetching master collections:', error);
       });
-  }
+  };
 
-  function onAuthStateChange(authEvent, session) {
+  const onAuthStateChange = (authEvent, session) => {
     const supabase = useSupabaseClient();
     const { User } = useORM();
     const collectionsStore = useCollectionsStore();
@@ -130,7 +131,7 @@ export const useAuthStore = defineStore('auth', () => {
         updateUserCollections();
       });
 
-      userInstance.getPreferences().then(prefs => {
+      userInstance.getPreferences().then((prefs) => {
         setPreferences(prefs);
       });
 
@@ -146,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
         setPassword(null);
       }
     }
-  }
+  };
 
   return {
     user,

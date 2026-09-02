@@ -1,10 +1,10 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json
+  = | string
+    | number
+    | boolean
+    | null
+    | { [key: string]: Json | undefined }
+    | Json[];
 
 export type Database = {
   graphql_public: {
@@ -72,7 +72,7 @@ export type Database = {
           tags: string[] | null
           title: string | null
           tradelists: number | null
-          type: Database["public"]["Enums"]["app_type"]
+          type: Database['public']['Enums']['app_type']
           updated_at: string | null
           videos: string[] | null
           website: string | null
@@ -115,7 +115,7 @@ export type Database = {
           tags?: string[] | null
           title?: string | null
           tradelists?: number | null
-          type?: Database["public"]["Enums"]["app_type"]
+          type?: Database['public']['Enums']['app_type']
           updated_at?: string | null
           videos?: string[] | null
           website?: string | null
@@ -158,7 +158,7 @@ export type Database = {
           tags?: string[] | null
           title?: string | null
           tradelists?: number | null
-          type?: Database["public"]["Enums"]["app_type"]
+          type?: Database['public']['Enums']['app_type']
           updated_at?: string | null
           videos?: string[] | null
           website?: string | null
@@ -166,45 +166,45 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "apps_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: 'apps_parent_id_fkey'
+            columns: ['parent_id']
             isOneToOne: false
-            referencedRelation: "apps"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'apps'
+            referencedColumns: ['id']
+          }
         ]
       }
       collection_apps: {
         Row: {
           app_id: number
           collection_id: string
-          source: Database["public"]["Enums"]["collection_apps_source"]
+          source: Database['public']['Enums']['collection_apps_source']
         }
         Insert: {
           app_id: number
           collection_id: string
-          source?: Database["public"]["Enums"]["collection_apps_source"]
+          source?: Database['public']['Enums']['collection_apps_source']
         }
         Update: {
           app_id?: number
           collection_id?: string
-          source?: Database["public"]["Enums"]["collection_apps_source"]
+          source?: Database['public']['Enums']['collection_apps_source']
         }
         Relationships: [
           {
-            foreignKeyName: "collection_apps_app_id_fkey"
-            columns: ["app_id"]
+            foreignKeyName: 'collection_apps_app_id_fkey'
+            columns: ['app_id']
             isOneToOne: false
-            referencedRelation: "apps"
-            referencedColumns: ["id"]
+            referencedRelation: 'apps'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "collection_apps_collection_id_fkey"
-            columns: ["collection_id"]
+            foreignKeyName: 'collection_apps_collection_id_fkey'
+            columns: ['collection_id']
             isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
+          }
         ]
       }
       collection_relations: {
@@ -222,19 +222,19 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "collection_relations_collection_id_fkey"
-            columns: ["collection_id"]
+            foreignKeyName: 'collection_relations_collection_id_fkey'
+            columns: ['collection_id']
             isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "collection_relations_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: 'collection_relations_parent_id_fkey'
+            columns: ['parent_id']
             isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
+          }
         ]
       }
       collection_tags: {
@@ -258,26 +258,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "collection_tags_app_id_fkey"
-            columns: ["app_id"]
+            foreignKeyName: 'collection_tags_app_id_fkey'
+            columns: ['app_id']
             isOneToOne: false
-            referencedRelation: "apps"
-            referencedColumns: ["id"]
+            referencedRelation: 'apps'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "collection_tags_collection_id_fkey"
-            columns: ["collection_id"]
+            foreignKeyName: 'collection_tags_collection_id_fkey'
+            columns: ['collection_id']
             isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "collection_tags_tag_id_fkey"
-            columns: ["tag_id"]
+            foreignKeyName: 'collection_tags_tag_id_fkey'
+            columns: ['tag_id']
             isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'tags'
+            referencedColumns: ['id']
+          }
         ]
       }
       collections: {
@@ -291,7 +291,7 @@ export type Database = {
           private: boolean | null
           starts_at: string | null
           title: string
-          type: Database["public"]["Enums"]["collection_type"]
+          type: Database['public']['Enums']['collection_type']
           updated_at: string | null
           user_id: string | null
         }
@@ -305,7 +305,7 @@ export type Database = {
           private?: boolean | null
           starts_at?: string | null
           title: string
-          type?: Database["public"]["Enums"]["collection_type"]
+          type?: Database['public']['Enums']['collection_type']
           updated_at?: string | null
           user_id?: string | null
         }
@@ -319,25 +319,25 @@ export type Database = {
           private?: boolean | null
           starts_at?: string | null
           title?: string
-          type?: Database["public"]["Enums"]["collection_type"]
+          type?: Database['public']['Enums']['collection_type']
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "collections_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'collections_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "collections_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'collections_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       credentials: {
@@ -361,19 +361,19 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "credentials_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'credentials_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: true
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "credentials_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'credentials_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       notifications: {
@@ -382,7 +382,7 @@ export type Database = {
           id: string
           link: string | null
           read: boolean
-          type: Database["public"]["Enums"]["notification"]
+          type: Database['public']['Enums']['notification']
           user_id: string
         }
         Insert: {
@@ -390,7 +390,7 @@ export type Database = {
           id?: string
           link?: string | null
           read?: boolean
-          type: Database["public"]["Enums"]["notification"]
+          type: Database['public']['Enums']['notification']
           user_id: string
         }
         Update: {
@@ -398,24 +398,24 @@ export type Database = {
           id?: string
           link?: string | null
           read?: boolean
-          type?: Database["public"]["Enums"]["notification"]
+          type?: Database['public']['Enums']['notification']
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'notifications_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'notifications_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       preferences: {
@@ -424,9 +424,9 @@ export type Database = {
           app_links: Json | null
           created_at: string | null
           dark_mode: boolean | null
-          dashboard_widgets: Database["public"]["Enums"]["widget"][] | null
+          dashboard_widgets: Database['public']['Enums']['widget'][] | null
           enabled_notifications:
-            | Database["public"]["Enums"]["notification"][]
+            | Database['public']['Enums']['notification'][]
             | null
           incoming_criteria: Json | null
           track_vault_copies: boolean | null
@@ -438,9 +438,9 @@ export type Database = {
           app_links?: Json | null
           created_at?: string | null
           dark_mode?: boolean | null
-          dashboard_widgets?: Database["public"]["Enums"]["widget"][] | null
+          dashboard_widgets?: Database['public']['Enums']['widget'][] | null
           enabled_notifications?:
-            | Database["public"]["Enums"]["notification"][]
+            | Database['public']['Enums']['notification'][]
             | null
           incoming_criteria?: Json | null
           track_vault_copies?: boolean | null
@@ -452,9 +452,9 @@ export type Database = {
           app_links?: Json | null
           created_at?: string | null
           dark_mode?: boolean | null
-          dashboard_widgets?: Database["public"]["Enums"]["widget"][] | null
+          dashboard_widgets?: Database['public']['Enums']['widget'][] | null
           enabled_notifications?:
-            | Database["public"]["Enums"]["notification"][]
+            | Database['public']['Enums']['notification'][]
             | null
           incoming_criteria?: Json | null
           track_vault_copies?: boolean | null
@@ -463,19 +463,19 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "preferences_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'preferences_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: true
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "preferences_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'preferences_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       reviews: {
@@ -517,33 +517,33 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reviews_subject_id_fkey"
-            columns: ["subject_id"]
+            foreignKeyName: 'reviews_subject_id_fkey'
+            columns: ['subject_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "reviews_subject_id_fkey"
-            columns: ["subject_id"]
+            foreignKeyName: 'reviews_subject_id_fkey'
+            columns: ['subject_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            referencedRelation: 'users'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "reviews_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'reviews_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "reviews_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'reviews_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       tags: {
@@ -551,21 +551,21 @@ export type Database = {
           created_at: string | null
           id: number
           title: string
-          type: Database["public"]["Enums"]["tag_type"] | null
+          type: Database['public']['Enums']['tag_type'] | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           title: string
-          type?: Database["public"]["Enums"]["tag_type"] | null
+          type?: Database['public']['Enums']['tag_type'] | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: number
           title?: string
-          type?: Database["public"]["Enums"]["tag_type"] | null
+          type?: Database['public']['Enums']['tag_type'] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -575,7 +575,7 @@ export type Database = {
           created_at: string | null
           id: string
           trade_id: string
-          type: Database["public"]["Enums"]["trade_activity_type"]
+          type: Database['public']['Enums']['trade_activity_type']
           updated_at: string | null
           user_id: string
         }
@@ -583,7 +583,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           trade_id: string
-          type: Database["public"]["Enums"]["trade_activity_type"]
+          type: Database['public']['Enums']['trade_activity_type']
           updated_at?: string | null
           user_id: string
         }
@@ -591,32 +591,32 @@ export type Database = {
           created_at?: string | null
           id?: string
           trade_id?: string
-          type?: Database["public"]["Enums"]["trade_activity_type"]
+          type?: Database['public']['Enums']['trade_activity_type']
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "trade_activity_trade_id_fkey"
-            columns: ["trade_id"]
+            foreignKeyName: 'trade_activity_trade_id_fkey'
+            columns: ['trade_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_activity_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_activity_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trade_activity_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_activity_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       trade_apps: {
@@ -661,40 +661,40 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "trade_apps_app_id_fkey"
-            columns: ["app_id"]
+            foreignKeyName: 'trade_apps_app_id_fkey'
+            columns: ['app_id']
             isOneToOne: false
-            referencedRelation: "apps"
-            referencedColumns: ["id"]
+            referencedRelation: 'apps'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_apps_collection_id_fkey"
-            columns: ["collection_id"]
+            foreignKeyName: 'trade_apps_collection_id_fkey'
+            columns: ['collection_id']
             isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_apps_trade_id_fkey"
-            columns: ["trade_id"]
+            foreignKeyName: 'trade_apps_trade_id_fkey'
+            columns: ['trade_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_apps_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_apps_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trade_apps_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_apps_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       trade_messages: {
@@ -724,26 +724,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "trade_messages_trade_id_fkey"
-            columns: ["trade_id"]
+            foreignKeyName: 'trade_messages_trade_id_fkey'
+            columns: ['trade_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_messages_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_messages_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trade_messages_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_messages_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       trade_views: {
@@ -767,26 +767,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "trade_views_trade_id_fkey"
-            columns: ["trade_id"]
+            foreignKeyName: 'trade_views_trade_id_fkey'
+            columns: ['trade_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trade_views_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_views_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trade_views_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'trade_views_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       trades: {
@@ -803,7 +803,7 @@ export type Database = {
           sender_id: string | null
           sender_total: number | null
           sender_vaultless: boolean | null
-          status: Database["public"]["Enums"]["trade_status"]
+          status: Database['public']['Enums']['trade_status']
           updated_at: string | null
         }
         Insert: {
@@ -819,7 +819,7 @@ export type Database = {
           sender_id?: string | null
           sender_total?: number | null
           sender_vaultless?: boolean | null
-          status: Database["public"]["Enums"]["trade_status"]
+          status: Database['public']['Enums']['trade_status']
           updated_at?: string | null
         }
         Update: {
@@ -835,64 +835,64 @@ export type Database = {
           sender_id?: string | null
           sender_total?: number | null
           sender_vaultless?: boolean | null
-          status?: Database["public"]["Enums"]["trade_status"]
+          status?: Database['public']['Enums']['trade_status']
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "trades_original_id_fkey"
-            columns: ["original_id"]
+            foreignKeyName: 'trades_original_id_fkey'
+            columns: ['original_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trades_receiver_id_fkey"
-            columns: ["receiver_id"]
+            foreignKeyName: 'trades_receiver_id_fkey'
+            columns: ['receiver_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trades_receiver_id_fkey"
-            columns: ["receiver_id"]
+            foreignKeyName: 'trades_receiver_id_fkey'
+            columns: ['receiver_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            referencedRelation: 'users'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "trades_sender_id_fkey"
-            columns: ["sender_id"]
+            foreignKeyName: 'trades_sender_id_fkey'
+            columns: ['sender_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "trades_sender_id_fkey"
-            columns: ["sender_id"]
+            foreignKeyName: 'trades_sender_id_fkey'
+            columns: ['sender_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       updater_queue: {
         Row: {
           created_at: string | null
           id: string
-          type: Database["public"]["Enums"]["updater_queue_type"]
+          type: Database['public']['Enums']['updater_queue_type']
           value: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          type: Database["public"]["Enums"]["updater_queue_type"]
+          type: Database['public']['Enums']['updater_queue_type']
           value?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          type?: Database["public"]["Enums"]["updater_queue_type"]
+          type?: Database['public']['Enums']['updater_queue_type']
           value?: string | null
         }
         Relationships: []
@@ -908,7 +908,7 @@ export type Database = {
           display_name: string | null
           id: string
           public_key: string | null
-          region: Database["public"]["Enums"]["country_code"] | null
+          region: Database['public']['Enums']['country_code'] | null
           steam_id: string
           updated_at: string | null
         }
@@ -922,7 +922,7 @@ export type Database = {
           display_name?: string | null
           id: string
           public_key?: string | null
-          region?: Database["public"]["Enums"]["country_code"] | null
+          region?: Database['public']['Enums']['country_code'] | null
           steam_id: string
           updated_at?: string | null
         }
@@ -936,7 +936,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           public_key?: string | null
-          region?: Database["public"]["Enums"]["country_code"] | null
+          region?: Database['public']['Enums']['country_code'] | null
           steam_id?: string
           updated_at?: string | null
         }
@@ -949,7 +949,7 @@ export type Database = {
           id: string
           revealed_at: string | null
           trade_id: string | null
-          type: Database["public"]["Enums"]["vault_entry_type"]
+          type: Database['public']['Enums']['vault_entry_type']
           updated_at: string | null
           user_id: string
         }
@@ -959,7 +959,7 @@ export type Database = {
           id?: string
           revealed_at?: string | null
           trade_id?: string | null
-          type: Database["public"]["Enums"]["vault_entry_type"]
+          type: Database['public']['Enums']['vault_entry_type']
           updated_at?: string | null
           user_id: string
         }
@@ -969,39 +969,39 @@ export type Database = {
           id?: string
           revealed_at?: string | null
           trade_id?: string | null
-          type?: Database["public"]["Enums"]["vault_entry_type"]
+          type?: Database['public']['Enums']['vault_entry_type']
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vault_entries_app_id_fkey"
-            columns: ["app_id"]
+            foreignKeyName: 'vault_entries_app_id_fkey'
+            columns: ['app_id']
             isOneToOne: false
-            referencedRelation: "apps"
-            referencedColumns: ["id"]
+            referencedRelation: 'apps'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vault_entries_trade_id_fkey"
-            columns: ["trade_id"]
+            foreignKeyName: 'vault_entries_trade_id_fkey'
+            columns: ['trade_id']
             isOneToOne: false
-            referencedRelation: "trades"
-            referencedColumns: ["id"]
+            referencedRelation: 'trades'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vault_entries_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'vault_entries_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "vault_entries_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'vault_entries_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
         ]
       }
       vault_tags: {
@@ -1025,19 +1025,19 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vault_tags_tag_id_fkey"
-            columns: ["tag_id"]
+            foreignKeyName: 'vault_tags_tag_id_fkey'
+            columns: ['tag_id']
             isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
+            referencedRelation: 'tags'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vault_tags_vault_entry_id_fkey"
-            columns: ["vault_entry_id"]
+            foreignKeyName: 'vault_tags_vault_entry_id_fkey'
+            columns: ['vault_entry_id']
             isOneToOne: false
-            referencedRelation: "vault_entries"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'vault_entries'
+            referencedColumns: ['id']
+          }
         ]
       }
       vault_values: {
@@ -1061,26 +1061,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vault_values_receiver_id_fkey"
-            columns: ["receiver_id"]
+            foreignKeyName: 'vault_values_receiver_id_fkey'
+            columns: ['receiver_id']
             isOneToOne: false
-            referencedRelation: "user_statistics"
-            referencedColumns: ["user_id"]
+            referencedRelation: 'user_statistics'
+            referencedColumns: ['user_id']
           },
           {
-            foreignKeyName: "vault_values_receiver_id_fkey"
-            columns: ["receiver_id"]
+            foreignKeyName: 'vault_values_receiver_id_fkey'
+            columns: ['receiver_id']
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            referencedRelation: 'users'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vault_values_vault_entry_id_fkey"
-            columns: ["vault_entry_id"]
+            foreignKeyName: 'vault_values_vault_entry_id_fkey'
+            columns: ['vault_entry_id']
             isOneToOne: false
-            referencedRelation: "vault_entries"
-            referencedColumns: ["id"]
-          },
+            referencedRelation: 'vault_entries'
+            referencedColumns: ['id']
+          }
         ]
       }
     }
@@ -1101,9 +1101,9 @@ export type Database = {
         Row: {
           avg_trades: number | null
           disputed_trades: number | null
-          top_region1: Database["public"]["Enums"]["country_code"] | null
-          top_region2: Database["public"]["Enums"]["country_code"] | null
-          top_region3: Database["public"]["Enums"]["country_code"] | null
+          top_region1: Database['public']['Enums']['country_code'] | null
+          top_region2: Database['public']['Enums']['country_code'] | null
+          top_region3: Database['public']['Enums']['country_code'] | null
           total_traded_volume: number | null
           total_trades: number | null
           total_users: number | null
@@ -1162,15 +1162,15 @@ export type Database = {
     }
     Functions: {
       add_collection_app: {
-        Args: { p_app_id: number; p_collection_id: string; p_title: string }
+        Args: { p_app_id: number, p_collection_id: string, p_title: string }
         Returns: undefined
       }
       bulk_insert: {
-        Args: { p_records: Json; p_table: string }
+        Args: { p_records: Json, p_table: string }
         Returns: undefined
       }
       bulk_remove_collection_apps: {
-        Args: { p_apps: number[]; p_collection_id: string }
+        Args: { p_apps: number[], p_collection_id: string }
         Returns: undefined
       }
       bulk_upsert: {
@@ -1183,13 +1183,13 @@ export type Database = {
         Returns: number
       }
       clean_app_collections: {
-        Args: { p_do_collections?: boolean; p_do_counts?: boolean }
+        Args: { p_do_collections?: boolean, p_do_counts?: boolean }
         Returns: undefined
       }
-      get_apps_metadata: { Args: never; Returns: Json }
+      get_apps_metadata: { Args: never, Returns: Json }
       get_master_collections_apps: {
         Args: {
-          p_source?: Database["public"]["Enums"]["collection_apps_source"]
+          p_source?: Database['public']['Enums']['collection_apps_source']
           p_user_id: string
         }
         Returns: {
@@ -1206,853 +1206,853 @@ export type Database = {
           created_at: string
           revealed_at: string
           trade_id: string
-          type: Database["public"]["Enums"]["vault_entry_type"]
+          type: Database['public']['Enums']['vault_entry_type']
           updated_at: string
           value: string
         }[]
       }
       is_allowed_host: {
-        Args: { allowed_hosts: string[]; url: string }
+        Args: { allowed_hosts: string[], url: string }
         Returns: boolean
       }
       is_sent: {
-        Args: { ve: Database["public"]["Tables"]["vault_entries"]["Row"] }
+        Args: { ve: Database['public']['Tables']['vault_entries']['Row'] }
         Returns: boolean
       }
-      process_unread_message_notifications: { Args: never; Returns: undefined }
+      process_unread_message_notifications: { Args: never, Returns: undefined }
       remove_collection_app: {
-        Args: { p_app_id: number; p_collection_id: string }
+        Args: { p_app_id: number, p_collection_id: string }
         Returns: undefined
       }
       send_discord_notification: {
         Args: {
           p_notification_type: string
-          p_trade: Database["public"]["Tables"]["trades"]["Row"]
+          p_trade: Database['public']['Tables']['trades']['Row']
         }
         Returns: undefined
       }
-      slugify: { Args: { v: string }; Returns: string }
+      slugify: { Args: { v: string }, Returns: string }
       update_vault_count: {
-        Args: { p_app_id: number; p_delta: number; p_user_id: string }
+        Args: { p_app_id: number, p_delta: number, p_user_id: string }
         Returns: undefined
       }
-      updater_dequeue: { Args: { p_count: number }; Returns: number[] }
-      updater_enqueue: { Args: { p_appids: number[] }; Returns: undefined }
+      updater_dequeue: { Args: { p_count: number }, Returns: number[] }
+      updater_enqueue: { Args: { p_appids: number[] }, Returns: undefined }
     }
     Enums: {
       app_type:
-        | "unknown"
-        | "advertising"
-        | "application"
-        | "beta"
-        | "comic"
-        | "config"
-        | "demo"
-        | "depotonly"
-        | "dlc"
-        | "driver"
-        | "episode"
-        | "franchise"
-        | "game"
-        | "guide"
-        | "hardware"
-        | "media"
-        | "mod"
-        | "movie"
-        | "music"
-        | "plugin"
-        | "series"
-        | "shortcut"
-        | "software"
-        | "tool"
-        | "video"
-      collection_apps_source: "user" | "sync"
+        | 'unknown'
+        | 'advertising'
+        | 'application'
+        | 'beta'
+        | 'comic'
+        | 'config'
+        | 'demo'
+        | 'depotonly'
+        | 'dlc'
+        | 'driver'
+        | 'episode'
+        | 'franchise'
+        | 'game'
+        | 'guide'
+        | 'hardware'
+        | 'media'
+        | 'mod'
+        | 'movie'
+        | 'music'
+        | 'plugin'
+        | 'series'
+        | 'shortcut'
+        | 'software'
+        | 'tool'
+        | 'video'
+      collection_apps_source: 'user' | 'sync'
       collection_type:
-        | "app"
-        | "blacklist"
-        | "bundle"
-        | "custom"
-        | "giveaway"
-        | "library"
-        | "steambundle"
-        | "steampackage"
-        | "tradelist"
-        | "wishlist"
+        | 'app'
+        | 'blacklist'
+        | 'bundle'
+        | 'custom'
+        | 'giveaway'
+        | 'library'
+        | 'steambundle'
+        | 'steampackage'
+        | 'tradelist'
+        | 'wishlist'
       country_code:
-        | "AF"
-        | "AL"
-        | "DZ"
-        | "AS"
-        | "AD"
-        | "AO"
-        | "AI"
-        | "AQ"
-        | "AG"
-        | "AR"
-        | "AM"
-        | "AW"
-        | "AU"
-        | "AT"
-        | "AZ"
-        | "BS"
-        | "BH"
-        | "BD"
-        | "BB"
-        | "BY"
-        | "BE"
-        | "BZ"
-        | "BJ"
-        | "BM"
-        | "BT"
-        | "BO"
-        | "BQ"
-        | "BA"
-        | "BW"
-        | "BV"
-        | "BR"
-        | "IO"
-        | "BN"
-        | "BG"
-        | "BF"
-        | "BI"
-        | "CV"
-        | "KH"
-        | "CM"
-        | "CA"
-        | "KY"
-        | "CF"
-        | "TD"
-        | "CL"
-        | "CN"
-        | "CX"
-        | "CC"
-        | "CO"
-        | "KM"
-        | "CD"
-        | "CG"
-        | "CK"
-        | "CR"
-        | "HR"
-        | "CU"
-        | "CW"
-        | "CY"
-        | "CZ"
-        | "CI"
-        | "DK"
-        | "DJ"
-        | "DM"
-        | "DO"
-        | "EC"
-        | "EG"
-        | "SV"
-        | "GQ"
-        | "ER"
-        | "EE"
-        | "SZ"
-        | "ET"
-        | "FK"
-        | "FO"
-        | "FJ"
-        | "FI"
-        | "FR"
-        | "GF"
-        | "PF"
-        | "TF"
-        | "GA"
-        | "GM"
-        | "GE"
-        | "DE"
-        | "GH"
-        | "GI"
-        | "GR"
-        | "GL"
-        | "GD"
-        | "GP"
-        | "GU"
-        | "GT"
-        | "GG"
-        | "GN"
-        | "GW"
-        | "GY"
-        | "HT"
-        | "HM"
-        | "VA"
-        | "HN"
-        | "HK"
-        | "HU"
-        | "IS"
-        | "IN"
-        | "ID"
-        | "IR"
-        | "IQ"
-        | "IE"
-        | "IM"
-        | "IL"
-        | "IT"
-        | "JM"
-        | "JP"
-        | "JE"
-        | "JO"
-        | "KZ"
-        | "KE"
-        | "KI"
-        | "KP"
-        | "KR"
-        | "KW"
-        | "KG"
-        | "LA"
-        | "LV"
-        | "LB"
-        | "LS"
-        | "LR"
-        | "LY"
-        | "LI"
-        | "LT"
-        | "LU"
-        | "MO"
-        | "MG"
-        | "MW"
-        | "MY"
-        | "MV"
-        | "ML"
-        | "MT"
-        | "MH"
-        | "MQ"
-        | "MR"
-        | "MU"
-        | "YT"
-        | "MX"
-        | "FM"
-        | "MD"
-        | "MC"
-        | "MN"
-        | "ME"
-        | "MS"
-        | "MA"
-        | "MZ"
-        | "MM"
-        | "NA"
-        | "NR"
-        | "NP"
-        | "NL"
-        | "NC"
-        | "NZ"
-        | "NI"
-        | "NE"
-        | "NG"
-        | "NU"
-        | "NF"
-        | "MP"
-        | "NO"
-        | "OM"
-        | "PK"
-        | "PW"
-        | "PS"
-        | "PA"
-        | "PG"
-        | "PY"
-        | "PE"
-        | "PH"
-        | "PN"
-        | "PL"
-        | "PT"
-        | "PR"
-        | "QA"
-        | "MK"
-        | "RO"
-        | "RU"
-        | "RW"
-        | "RE"
-        | "BL"
-        | "SH"
-        | "KN"
-        | "LC"
-        | "MF"
-        | "PM"
-        | "VC"
-        | "WS"
-        | "SM"
-        | "ST"
-        | "SA"
-        | "SN"
-        | "RS"
-        | "SC"
-        | "SL"
-        | "SG"
-        | "SX"
-        | "SK"
-        | "SI"
-        | "SB"
-        | "SO"
-        | "ZA"
-        | "GS"
-        | "SS"
-        | "ES"
-        | "LK"
-        | "SD"
-        | "SR"
-        | "SJ"
-        | "SE"
-        | "CH"
-        | "SY"
-        | "TW"
-        | "TJ"
-        | "TZ"
-        | "TH"
-        | "TL"
-        | "TG"
-        | "TK"
-        | "TO"
-        | "TT"
-        | "TN"
-        | "TR"
-        | "TM"
-        | "TC"
-        | "TV"
-        | "UG"
-        | "UA"
-        | "AE"
-        | "GB"
-        | "UM"
-        | "US"
-        | "UY"
-        | "UZ"
-        | "VU"
-        | "VE"
-        | "VN"
-        | "VG"
-        | "VI"
-        | "WF"
-        | "EH"
-        | "YE"
-        | "ZM"
-        | "ZW"
-        | "AX"
+        | 'AF'
+        | 'AL'
+        | 'DZ'
+        | 'AS'
+        | 'AD'
+        | 'AO'
+        | 'AI'
+        | 'AQ'
+        | 'AG'
+        | 'AR'
+        | 'AM'
+        | 'AW'
+        | 'AU'
+        | 'AT'
+        | 'AZ'
+        | 'BS'
+        | 'BH'
+        | 'BD'
+        | 'BB'
+        | 'BY'
+        | 'BE'
+        | 'BZ'
+        | 'BJ'
+        | 'BM'
+        | 'BT'
+        | 'BO'
+        | 'BQ'
+        | 'BA'
+        | 'BW'
+        | 'BV'
+        | 'BR'
+        | 'IO'
+        | 'BN'
+        | 'BG'
+        | 'BF'
+        | 'BI'
+        | 'CV'
+        | 'KH'
+        | 'CM'
+        | 'CA'
+        | 'KY'
+        | 'CF'
+        | 'TD'
+        | 'CL'
+        | 'CN'
+        | 'CX'
+        | 'CC'
+        | 'CO'
+        | 'KM'
+        | 'CD'
+        | 'CG'
+        | 'CK'
+        | 'CR'
+        | 'HR'
+        | 'CU'
+        | 'CW'
+        | 'CY'
+        | 'CZ'
+        | 'CI'
+        | 'DK'
+        | 'DJ'
+        | 'DM'
+        | 'DO'
+        | 'EC'
+        | 'EG'
+        | 'SV'
+        | 'GQ'
+        | 'ER'
+        | 'EE'
+        | 'SZ'
+        | 'ET'
+        | 'FK'
+        | 'FO'
+        | 'FJ'
+        | 'FI'
+        | 'FR'
+        | 'GF'
+        | 'PF'
+        | 'TF'
+        | 'GA'
+        | 'GM'
+        | 'GE'
+        | 'DE'
+        | 'GH'
+        | 'GI'
+        | 'GR'
+        | 'GL'
+        | 'GD'
+        | 'GP'
+        | 'GU'
+        | 'GT'
+        | 'GG'
+        | 'GN'
+        | 'GW'
+        | 'GY'
+        | 'HT'
+        | 'HM'
+        | 'VA'
+        | 'HN'
+        | 'HK'
+        | 'HU'
+        | 'IS'
+        | 'IN'
+        | 'ID'
+        | 'IR'
+        | 'IQ'
+        | 'IE'
+        | 'IM'
+        | 'IL'
+        | 'IT'
+        | 'JM'
+        | 'JP'
+        | 'JE'
+        | 'JO'
+        | 'KZ'
+        | 'KE'
+        | 'KI'
+        | 'KP'
+        | 'KR'
+        | 'KW'
+        | 'KG'
+        | 'LA'
+        | 'LV'
+        | 'LB'
+        | 'LS'
+        | 'LR'
+        | 'LY'
+        | 'LI'
+        | 'LT'
+        | 'LU'
+        | 'MO'
+        | 'MG'
+        | 'MW'
+        | 'MY'
+        | 'MV'
+        | 'ML'
+        | 'MT'
+        | 'MH'
+        | 'MQ'
+        | 'MR'
+        | 'MU'
+        | 'YT'
+        | 'MX'
+        | 'FM'
+        | 'MD'
+        | 'MC'
+        | 'MN'
+        | 'ME'
+        | 'MS'
+        | 'MA'
+        | 'MZ'
+        | 'MM'
+        | 'NA'
+        | 'NR'
+        | 'NP'
+        | 'NL'
+        | 'NC'
+        | 'NZ'
+        | 'NI'
+        | 'NE'
+        | 'NG'
+        | 'NU'
+        | 'NF'
+        | 'MP'
+        | 'NO'
+        | 'OM'
+        | 'PK'
+        | 'PW'
+        | 'PS'
+        | 'PA'
+        | 'PG'
+        | 'PY'
+        | 'PE'
+        | 'PH'
+        | 'PN'
+        | 'PL'
+        | 'PT'
+        | 'PR'
+        | 'QA'
+        | 'MK'
+        | 'RO'
+        | 'RU'
+        | 'RW'
+        | 'RE'
+        | 'BL'
+        | 'SH'
+        | 'KN'
+        | 'LC'
+        | 'MF'
+        | 'PM'
+        | 'VC'
+        | 'WS'
+        | 'SM'
+        | 'ST'
+        | 'SA'
+        | 'SN'
+        | 'RS'
+        | 'SC'
+        | 'SL'
+        | 'SG'
+        | 'SX'
+        | 'SK'
+        | 'SI'
+        | 'SB'
+        | 'SO'
+        | 'ZA'
+        | 'GS'
+        | 'SS'
+        | 'ES'
+        | 'LK'
+        | 'SD'
+        | 'SR'
+        | 'SJ'
+        | 'SE'
+        | 'CH'
+        | 'SY'
+        | 'TW'
+        | 'TJ'
+        | 'TZ'
+        | 'TH'
+        | 'TL'
+        | 'TG'
+        | 'TK'
+        | 'TO'
+        | 'TT'
+        | 'TN'
+        | 'TR'
+        | 'TM'
+        | 'TC'
+        | 'TV'
+        | 'UG'
+        | 'UA'
+        | 'AE'
+        | 'GB'
+        | 'UM'
+        | 'US'
+        | 'UY'
+        | 'UZ'
+        | 'VU'
+        | 'VE'
+        | 'VN'
+        | 'VG'
+        | 'VI'
+        | 'WF'
+        | 'EH'
+        | 'YE'
+        | 'ZM'
+        | 'ZW'
+        | 'AX'
       notification:
-        | "new_trade"
-        | "accepted_trade"
-        | "new_vault_entry"
-        | "unread_messages"
-        | "disputed_trade"
-        | "resolved_trade"
+        | 'new_trade'
+        | 'accepted_trade'
+        | 'new_vault_entry'
+        | 'unread_messages'
+        | 'disputed_trade'
+        | 'resolved_trade'
       tag_type:
-        | "vault"
-        | "blacklist"
-        | "bundle"
-        | "custom"
-        | "giveaway"
-        | "library"
-        | "steam_bundle"
-        | "steam_package"
-        | "tradelist"
-        | "wishlist"
+        | 'vault'
+        | 'blacklist'
+        | 'bundle'
+        | 'custom'
+        | 'giveaway'
+        | 'library'
+        | 'steam_bundle'
+        | 'steam_package'
+        | 'tradelist'
+        | 'wishlist'
       trade_activity_type:
-        | "edited"
-        | "created"
-        | "accepted"
-        | "declined"
-        | "aborted"
-        | "completed"
-        | "disputed"
-        | "resolved"
-        | "countered"
+        | 'edited'
+        | 'created'
+        | 'accepted'
+        | 'declined'
+        | 'aborted'
+        | 'completed'
+        | 'disputed'
+        | 'resolved'
+        | 'countered'
       trade_status:
-        | "pending"
-        | "accepted"
-        | "declined"
-        | "aborted"
-        | "completed"
+        | 'pending'
+        | 'accepted'
+        | 'declined'
+        | 'aborted'
+        | 'completed'
       updater_queue_type:
-        | "app_names_check"
-        | "app_types_check"
-        | "app_cards_check"
-        | "app_removals_check"
-        | "app_list_check"
-        | "change_number"
-        | "ggdeals_deals_check"
-        | "ggdeals_bundles_check"
-        | "app_update"
-      vault_entry_type: "key" | "gift" | "link" | "curator"
+        | 'app_names_check'
+        | 'app_types_check'
+        | 'app_cards_check'
+        | 'app_removals_check'
+        | 'app_list_check'
+        | 'change_number'
+        | 'ggdeals_deals_check'
+        | 'ggdeals_bundles_check'
+        | 'app_update'
+      vault_entry_type: 'key' | 'gift' | 'link' | 'curator'
       widget:
-        | "welcome"
-        | "stats"
-        | "trade_activity"
-        | "users_online"
-        | "bundles"
-        | "changelog"
+        | 'welcome'
+        | 'stats'
+        | 'trade_activity'
+        | 'users_online'
+        | 'bundles'
+        | 'changelog'
     }
     CompositeTypes: {
       [_ in never]: never
     }
   }
-}
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+      & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+    Row: infer R
+  }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables']
+    & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables']
+      & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Tables']
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+    Insert: infer I
+  }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+      Insert: infer I
+    }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Tables']
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+    Update: infer U
+  }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+      Update: infer U
+    }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Enums']
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never = never
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['CompositeTypes']
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
 
 export const Constants = {
   graphql_public: {
-    Enums: {},
+    Enums: {}
   },
   public: {
     Enums: {
       app_type: [
-        "unknown",
-        "advertising",
-        "application",
-        "beta",
-        "comic",
-        "config",
-        "demo",
-        "depotonly",
-        "dlc",
-        "driver",
-        "episode",
-        "franchise",
-        "game",
-        "guide",
-        "hardware",
-        "media",
-        "mod",
-        "movie",
-        "music",
-        "plugin",
-        "series",
-        "shortcut",
-        "software",
-        "tool",
-        "video",
+        'unknown',
+        'advertising',
+        'application',
+        'beta',
+        'comic',
+        'config',
+        'demo',
+        'depotonly',
+        'dlc',
+        'driver',
+        'episode',
+        'franchise',
+        'game',
+        'guide',
+        'hardware',
+        'media',
+        'mod',
+        'movie',
+        'music',
+        'plugin',
+        'series',
+        'shortcut',
+        'software',
+        'tool',
+        'video'
       ],
-      collection_apps_source: ["user", "sync"],
+      collection_apps_source: ['user', 'sync'],
       collection_type: [
-        "app",
-        "blacklist",
-        "bundle",
-        "custom",
-        "giveaway",
-        "library",
-        "steambundle",
-        "steampackage",
-        "tradelist",
-        "wishlist",
+        'app',
+        'blacklist',
+        'bundle',
+        'custom',
+        'giveaway',
+        'library',
+        'steambundle',
+        'steampackage',
+        'tradelist',
+        'wishlist'
       ],
       country_code: [
-        "AF",
-        "AL",
-        "DZ",
-        "AS",
-        "AD",
-        "AO",
-        "AI",
-        "AQ",
-        "AG",
-        "AR",
-        "AM",
-        "AW",
-        "AU",
-        "AT",
-        "AZ",
-        "BS",
-        "BH",
-        "BD",
-        "BB",
-        "BY",
-        "BE",
-        "BZ",
-        "BJ",
-        "BM",
-        "BT",
-        "BO",
-        "BQ",
-        "BA",
-        "BW",
-        "BV",
-        "BR",
-        "IO",
-        "BN",
-        "BG",
-        "BF",
-        "BI",
-        "CV",
-        "KH",
-        "CM",
-        "CA",
-        "KY",
-        "CF",
-        "TD",
-        "CL",
-        "CN",
-        "CX",
-        "CC",
-        "CO",
-        "KM",
-        "CD",
-        "CG",
-        "CK",
-        "CR",
-        "HR",
-        "CU",
-        "CW",
-        "CY",
-        "CZ",
-        "CI",
-        "DK",
-        "DJ",
-        "DM",
-        "DO",
-        "EC",
-        "EG",
-        "SV",
-        "GQ",
-        "ER",
-        "EE",
-        "SZ",
-        "ET",
-        "FK",
-        "FO",
-        "FJ",
-        "FI",
-        "FR",
-        "GF",
-        "PF",
-        "TF",
-        "GA",
-        "GM",
-        "GE",
-        "DE",
-        "GH",
-        "GI",
-        "GR",
-        "GL",
-        "GD",
-        "GP",
-        "GU",
-        "GT",
-        "GG",
-        "GN",
-        "GW",
-        "GY",
-        "HT",
-        "HM",
-        "VA",
-        "HN",
-        "HK",
-        "HU",
-        "IS",
-        "IN",
-        "ID",
-        "IR",
-        "IQ",
-        "IE",
-        "IM",
-        "IL",
-        "IT",
-        "JM",
-        "JP",
-        "JE",
-        "JO",
-        "KZ",
-        "KE",
-        "KI",
-        "KP",
-        "KR",
-        "KW",
-        "KG",
-        "LA",
-        "LV",
-        "LB",
-        "LS",
-        "LR",
-        "LY",
-        "LI",
-        "LT",
-        "LU",
-        "MO",
-        "MG",
-        "MW",
-        "MY",
-        "MV",
-        "ML",
-        "MT",
-        "MH",
-        "MQ",
-        "MR",
-        "MU",
-        "YT",
-        "MX",
-        "FM",
-        "MD",
-        "MC",
-        "MN",
-        "ME",
-        "MS",
-        "MA",
-        "MZ",
-        "MM",
-        "NA",
-        "NR",
-        "NP",
-        "NL",
-        "NC",
-        "NZ",
-        "NI",
-        "NE",
-        "NG",
-        "NU",
-        "NF",
-        "MP",
-        "NO",
-        "OM",
-        "PK",
-        "PW",
-        "PS",
-        "PA",
-        "PG",
-        "PY",
-        "PE",
-        "PH",
-        "PN",
-        "PL",
-        "PT",
-        "PR",
-        "QA",
-        "MK",
-        "RO",
-        "RU",
-        "RW",
-        "RE",
-        "BL",
-        "SH",
-        "KN",
-        "LC",
-        "MF",
-        "PM",
-        "VC",
-        "WS",
-        "SM",
-        "ST",
-        "SA",
-        "SN",
-        "RS",
-        "SC",
-        "SL",
-        "SG",
-        "SX",
-        "SK",
-        "SI",
-        "SB",
-        "SO",
-        "ZA",
-        "GS",
-        "SS",
-        "ES",
-        "LK",
-        "SD",
-        "SR",
-        "SJ",
-        "SE",
-        "CH",
-        "SY",
-        "TW",
-        "TJ",
-        "TZ",
-        "TH",
-        "TL",
-        "TG",
-        "TK",
-        "TO",
-        "TT",
-        "TN",
-        "TR",
-        "TM",
-        "TC",
-        "TV",
-        "UG",
-        "UA",
-        "AE",
-        "GB",
-        "UM",
-        "US",
-        "UY",
-        "UZ",
-        "VU",
-        "VE",
-        "VN",
-        "VG",
-        "VI",
-        "WF",
-        "EH",
-        "YE",
-        "ZM",
-        "ZW",
-        "AX",
+        'AF',
+        'AL',
+        'DZ',
+        'AS',
+        'AD',
+        'AO',
+        'AI',
+        'AQ',
+        'AG',
+        'AR',
+        'AM',
+        'AW',
+        'AU',
+        'AT',
+        'AZ',
+        'BS',
+        'BH',
+        'BD',
+        'BB',
+        'BY',
+        'BE',
+        'BZ',
+        'BJ',
+        'BM',
+        'BT',
+        'BO',
+        'BQ',
+        'BA',
+        'BW',
+        'BV',
+        'BR',
+        'IO',
+        'BN',
+        'BG',
+        'BF',
+        'BI',
+        'CV',
+        'KH',
+        'CM',
+        'CA',
+        'KY',
+        'CF',
+        'TD',
+        'CL',
+        'CN',
+        'CX',
+        'CC',
+        'CO',
+        'KM',
+        'CD',
+        'CG',
+        'CK',
+        'CR',
+        'HR',
+        'CU',
+        'CW',
+        'CY',
+        'CZ',
+        'CI',
+        'DK',
+        'DJ',
+        'DM',
+        'DO',
+        'EC',
+        'EG',
+        'SV',
+        'GQ',
+        'ER',
+        'EE',
+        'SZ',
+        'ET',
+        'FK',
+        'FO',
+        'FJ',
+        'FI',
+        'FR',
+        'GF',
+        'PF',
+        'TF',
+        'GA',
+        'GM',
+        'GE',
+        'DE',
+        'GH',
+        'GI',
+        'GR',
+        'GL',
+        'GD',
+        'GP',
+        'GU',
+        'GT',
+        'GG',
+        'GN',
+        'GW',
+        'GY',
+        'HT',
+        'HM',
+        'VA',
+        'HN',
+        'HK',
+        'HU',
+        'IS',
+        'IN',
+        'ID',
+        'IR',
+        'IQ',
+        'IE',
+        'IM',
+        'IL',
+        'IT',
+        'JM',
+        'JP',
+        'JE',
+        'JO',
+        'KZ',
+        'KE',
+        'KI',
+        'KP',
+        'KR',
+        'KW',
+        'KG',
+        'LA',
+        'LV',
+        'LB',
+        'LS',
+        'LR',
+        'LY',
+        'LI',
+        'LT',
+        'LU',
+        'MO',
+        'MG',
+        'MW',
+        'MY',
+        'MV',
+        'ML',
+        'MT',
+        'MH',
+        'MQ',
+        'MR',
+        'MU',
+        'YT',
+        'MX',
+        'FM',
+        'MD',
+        'MC',
+        'MN',
+        'ME',
+        'MS',
+        'MA',
+        'MZ',
+        'MM',
+        'NA',
+        'NR',
+        'NP',
+        'NL',
+        'NC',
+        'NZ',
+        'NI',
+        'NE',
+        'NG',
+        'NU',
+        'NF',
+        'MP',
+        'NO',
+        'OM',
+        'PK',
+        'PW',
+        'PS',
+        'PA',
+        'PG',
+        'PY',
+        'PE',
+        'PH',
+        'PN',
+        'PL',
+        'PT',
+        'PR',
+        'QA',
+        'MK',
+        'RO',
+        'RU',
+        'RW',
+        'RE',
+        'BL',
+        'SH',
+        'KN',
+        'LC',
+        'MF',
+        'PM',
+        'VC',
+        'WS',
+        'SM',
+        'ST',
+        'SA',
+        'SN',
+        'RS',
+        'SC',
+        'SL',
+        'SG',
+        'SX',
+        'SK',
+        'SI',
+        'SB',
+        'SO',
+        'ZA',
+        'GS',
+        'SS',
+        'ES',
+        'LK',
+        'SD',
+        'SR',
+        'SJ',
+        'SE',
+        'CH',
+        'SY',
+        'TW',
+        'TJ',
+        'TZ',
+        'TH',
+        'TL',
+        'TG',
+        'TK',
+        'TO',
+        'TT',
+        'TN',
+        'TR',
+        'TM',
+        'TC',
+        'TV',
+        'UG',
+        'UA',
+        'AE',
+        'GB',
+        'UM',
+        'US',
+        'UY',
+        'UZ',
+        'VU',
+        'VE',
+        'VN',
+        'VG',
+        'VI',
+        'WF',
+        'EH',
+        'YE',
+        'ZM',
+        'ZW',
+        'AX'
       ],
       notification: [
-        "new_trade",
-        "accepted_trade",
-        "new_vault_entry",
-        "unread_messages",
-        "disputed_trade",
-        "resolved_trade",
+        'new_trade',
+        'accepted_trade',
+        'new_vault_entry',
+        'unread_messages',
+        'disputed_trade',
+        'resolved_trade'
       ],
       tag_type: [
-        "vault",
-        "blacklist",
-        "bundle",
-        "custom",
-        "giveaway",
-        "library",
-        "steam_bundle",
-        "steam_package",
-        "tradelist",
-        "wishlist",
+        'vault',
+        'blacklist',
+        'bundle',
+        'custom',
+        'giveaway',
+        'library',
+        'steam_bundle',
+        'steam_package',
+        'tradelist',
+        'wishlist'
       ],
       trade_activity_type: [
-        "edited",
-        "created",
-        "accepted",
-        "declined",
-        "aborted",
-        "completed",
-        "disputed",
-        "resolved",
-        "countered",
+        'edited',
+        'created',
+        'accepted',
+        'declined',
+        'aborted',
+        'completed',
+        'disputed',
+        'resolved',
+        'countered'
       ],
-      trade_status: ["pending", "accepted", "declined", "aborted", "completed"],
+      trade_status: ['pending', 'accepted', 'declined', 'aborted', 'completed'],
       updater_queue_type: [
-        "app_names_check",
-        "app_types_check",
-        "app_cards_check",
-        "app_removals_check",
-        "app_list_check",
-        "change_number",
-        "ggdeals_deals_check",
-        "ggdeals_bundles_check",
-        "app_update",
+        'app_names_check',
+        'app_types_check',
+        'app_cards_check',
+        'app_removals_check',
+        'app_list_check',
+        'change_number',
+        'ggdeals_deals_check',
+        'ggdeals_bundles_check',
+        'app_update'
       ],
-      vault_entry_type: ["key", "gift", "link", "curator"],
+      vault_entry_type: ['key', 'gift', 'link', 'curator'],
       widget: [
-        "welcome",
-        "changelog",
-        "stats",
-        "trade_activity",
-        "users_online",
-        "bundles",
-      ],
-    },
-  },
-} as const
+        'welcome',
+        'changelog',
+        'stats',
+        'trade_activity',
+        'users_online',
+        'bundles'
+      ]
+    }
+  }
+} as const;

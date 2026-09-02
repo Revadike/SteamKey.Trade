@@ -97,7 +97,8 @@
     if (lines.length <= 1) {
       showDelimiterOption.value = true;
       const separator = delimiter.value || ',';
-      return (lines[0] || '').split(separator).map(item => item.trim()).filter(Boolean);
+      return (lines[0] || '').split(separator).map(item => item.trim())
+        .filter(Boolean);
     }
 
     showDelimiterOption.value = false;
@@ -401,7 +402,8 @@
           }
 
           const appIds = dedupeAppIds(data.flatMap(topic => topic?.appids || []));
-          const queries = [...new Set(data.flatMap(topic => topic?.queries || []).map(query => `${query ?? ''}`.trim()).filter(Boolean))];
+          const queries = [...new Set(data.flatMap(topic => topic?.queries || []).map(query => `${query ?? ''}`.trim())
+            .filter(Boolean))];
 
           if (!appIds.length && !queries.length) {
             snackbarStore.set('error', 'No importable items found in SteamTrades topics');

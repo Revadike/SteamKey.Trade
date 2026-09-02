@@ -24,7 +24,10 @@
           .order(sort.field, { ascending: sort.direction === 'asc' })
           .range((pageNum - 1) * itemsPerPage, pageNum * itemsPerPage - 1);
 
-        if (error) { throw error; }
+        if (error) {
+          throw error;
+        }
+
         return {
           data: data.map(app => ({
             title: app[App.fields.title],
@@ -53,7 +56,10 @@
           .order(sort.field, { ascending: sort.direction === 'asc' })
           .range((pageNum - 1) * itemsPerPage, pageNum * itemsPerPage - 1);
 
-        if (error) { throw error; }
+        if (error) {
+          throw error;
+        }
+
         return {
           data: data.map(message => ({
             title: message[TradeMessage.fields.body],
@@ -81,7 +87,10 @@
           .order(sort.field, { ascending: sort.direction === 'asc' })
           .range((pageNum - 1) * itemsPerPage, pageNum * itemsPerPage - 1);
 
-        if (error) { throw error; }
+        if (error) {
+          throw error;
+        }
+
         return {
           data: data.map(review => ({
             title: review[Review.fields.body],
@@ -109,7 +118,10 @@
           .order(sort.field, { ascending: sort.direction === 'asc' })
           .range((pageNum - 1) * itemsPerPage, pageNum * itemsPerPage - 1);
 
-        if (error) { throw error; }
+        if (error) {
+          throw error;
+        }
+
         return {
           data: data.map(user => ({
             title: user[User.fields.displayName] || user[User.fields.id],
@@ -139,7 +151,10 @@
           .order(sort.field, { ascending: sort.direction === 'asc' })
           .range((pageNum - 1) * itemsPerPage, pageNum * itemsPerPage - 1);
 
-        if (error) { throw error; }
+        if (error) {
+          throw error;
+        }
+
         return {
           data: data.map(collection => ({
             title: collection[Collection.fields.title],
@@ -160,8 +175,8 @@
   const allDomainKeys = Object.keys(domains.value);
   // String transformation functions for enabled domains
   const enabledDomains = useSearchParam('in', [...allDomainKeys], {
-    get: (val) => val.split(','),
-    set: (val) => val.join(',')
+    get: val => val.split(','),
+    set: val => val.join(',')
   });
 
   const searching = ref(true);
@@ -233,7 +248,10 @@
   };
 
   const search = () => {
-    if (!searchQuery.value) { return; }
+    if (!searchQuery.value) {
+      return;
+    }
+
     performSearch();
   };
 
@@ -246,7 +264,7 @@
     }
 
     try {
-      Object.values(domains.value).forEach(domain => {
+      Object.values(domains.value).forEach((domain) => {
         domain.results = [];
         domain.totalCount = 0;
       });

@@ -124,6 +124,7 @@
         { value: 'table-data-filters-slot', sortable: false, align: 'end' }
       ];
     }
+
     return props.headers;
   });
 
@@ -147,7 +148,7 @@
     () => activeFilters.value
   ], () => nextTick(refresh), { deep: true });
 
-  watch(() => selected.value, newValue => {
+  watch(() => selected.value, (newValue) => {
     if (props.maxSelection > 0 && newValue.length > props.maxSelection) {
       selected.value = newValue.slice(0, props.maxSelection);
       snackbarStore.set('warning', `You can only select up to ${props.maxSelection} items.`);
@@ -158,7 +159,9 @@
     if (props.tableId) {
       return props.tableId;
     }
-    const headerSignature = (props.headers || []).map(header => header?.value).filter(Boolean).join('|');
+
+    const headerSignature = (props.headers || []).map(header => header?.value).filter(Boolean)
+      .join('|');
     return `${route.path}::${headerSignature}`;
   });
 
@@ -172,15 +175,17 @@
     }
     if (!sortBy.value.length) {
       // Remove sort/order from URL if no sort is active
-      // eslint-disable-next-line no-unused-vars
+
       const { sort, order, ...rest } = route.query;
       router.replace({ query: { ...rest } }, { shallow: true });
       return;
     }
+
     const { key, order } = sortBy.value[0] || {};
     if (!key || !order) {
       return;
     }
+
     router.replace({ query: { ...route.query, sort: key, order } }, { shallow: true });
   };
 
@@ -188,10 +193,12 @@
     if (!props.sortInUrl) {
       return;
     }
+
     const { sort, order } = route.query;
     if (sort && order) {
       sortBy.value = [{ key: sort, order }];
     }
+
     waitingForUrlSort.value = false;
   };
 
@@ -319,7 +326,7 @@
     );
   });
 
-  const mapper = result => {
+  const mapper = (result) => {
     return props.mapItem(result);
   };
 
@@ -394,7 +401,7 @@
       }
 
       if (activeFilters.value.fields.length) {
-        activeFilters.value.fields.forEach(filter => {
+        activeFilters.value.fields.forEach((filter) => {
           const { field, operation, value } = filter;
           if (!field || !operation) {
             return;

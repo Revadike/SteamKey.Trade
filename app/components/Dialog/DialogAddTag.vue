@@ -43,7 +43,7 @@
     try {
       const tags = [];
       // Create tag entries for each app and the selected tag
-      props.apps.forEach(app => {
+      props.apps.forEach((app) => {
         tags.push({
           collectionId: app.collection[0][Collection.tags.fields.collectionId],
           appId: app.id,

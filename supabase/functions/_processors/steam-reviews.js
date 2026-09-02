@@ -29,7 +29,7 @@ export const processSteamReviews = async (appids) => {
       const response = await fetch(url);
       const data = await response.json();
 
-      if (data && data.success !== 1 || !data?.success) {
+      if ((data && data.success !== 1) || !data?.success) {
         throw new Error(`Failed to fetch reviews for app ${appid}: ${JSON.stringify(data)}`);
       }
 

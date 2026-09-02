@@ -112,7 +112,7 @@ const databaseUpdate = async () => {
   const failed = [];
   let successful = 0;
   const results = [namesResult, typesResult, storeListResult, picsResult, cardsResult, removalsResult, plusOneResult, bundlesResult, pricesResult];
-  results.forEach(result => {
+  results.forEach((result) => {
     errors.push(...result.errors);
     failed.push(...result.failed);
     successful += result.successful.length;
@@ -141,10 +141,10 @@ if (Deno?.env?.get?.('SB_EXECUTION_ID')) {
   // Run the function directly
   console.log('Database update function initialized');
   databaseUpdate()
-    .then(result => {
+    .then((result) => {
       console.log('Database update function completed:', result);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error in database update function:', error);
     });
 }

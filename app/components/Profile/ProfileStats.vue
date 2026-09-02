@@ -54,7 +54,7 @@
   const { data: partners, error: partnersError } = useSupabaseData('user-partners', { id: props.user.id });
 
   const snackbarStore = useSnackbarStore();
-  const copy = value => {
+  const copy = (value) => {
     navigator.clipboard.writeText(value);
     snackbarStore.set('success', 'Copied to clipboard');
   };
@@ -307,7 +307,7 @@
               ...stats.totalAcceptedTrades ? [{ key: 2, title: Trade.labels.accepted, value: stats.totalAcceptedTrades || 0, color: Trade.colors.accepted }] : [],
               ...stats.totalDeclinedTrades ? [{ key: 3, title: Trade.labels.declined, value: stats.totalDeclinedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.declined}))` }] : [],
               ...stats.totalAbortedTrades ? [{ key: 4, title: Trade.labels.aborted, value: stats.totalAbortedTrades || 0, color: Trade.colors.aborted }] : [],
-              ...stats.totalDisputedTrades ? [{ key: 5, title: Trade.labels.disputed, value: stats.totalDisputedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.disputed}))` }] : []
+              ...stats.totalDisputedTrades ? [{ key: 5, title: Trade.labels.disputed, value: stats.totalDisputedTrades || 0, color: `rgb(var(--v-theme-${Trade.colors.disputed}))` }] : [],
             ]"
             :legend="{ position: 'right', textFormat: (s) => `${s.title}: ${formatNumber(s.value)} (${(100 * s.value / totalTrades).toFixed(1)}%)` }"
             reveal

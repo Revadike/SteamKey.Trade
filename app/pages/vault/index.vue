@@ -1,6 +1,5 @@
 <script setup>
   import jsonToCsvExport from 'json-to-csv-export';
-
   import { formatNumber, formatDate } from '~/assets/js/format';
 
   const snackbarStore = useSnackbarStore();
@@ -70,13 +69,13 @@
     [VaultEntry.values.fields.value]: password.value ? await decrypt(item[VaultEntry.values.fields.value], password.value) : '********'
   });
 
-  const loadEntries = async appid => {
+  const loadEntries = async (appid) => {
     activeApp.value = null;
     await nextTick();
     activeApp.value = appid;
   };
 
-  const deleteEntry = async item => {
+  const deleteEntry = async (item) => {
     const { error } = await supabase
       .from(VaultEntry.table)
       .delete()
@@ -93,7 +92,7 @@
   };
 
   // on Escape key press, clear active app
-  const clearApp = event => {
+  const clearApp = (event) => {
     if (event.key === 'Escape') {
       activeApp.value = null;
     }
@@ -115,12 +114,12 @@
     window.removeEventListener('keydown', clearApp);
   });
 
-  const copy = value => {
+  const copy = (value) => {
     navigator.clipboard.writeText(value);
     snackbarStore.set('success', 'Copied to clipboard');
   };
 
-  const reveal = async item => {
+  const reveal = async (item) => {
     const instance = new VaultEntry(item[VaultEntry.table][VaultEntry.fields.id]);
     instance.revealedAt = new Date();
     await instance.save();
@@ -418,7 +417,7 @@
                     v-if="item[VaultEntry.table][Trade.table]"
                     :user-id="[
                       item[VaultEntry.table][Trade.table][Trade.fields.receiverId],
-                      item[VaultEntry.table][Trade.table][Trade.fields.senderId]
+                      item[VaultEntry.table][Trade.table][Trade.fields.senderId],
                     ].find(id => id !== user.id)"
                   />
                 </template>

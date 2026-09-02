@@ -10,7 +10,7 @@
   const isDragging = ref(false);
   const draggedIndex = ref(null);
 
-  const handleChange = value => {
+  const handleChange = (value) => {
     emit('update:modelValue', value);
   };
 
@@ -38,7 +38,7 @@
     dragEnd();
   };
 
-  const removeItem = index => {
+  const removeItem = (index) => {
     model.value.splice(index, 1);
   };
 </script>
@@ -54,7 +54,7 @@
       <template #chip="{ item, index }">
         <v-chip
           :key="index"
-          :class="{ 'dragging': draggedIndex === index }"
+          :class="{ dragging: draggedIndex === index }"
           draggable
           @click.stop
           @click:close="removeItem(index)"

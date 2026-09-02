@@ -27,7 +27,7 @@ export const parseDate = (value) => {
  * @param {string|Date} date - The date/time to compare with the current date/time.
  * @returns {string} A string representing the relative date/time (e.g., "2 hours ago", "in 3 days").
  */
-export const relativeDate = date => {
+export const relativeDate = (date) => {
   const dt = parseDate(date);
   if (!dt) {
     return 'unknown';
@@ -37,7 +37,9 @@ export const relativeDate = date => {
   const absDiff = Math.abs(diff);
   const isPast = diff > 0;
 
-  if (absDiff < 10000) { return isPast ? 'just now' : 'now'; }
+  if (absDiff < 10000) {
+    return isPast ? 'just now' : 'now';
+  }
 
   const seconds = Math.floor(absDiff / 1000);
   const minutes = Math.floor(seconds / 60);

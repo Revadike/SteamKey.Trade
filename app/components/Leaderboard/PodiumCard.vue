@@ -46,7 +46,7 @@
 
 <template>
   <v-card class="podium-card">
-    <!--card top-->
+    <!-- card top -->
     <v-card-text
       class="d-flex align-center justify-start pa-0 avatar-bg"
       :class="`${positionClass}-bg`"
@@ -80,7 +80,7 @@
       </div>
     </v-card-text>
 
-    <!--user statistics panel-->
+    <!-- user statistics panel -->
     <v-card-text class="mr-0 ml-2 pt-8 pb-6 px-0">
       <v-row
         v-for="key in Object.keys(attributes)"

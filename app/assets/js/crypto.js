@@ -26,9 +26,11 @@ export const encrypt = async (data, key) => {
   );
   const iv = window.crypto.getRandomValues(new Uint8Array(16));
   const encryptedBuffer = await window.crypto.subtle.encrypt({ name: 'AES-CBC', iv }, derivedKeyMaterial, dataBuffer);
-  const encryptedData = Array.from(new Uint8Array(encryptedBuffer)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const encryptedData = Array.from(new Uint8Array(encryptedBuffer)).map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
   return {
-    iv: Array.from(iv).map(byte => byte.toString(16).padStart(2, '0')).join(''),
+    iv: Array.from(iv).map(byte => byte.toString(16).padStart(2, '0'))
+      .join(''),
     encryptedData
   };
 };
@@ -134,7 +136,7 @@ export const privateDecrypt = async (encryptedData, privateKey) => {
  * @param {ArrayBuffer} buffer - The ArrayBuffer to be converted.
  * @returns {string} The hex string.
  */
-const arrayBufferToHex = buffer => {
+const arrayBufferToHex = (buffer) => {
   const byteArray = new Uint8Array(buffer);
   return Array.from(byteArray, byte => byte.toString(16).padStart(2, '0')).join('');
 };
@@ -144,7 +146,7 @@ const arrayBufferToHex = buffer => {
  * @param {string} hex - The hex string to be converted.
  * @returns {ArrayBuffer} The resulting ArrayBuffer.
  */
-const hexToArrayBuffer = hex => {
+const hexToArrayBuffer = (hex) => {
   const bytes = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
   return bytes.buffer;
 };
