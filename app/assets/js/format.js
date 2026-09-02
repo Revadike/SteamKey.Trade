@@ -12,7 +12,7 @@ export { relativeDate, parseDate };
  */
 export const formatNumber = (number, maxDigits = 1, minDigits = 0) => {
   if (isNaN(number)) {
-    return number;
+    return null;
   }
 
   return new Intl.NumberFormat('en-US', {

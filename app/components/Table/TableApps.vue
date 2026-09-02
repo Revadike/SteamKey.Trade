@@ -941,7 +941,7 @@
               <!-- Reviews columns -->
               <template v-else-if="[App.fields.positiveReviews, App.fields.negativeReviews].includes(header.key)">
                 <div
-                  v-if="item[App.fields.positiveReviews] !== null && item[App.fields.negativeReviews] !== null"
+                  v-if="item[App.fields.positiveReviews] !== null && item[App.fields.negativeReviews] !== null && (item[App.fields.positiveReviews] + item[App.fields.negativeReviews]) > 0"
                   class="d-flex flex-column justify-start"
                 >
                   <h2>{{ formatNumber((item[App.fields.positiveReviews] / (item[App.fields.positiveReviews] + item[App.fields.negativeReviews])) * 100) }}%</h2>
