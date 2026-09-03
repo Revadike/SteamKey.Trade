@@ -143,7 +143,6 @@
             :headers="headers"
             no-data-text="No users found"
             :query-getter="queryGetter"
-            :row-link="(item) => `/user/${item[User.fields.customUrl] || item[User.fields.steamId]}`"
           >
             <template #[`item.rank`]="{ index }">
               <span class="text-h6 font-weight-black">
