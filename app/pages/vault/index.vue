@@ -401,15 +401,32 @@
                   </v-btn>
                   <v-text-field
                     v-else
-                    append-inner-icon="mdi-content-copy"
                     density="compact"
                     hide-details
                     :model-value="item[VaultEntry.values.fields.value]"
                     readonly
-                    style="min-width: 150px;"
+                    style="min-width: 180px;"
                     variant="filled"
-                    @click:append-inner="() => copy(item[VaultEntry.values.fields.value])"
-                  />
+                  >
+                    <template #append-inner>
+                      <v-icon
+                        v-tooltip:top="'Copy'"
+                        class="cursor-pointer"
+                        icon="mdi-content-copy"
+                        @click="() => copy(item[VaultEntry.values.fields.value])"
+                      />
+                      <v-icon
+                        v-if="item[VaultEntry.table][VaultEntry.fields.type] === VaultEntry.enums.type.key"
+                        v-tooltip:top="'Register key on Steam'"
+                        class="cursor-pointer"
+                        icon="mdi-web"
+                        @click="() => navigateTo(`https://store.steampowered.com/account/registerkey?key=${item[VaultEntry.values.fields.value]}`, {
+                          external: true,
+                          open: { target: '_blank' },
+                        })"
+                      />
+                    </template>
+                  </v-text-field>
                 </template>
 
                 <template #[`item.${VaultEntry.table}.${Trade.table}`]="{ item }">
