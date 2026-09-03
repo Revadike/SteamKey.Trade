@@ -1,12 +1,16 @@
 ## September 3, 2026
-* Upgraded dependencies to latest versions
+
+* Fixed app reviews sometimes showing NaN
+* Allow adding vault entries right away, when completing a trade
 
 ## May 31, 2026
+
 * Minor optimization
 * Fixed removing subcollections from collections
 * Hide tabs with no content on collection view
 
 ## May 3, 2026
+
 * Clearer error messages with improved trade checks
 * Prevent loading stale data for certain pages, so you always see accurate information
 

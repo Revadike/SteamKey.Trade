@@ -76,6 +76,66 @@
   });
 
   const vaultEntries = ref([]);
+
+  const loadVaultEntries = async () => {
+    vaultEntries.value = await VaultEntry.getValues(supabase, authUser.value.id, true, props.onlyApps, authUser.value.id);
+    vaultEntries.value = await Promise.all(vaultEntries.value.map(async entry => ({
+      ...entry,
+      value: password.value ? await decrypt(entry.value, password.value) : '********'
+    })));
+  };
+
+  const drafts = reactive({});
+
+  const placeholders = {
+    [VaultEntry.enums.type.key]: 'XXXXX-XXXXX-XXXXX',
+    [VaultEntry.enums.type.gift]: 'https://store.steampowered.com/account/ackgift/XXXXXXXXXXXXXXXX',
+    [VaultEntry.enums.type.link]: 'https://humblebundle.com/gift?key=XXXXXXXXXXXXXXXX',
+    [VaultEntry.enums.type.curator]: 'https://store.steampowered.com/curator/XXXXXXXX/admin/pending'
+  };
+
+  const draft = (appId, index) => {
+    const key = `${appId}-${index}`;
+    if (!drafts[key]) {
+      drafts[key] = { value: '', type: VaultEntry.enums.type.key, loading: false };
+    }
+
+    return drafts[key];
+  };
+
+  const addNewEntry = async (appId, index) => {
+    const draftEntry = draft(appId, index);
+    if (!draftEntry.value.trim()) {
+      snackbarStore.set('error', 'Please enter a value');
+      return;
+    }
+
+    draftEntry.loading = true;
+    try {
+      const encryptedValue = await encrypt(draftEntry.value.trim(), authUser.value.publicKey);
+      await VaultEntry.addValues(supabase, authUser.value.id, [{
+        appid: appId,
+        type: draftEntry.type,
+        values: [encryptedValue]
+      }]);
+
+      await loadVaultEntries();
+
+      const appVaultEntries = vaultEntries.value.filter(entry => entry.appId === appId);
+      const modelItem = model.value.find(item => item.appId === appId);
+      if (modelItem && appVaultEntries.length) {
+        modelItem.vaultEntries[index - 1] = appVaultEntries[0].id;
+      }
+
+      draftEntry.value = '';
+    } catch (error) {
+      console.error('Error adding vault entry:', error);
+      snackbarStore.set('error', error.message || 'Failed to add vault entry');
+    } finally {
+      draftEntry.loading = false;
+    }
+  };
+
   watch([
     () => internalValue.value,
     () => model.value,
@@ -93,11 +153,7 @@
       return;
     }
 
-    vaultEntries.value = await VaultEntry.getValues(supabase, authUser.value.id, true, props.onlyApps, authUser.value.id);
-    vaultEntries.value = await Promise.all(vaultEntries.value.map(async entry => ({
-      ...entry,
-      value: password.value ? await decrypt(entry.value, password.value) : '********'
-    })));
+    await loadVaultEntries();
 
     await nextTick();
 
@@ -209,7 +265,55 @@
                   cols="12"
                   sm="9"
                 >
+                  <div
+                    v-if="!vaultEntries.some(entry => entry.appId === item.appId)"
+                    class="d-flex align-center ga-1"
+                  >
+                    <v-text-field
+                      v-model="draft(item.appId, idx).value"
+                      autofocus
+                      density="compact"
+                      hide-details
+                      :label="`New vault entry${item.total > 1 ? ' #' + idx : ''}`"
+                      :loading="draft(item.appId, idx).loading"
+                      :placeholder="placeholders[draft(item.appId, idx).type]"
+                      variant="outlined"
+                      @keydown.enter="addNewEntry(item.appId, idx)"
+                    >
+                      <template #prepend-inner>
+                        <v-menu location="bottom start">
+                          <template #activator="{ props: menuProps }">
+                            <v-icon
+                              v-bind="menuProps"
+                              :icon="VaultEntry.icons[draft(item.appId, idx).type]"
+                            />
+                          </template>
+                          <v-list>
+                            <v-list-item
+                              v-for="type in Object.values(VaultEntry.enums.type)"
+                              :key="type"
+                              :prepend-icon="VaultEntry.icons[type]"
+                              :title="VaultEntry.labels[type]"
+                              @click="draft(item.appId, idx).type = type"
+                            />
+                          </v-list>
+                        </v-menu>
+                      </template>
+                    </v-text-field>
+                    <v-btn
+                      v-tooltip:left="'Add vault entry'"
+                      color="primary"
+                      :disabled="!draft(item.appId, idx).value.trim() || draft(item.appId, idx).loading"
+                      icon="mdi-plus"
+                      :loading="draft(item.appId, idx).loading"
+                      rounded
+                      size="small"
+                      variant="tonal"
+                      @click="addNewEntry(item.appId, idx)"
+                    />
+                  </div>
                   <v-select
+                    v-else
                     v-model="item.vaultEntries[idx-1]"
                     clearable
                     :disabled="missingPartnerVault"
@@ -218,17 +322,7 @@
                     item-value="id"
                     :items="vaultEntries.filter(entry => entry.appId === item.appId)"
                     :label="`Vault entry${item.total > 1 ? ' #' + idx : ''}`"
-                  >
-                    <template #no-data>
-                      <v-list-item
-                        subtitle="Please add a new vault entry here"
-                        target="_blank"
-                        title="No vault entries left"
-                        :to="`/vault?tab=unsent&appid=${item.appId}&action=add`"
-                        @click="internalValue = false"
-                      />
-                    </template>
-                  </v-select>
+                  />
                 </v-col>
               </v-row>
             </template>
