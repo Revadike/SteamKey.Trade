@@ -446,8 +446,21 @@
       load: async () => {
         selectedInputType.value = 'json';
         selectedValueType.value = 'appid';
-        inputText.value = 'Copy and paste content from https://store.steampowered.com/dynamicstore/userdata/ here';
-        jsonataQuery.value = 'Pick one: rgWishlist, rgOwnedApps, rgFollowedApps, rgAppsInCart, $keys(rgIgnoredApps)';
+        // inputText.value = 'Copy and paste content from https://store.steampowered.com/dynamicstore/userdata/';
+        // jsonataQuery.value = 'Pick one: rgWishlist, rgOwnedApps, rgFollowedApps, rgAppsInCart, $keys(rgIgnoredApps)';
+        switch (props.collection?.type) {
+          case Collection.enums.type.wishlist:
+            jsonataQuery.value = 'rgWishlist';
+            break;
+          case Collection.enums.type.library:
+            jsonataQuery.value = 'rgOwnedApps';
+            break;
+          case Collection.enums.type.blacklist:
+            jsonataQuery.value = 'rgIgnoredApps';
+            break;
+          default:
+            jsonataQuery.value = '';
+        }
         await updatePreview();
       }
     },
@@ -618,15 +631,9 @@
           </template>
 
           <template v-else-if="selectedInputType === 'json'">
-            <p class="text-caption mt-4 mb-2">
-              TIP: Import <a
-                href="https://store.steampowered.com/dynamicstore/userdata/"
-                rel="noopener noreferrer"
-                target="_blank"
-              >Steam's dynamic store data</a> as JSON.
-            </p>
             <v-textarea
               v-model="inputText"
+              class="mt-4"
               :error="!jsonIsValid"
               :error-messages="jsonIsValid ? '' : 'Invalid JSON format'"
               label="Enter JSON"
@@ -634,6 +641,14 @@
               rows="6"
               variant="outlined"
             />
+
+            <p class="text-caption mb-6">
+              <strong>TIP:</strong> Import <a
+                href="https://store.steampowered.com/dynamicstore/userdata/"
+                rel="noopener noreferrer"
+                target="_blank"
+              >Steam's dynamic store data</a> as JSON.
+            </p>
 
             <v-text-field
               v-model="jsonataQuery"
