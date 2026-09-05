@@ -662,6 +662,7 @@
   const totalItems = computed(() => Array.isArray(props.items) ? props.items.length : table.value?.totalItems || 0);
   defineExpose({
     totalItems,
+    loading: computed(() => table.value?.loading || false),
     refresh
   });
 </script>

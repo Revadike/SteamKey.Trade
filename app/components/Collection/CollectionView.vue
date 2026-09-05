@@ -13,19 +13,35 @@
   });
 
   const loading = ref(false);
-  const appTable = ref(null);
   const activeTab = ref('apps');
+  const appTable = ref(null);
+  const appsLoading = computed(() => appTable.value?.loading || false);
 
   const { data: collection, status, error } = useSupabaseData('collection', { id: props.id });
-  const { data: fetchedSubcollections, error: subcollectionsError } = useSupabaseData('collection-subcollections', { id: props.id });
+  const { data: fetchedSubcollections, status: subcollectionsStatus, error: subcollectionsError } = useSupabaseData('collection-subcollections', { id: props.id });
 
   const subcollections = computed(() => (fetchedSubcollections.value || []).map(sc => sc.id));
 
-  watch(() => appTable.value?.totalItems, (total) => {
-    if (total === 0 && subcollections.value.length > 0) {
-      activeTab.value = 'collections';
+  let cycleStarted = false;
+  const stop = watch(
+    [appsLoading, subcollectionsStatus],
+    ([isLoading, currentStatus]) => {
+      if (isLoading) {
+        cycleStarted = true;
+        return;
+      }
+
+      if (cycleStarted && currentStatus !== 'pending') {
+        if (appTable.value?.totalItems > 0) {
+          activeTab.value = 'apps';
+        } else if (subcollections.value.length > 0) {
+          activeTab.value = 'collections';
+        }
+
+        stop();
+      }
     }
-  });
+  );
 
   watch([
     () => error.value,
