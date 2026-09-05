@@ -1,3 +1,7 @@
+## September 5, 2026
+
+* Improved active bundles widget
+
 ## September 3, 2026
 
 * Fixed app reviews sometimes showing NaN

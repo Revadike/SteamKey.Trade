@@ -429,8 +429,8 @@ export const useSupabaseData = (name, params = {}, options = {}) => {
             )`)
           .eq(Collection.fields.type, Collection.enums.type.bundle)
           .or(`${Collection.fields.endsAt}.is.null,${Collection.fields.endsAt}.gt.${new Date().toISOString()}`)
-          .order(Collection.fields.createdAt, { ascending: false })
-          .limit(20); // Buffer for filtering
+          .order(Collection.fields.endsAt, { ascending: true, nullsFirst: false });
+
         if (error) {
           throw error;
         }

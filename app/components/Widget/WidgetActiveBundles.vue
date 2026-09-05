@@ -147,6 +147,22 @@
           </v-card>
         </v-col>
       </v-row>
+      <v-row dense>
+        <v-col
+          v-if="bundles.length > 3"
+          class="text-center"
+          cols="12"
+        >
+          <v-btn
+            block
+            color="primary"
+            to="/collections?filters=H4sIAAAAAAAACl3MwQrCMBCE4XeZcypLEMF9Dk%2BWIrHZSmFJqknEUPLuUkQEb/MfvlkxzaI%2Bgfv1M8HIdREYxEUeLs8xgCF3GDydFgHjWoJXQTM/IsGni8t/6pa3ny%2BzZA8dHTvan6xlIibaEdEZbTAYo6qMm0vgFS5U8OQ0iUEMWsH9YCCvUYuXLVp7A7rH3r67AAAA&tab=community&sort=title&order=asc"
+            variant="outlined"
+          >
+            View All Active Bundles
+          </v-btn>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>
