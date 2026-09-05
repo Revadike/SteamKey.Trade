@@ -56,14 +56,44 @@
     { immediate: true, deep: true }
   );
 
-  const isIncomplete = computed(() => !props.onlyApps.every((appid) => {
-    const entry = model.value.find(item => item.appId === appid);
+  const onlyAppIds = computed(() => props.onlyApps.map(app => app.id));
+  const getOnlyApp = appId => props.onlyApps.find(app => app.id === appId);
+  const getOnlyAppTitle = appId => getOnlyApp(appId)?.title || `App ${appId}`;
+
+  const drafts = reactive({});
+
+  const draft = (appId, index) => {
+    const key = `${appId}-${index}`;
+    if (!drafts[key]) {
+      drafts[key] = { value: '', type: VaultEntry.enums.type.key };
+    }
+
+    return drafts[key];
+  };
+
+  const draftValue = (appId, index) => {
+    return drafts[`${appId}-${index}`]?.value?.trim() || '';
+  };
+
+  const placeholders = {
+    [VaultEntry.enums.type.key]: 'XXXXX-XXXXX-XXXXX',
+    [VaultEntry.enums.type.gift]: 'https://store.steampowered.com/account/ackgift/XXXXXXXXXXXXXXXX',
+    [VaultEntry.enums.type.link]: 'https://humblebundle.com/gift?key=XXXXXXXXXXXXXXXX',
+    [VaultEntry.enums.type.curator]: 'https://store.steampowered.com/curator/XXXXXXXX/admin/pending'
+  };
+
+  const isIncomplete = computed(() => !props.onlyApps.every((app) => {
+    const entry = model.value.find(item => item.appId === app.id);
     if (!entry) {
       return false;
     }
 
     for (let idx = 0; idx < (entry.total || 1); idx++) {
-      if (!entry.vaultEntries || !entry.vaultEntries[idx]) {
+      if (entry.vaultEntries && entry.vaultEntries[idx]) {
+        continue;
+      }
+
+      if (!draftValue(entry.appId, idx + 1)) {
         return false;
       }
     }
@@ -78,62 +108,11 @@
   const vaultEntries = ref([]);
 
   const loadVaultEntries = async () => {
-    vaultEntries.value = await VaultEntry.getValues(supabase, authUser.value.id, true, props.onlyApps, authUser.value.id);
+    vaultEntries.value = await VaultEntry.getValues(supabase, authUser.value.id, true, onlyAppIds.value, authUser.value.id);
     vaultEntries.value = await Promise.all(vaultEntries.value.map(async entry => ({
       ...entry,
       value: password.value ? await decrypt(entry.value, password.value) : '********'
     })));
-  };
-
-  const drafts = reactive({});
-
-  const placeholders = {
-    [VaultEntry.enums.type.key]: 'XXXXX-XXXXX-XXXXX',
-    [VaultEntry.enums.type.gift]: 'https://store.steampowered.com/account/ackgift/XXXXXXXXXXXXXXXX',
-    [VaultEntry.enums.type.link]: 'https://humblebundle.com/gift?key=XXXXXXXXXXXXXXXX',
-    [VaultEntry.enums.type.curator]: 'https://store.steampowered.com/curator/XXXXXXXX/admin/pending'
-  };
-
-  const draft = (appId, index) => {
-    const key = `${appId}-${index}`;
-    if (!drafts[key]) {
-      drafts[key] = { value: '', type: VaultEntry.enums.type.key, loading: false };
-    }
-
-    return drafts[key];
-  };
-
-  const addNewEntry = async (appId, index) => {
-    const draftEntry = draft(appId, index);
-    if (!draftEntry.value.trim()) {
-      snackbarStore.set('error', 'Please enter a value');
-      return;
-    }
-
-    draftEntry.loading = true;
-    try {
-      const encryptedValue = await encrypt(draftEntry.value.trim(), authUser.value.publicKey);
-      await VaultEntry.addValues(supabase, authUser.value.id, [{
-        appid: appId,
-        type: draftEntry.type,
-        values: [encryptedValue]
-      }]);
-
-      await loadVaultEntries();
-
-      const appVaultEntries = vaultEntries.value.filter(entry => entry.appId === appId);
-      const modelItem = model.value.find(item => item.appId === appId);
-      if (modelItem && appVaultEntries.length) {
-        modelItem.vaultEntries[index - 1] = appVaultEntries[0].id;
-      }
-
-      draftEntry.value = '';
-    } catch (error) {
-      console.error('Error adding vault entry:', error);
-      snackbarStore.set('error', error.message || 'Failed to add vault entry');
-    } finally {
-      draftEntry.loading = false;
-    }
   };
 
   watch([
@@ -174,6 +153,38 @@
     }
   }, { immediate: true });
 
+  const rowStates = reactive({});
+
+  const rowState = (appId, index) => {
+    const key = `${appId}-${index}`;
+    if (!rowStates[key]) {
+      rowStates[key] = { phase: 'idle', encryptedValue: '' };
+    }
+
+    return rowStates[key];
+  };
+
+  const isRowBusy = (appId, index) => {
+    return ['encrypting', 'saving'].includes(rowState(appId, index).phase);
+  };
+
+  const isRowDone = (appId, index) => {
+    return rowState(appId, index).phase === 'success';
+  };
+
+  const resetRowStates = () => {
+    for (const key of Object.keys(rowStates)) {
+      rowStates[key].phase = 'idle';
+      rowStates[key].encryptedValue = '';
+    }
+  };
+
+  watch(() => internalValue.value, (open) => {
+    if (!open) {
+      resetRowStates();
+    }
+  });
+
   const submit = async () => {
     if (isIncomplete.value) {
       snackbarStore.set('error', 'Please select a vault entry for each app');
@@ -187,22 +198,132 @@
 
     loading.value = true;
     try {
-      // encrypt selected vault entries
-      await Promise.all(model.value.flatMap(item =>
-        (item.vaultEntries || []).map(async (vaultEntryId) => {
+      // Collect new vault entries typed in by the user (still cleartext)
+      const pendingDrafts = model.value.flatMap((item) => {
+        const entries = [];
+        for (let idx = 1; idx <= (item.total || 1); idx++) {
+          const value = draftValue(item.appId, idx);
+          if (value) {
+            entries.push({ appId: item.appId, index: idx, value, type: draft(item.appId, idx).type });
+          }
+        }
+
+        return entries;
+      });
+
+      const existingIds = new Set(vaultEntries.value.map(entry => entry.id));
+
+      // Show a spinner on every row
+      for (const item of model.value) {
+        for (let idx = 1; idx <= (item.total || 1); idx++) {
+          rowState(item.appId, idx).phase = 'encrypting';
+        }
+      }
+
+      // Encrypt new entries for ourselves and surface the ciphertext
+      const selfEncrypted = [];
+      for (const { appId, index, value, type } of pendingDrafts) {
+        const encryptedValue = await encrypt(value, authUser.value.publicKey);
+        selfEncrypted.push({ appId, type, value: encryptedValue });
+        rowState(appId, index).encryptedValue = encryptedValue;
+      }
+
+      // Encrypt existing entries for the trade partner
+      const partnerEncrypted = [];
+      for (const item of model.value) {
+        for (const vaultEntryId of (item.vaultEntries || [])) {
           const entry = vaultEntries.value.find(entry => entry.id === vaultEntryId);
-          if (!entry) {
-            return;
+          if (entry) {
+            partnerEncrypted.push({ vaultEntryId, value: await encrypt(entry.value, user.value.publicKey) });
+          }
+        }
+      }
+
+      // Move to the saving phase so new entries reveal their encrypted value
+      for (const item of model.value) {
+        for (let idx = 1; idx <= (item.total || 1); idx++) {
+          const state = rowState(item.appId, idx);
+          if (state.phase === 'encrypting') {
+            state.phase = 'saving';
+          }
+        }
+      }
+
+      // Give the user a moment to see the encrypted value before saving
+      if (pendingDrafts.length) {
+        await new Promise(resolve => setTimeout(resolve, 1600));
+      }
+
+      // Save new entries to our vault
+      for (const { appId, type, value } of selfEncrypted) {
+        await VaultEntry.addValues(supabase, authUser.value.id, [{
+          appid: appId,
+          type,
+          values: [value]
+        }]);
+      }
+
+      for (const { appId, index } of pendingDrafts) {
+        draft(appId, index).value = '';
+      }
+
+      if (pendingDrafts.length) {
+        await loadVaultEntries();
+      }
+
+      // Link the newly created entries back to the trade apps
+      const newEntriesByApp = {};
+      for (const entry of vaultEntries.value) {
+        if (!existingIds.has(entry.id)) {
+          if (!newEntriesByApp[entry.appId]) {
+            newEntriesByApp[entry.appId] = [];
           }
 
-          const encryptedValue = await encrypt(entry.value, user.value.publicKey);
-          const instance = new VaultEntry(vaultEntryId);
-          await instance.addValue(user.value.id, encryptedValue);
-        })
+          newEntriesByApp[entry.appId].push(entry.id);
+        }
+      }
+
+      for (const { appId, index } of pendingDrafts) {
+        const item = model.value.find(i => i.appId === appId);
+        const newIds = newEntriesByApp[appId] || [];
+        const createdId = newIds[newIds.length - index];
+        if (item && createdId) {
+          item.vaultEntries[index - 1] = createdId;
+        }
+      }
+
+      // Save partner-encrypted values for existing entries
+      await Promise.all(partnerEncrypted.map(({ vaultEntryId, value }) =>
+        new VaultEntry(vaultEntryId).addValue(user.value.id, value)
       ));
+
+      // Save partner-encrypted values for newly created entries
+      await Promise.all(pendingDrafts.map(async ({ appId, index, value }) => {
+        const item = model.value.find(i => i.appId === appId);
+        const vaultEntryId = item?.vaultEntries?.[index - 1];
+        if (!vaultEntryId) {
+          return;
+        }
+
+        const encryptedValue = await encrypt(value, user.value.publicKey);
+        await new VaultEntry(vaultEntryId).addValue(user.value.id, encryptedValue);
+      }));
+
+      // Show the success state briefly before closing
+      for (const item of model.value) {
+        for (let idx = 1; idx <= (item.total || 1); idx++) {
+          rowState(item.appId, idx).phase = 'success';
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       internalValue.value = false;
       emit('submit');
+    } catch (error) {
+      console.error(error);
+      resetRowStates();
+      snackbarStore.set('error', error.message || 'Failed to submit vault entries');
     } finally {
       loading.value = false;
     }
@@ -221,7 +342,7 @@
         v-bind="attrs"
       />
     </template>
-    <v-card :loading="loading">
+    <v-card>
       <v-card-title class="text-primary">
         Select your vault entries
       </v-card-title>
@@ -235,38 +356,113 @@
             v-for="item in model"
             :key="item.appId"
           >
-            <template v-if="onlyApps.includes(item.appId)">
+            <template v-if="onlyAppIds.includes(item.appId)">
               <v-row
                 v-for="idx in item.total || 1"
                 :key="`${item.appId}-${idx}`"
+                class="vault-dialog-row"
+                dense
               >
                 <v-col
                   class="d-flex align-center"
                   cols="12"
                   sm="3"
                 >
-                  <nuxt-link
-                    class="w-100 h-100"
-                    rel="noopener"
-                    target="_blank"
-                    :to="`/app/${item.appId}`"
-                  >
-                    <v-img
-                      v-ripple
-                      :alt="`App ${item.appId}`"
-                      cover
-                      height="56"
-                      lazy-src="/applogo.svg"
-                      :src="`https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`"
-                    />
-                  </nuxt-link>
+                  <div :class="['app-logo w-100', { overlayed: isRowBusy(item.appId, idx) || isRowDone(item.appId, idx) }]">
+                    <nuxt-link
+                      class="w-100 h-100"
+                      rel="noopener"
+                      target="_blank"
+                      :to="`/app/${item.appId}`"
+                    >
+                      <v-img
+                        v-ripple
+                        :alt="getOnlyAppTitle(item.appId)"
+                        class="app-logo__image"
+                        cover
+                        height="40"
+                        lazy-src="/applogo.svg"
+                        :src="`https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`"
+                      />
+                    </nuxt-link>
+                    <div
+                      v-if="isRowBusy(item.appId, idx) || isRowDone(item.appId, idx)"
+                      class="app-logo__indicator"
+                    >
+                      <v-progress-circular
+                        v-if="isRowBusy(item.appId, idx)"
+                        color="white"
+                        indeterminate
+                        size="32"
+                        width="2"
+                      />
+                      <v-icon
+                        v-else
+                        color="white"
+                        icon="mdi-check"
+                        size="40"
+                      />
+                    </div>
+                  </div>
                 </v-col>
                 <v-col
                   cols="12"
                   sm="9"
                 >
+                  <v-scroll-x-transition mode="out-in">
+                    <div
+                      v-if="isRowDone(item.appId, idx)"
+                      key="success"
+                      class="d-flex align-center ga-1 w-100 h-100"
+                    >
+                      <span class="font-weight-medium text-success">{{ getOnlyAppTitle(item.appId) }} ready!</span>
+                    </div>
+                  </v-scroll-x-transition>
+                  <v-text-field
+                    v-if="!isRowDone(item.appId, idx) && rowState(item.appId, idx).phase === 'saving' && !vaultEntries.some(entry => entry.appId === item.appId)"
+                    key="saving"
+                    density="compact"
+                    disabled
+                    hide-details
+                    :label="`${getOnlyAppTitle(item.appId)}${item.total > 1 ? ' #' + idx : ''}`"
+                    :model-value="rowState(item.appId, idx).encryptedValue"
+                    prepend-inner-icon="mdi-lock"
+                    readonly
+                    variant="outlined"
+                  />
                   <div
-                    v-if="!vaultEntries.some(entry => entry.appId === item.appId)"
+                    v-else-if="!isRowDone(item.appId, idx) && vaultEntries.some(entry => entry.appId === item.appId)"
+                    key="select"
+                    class="d-flex align-center ga-1"
+                  >
+                    <v-select
+                      v-model="item.vaultEntries[idx-1]"
+                      clearable
+                      density="compact"
+                      :disabled="missingPartnerVault || isRowBusy(item.appId, idx)"
+                      hide-details
+                      item-title="value"
+                      item-value="id"
+                      :items="vaultEntries.filter(entry => entry.appId === item.appId)"
+                      :label="`${getOnlyAppTitle(item.appId)}${item.total > 1 ? ' #' + idx : ''}`"
+                      variant="outlined"
+                    />
+                    <v-btn
+                      v-tooltip:left="'Add vault entry'"
+                      color="primary"
+                      :disabled="isRowBusy(item.appId, idx)"
+                      icon="mdi-plus"
+                      rel="noopener"
+                      rounded
+                      size="small"
+                      target="_blank"
+                      :to="`/vault?tab=unsent&appid=${item.appId}&action=add`"
+                      variant="tonal"
+                    />
+                  </div>
+                  <div
+                    v-else-if="!isRowDone(item.appId, idx)"
+                    key="text"
                     class="d-flex align-center ga-1"
                   >
                     <v-text-field
@@ -274,11 +470,9 @@
                       autofocus
                       density="compact"
                       hide-details
-                      :label="`New vault entry${item.total > 1 ? ' #' + idx : ''}`"
-                      :loading="draft(item.appId, idx).loading"
+                      :label="`${getOnlyAppTitle(item.appId)}${item.total > 1 ? ' #' + idx : ''}`"
                       :placeholder="placeholders[draft(item.appId, idx).type]"
                       variant="outlined"
-                      @keydown.enter="addNewEntry(item.appId, idx)"
                     >
                       <template #prepend-inner>
                         <v-menu location="bottom start">
@@ -300,29 +494,7 @@
                         </v-menu>
                       </template>
                     </v-text-field>
-                    <v-btn
-                      v-tooltip:left="'Add vault entry'"
-                      color="primary"
-                      :disabled="!draft(item.appId, idx).value.trim() || draft(item.appId, idx).loading"
-                      icon="mdi-plus"
-                      :loading="draft(item.appId, idx).loading"
-                      rounded
-                      size="small"
-                      variant="tonal"
-                      @click="addNewEntry(item.appId, idx)"
-                    />
                   </div>
-                  <v-select
-                    v-else
-                    v-model="item.vaultEntries[idx-1]"
-                    clearable
-                    :disabled="missingPartnerVault"
-                    hide-details
-                    item-title="value"
-                    item-value="id"
-                    :items="vaultEntries.filter(entry => entry.appId === item.appId)"
-                    :label="`Vault entry${item.total > 1 ? ' #' + idx : ''}`"
-                  />
                 </v-col>
               </v-row>
             </template>
@@ -432,3 +604,26 @@
     </v-card>
   </v-dialog>
 </template>
+
+<style lang="scss" scoped>
+  .app-logo {
+    position: relative;
+
+    .app-logo__indicator {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &.overlayed {
+      .app-logo__image:after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+      }
+    }
+  }
+</style>

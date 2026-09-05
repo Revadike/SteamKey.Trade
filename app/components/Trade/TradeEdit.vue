@@ -847,7 +847,7 @@
           <dialog-vault-selector
             v-else
             v-model="tradeAppsForm.sender"
-            :only-apps="selectedApps.sender.map(({ id }) => id)"
+            :only-apps="selectedApps.sender"
             :user-id="tradeForm.receiverId"
             @submit="submit"
             @vaultless="tradeForm.senderVaultless = true; submit()"

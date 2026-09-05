@@ -617,7 +617,7 @@
           <dialog-vault-selector
             v-else
             v-model="tradeApps.receiver"
-            :only-apps="selectedApps.receiver.map(({ id }) => id)"
+            :only-apps="selectedApps.receiver"
             :user-id="trade.senderId"
             @submit="updateStatus(Trade.enums.status.accepted)"
             @vaultless="trade.receiverVaultless = true; updateStatus(Trade.enums.status.accepted)"
@@ -682,7 +682,7 @@
           <dialog-vault-selector
             v-if="trade.senderId === user.id && trade.status === Trade.enums.status.accepted && !trade.receiverVaultless"
             v-model="tradeApps.sender"
-            :only-apps="selectedApps.sender.map(({ id }) => id)"
+            :only-apps="selectedApps.sender"
             :user-id="trade.receiverId"
             @submit="updateStatus(Trade.enums.status.completed)"
             @vaultless="trade.senderVaultless = true; updateStatus(Trade.enums.status.completed)"

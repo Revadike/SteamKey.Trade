@@ -1,6 +1,7 @@
 ## September 5, 2026
 
 * Improved active bundles widget
+* Improved trade vault selector dialog
 
 ## September 3, 2026
 
