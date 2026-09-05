@@ -60,6 +60,10 @@
   const getOnlyApp = appId => props.onlyApps.find(app => app.id === appId);
   const getOnlyAppTitle = appId => getOnlyApp(appId)?.title || `App ${appId}`;
 
+  const sortedModel = computed(() => {
+    return [...model.value].sort((a, b) => getOnlyAppTitle(a.appId).localeCompare(getOnlyAppTitle(b.appId)));
+  });
+
   const drafts = reactive({});
 
   const draft = (appId, index) => {
@@ -353,7 +357,7 @@
         <dialog-vault-unlocker @unlocked="validPassword = true" />
         <v-container v-if="validPassword">
           <template
-            v-for="item in model"
+            v-for="item in sortedModel"
             :key="item.appId"
           >
             <template v-if="onlyAppIds.includes(item.appId)">
