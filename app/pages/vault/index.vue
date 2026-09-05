@@ -356,6 +356,7 @@
             >
               <table-data
                 v-if="activeApp"
+                :key="activeApp"
                 ref="table"
                 class="flex-grow-1"
                 :default-sort-by="[{ key: VaultEntry.values.fields.createdAt, order: 'desc' }, { key: VaultEntry.values.fields.value, order: 'asc' }]"
