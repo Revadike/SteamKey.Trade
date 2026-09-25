@@ -1,3 +1,8 @@
+## September 26, 2026
+
+* Added a new function to reset a user's vault
+* Improved Steam app card count tracking
+
 ## September 5, 2026
 
 * Improved active bundles widget
