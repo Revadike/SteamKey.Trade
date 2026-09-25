@@ -1,5 +1,6 @@
 ## September 26, 2026
 
+* Added a new quick filter for unrevealed vault entries
 * Added a new function to reset a user's vault
 * Improved Steam app card count tracking
 
