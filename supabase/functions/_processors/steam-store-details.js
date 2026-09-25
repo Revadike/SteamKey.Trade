@@ -30,12 +30,11 @@ export const processSteamStoreDetails = async (appids) => {
 
       const response = await fetch(url);
       const data = await response.json();
+      const storeInfo = Object.values(data).find(info => info?.data?.steam_appid === Number(appid) && info?.success)?.data;
 
-      if (!data?.[appid]?.success === false && !data?.[appid]?.data) {
+      if (!storeInfo) {
         throw new Error(`Steam Store API returned an error for app ${appid}: ${JSON.stringify(data)}`);
       }
-
-      const storeInfo = data[appid].data;
 
       if (storeInfo.type) {
         record[App.fields.type] = storeInfo.type.toLowerCase();
