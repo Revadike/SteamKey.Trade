@@ -54,12 +54,9 @@ const databaseUpdate = async () => {
   }
 
   console.log('5. Processing Steam Cards');
-  const lastCardsCheck = await getLastCheck('app_cards_check');
-  const cardsResult = await processSteamCards(lastCardsCheck);
+  const cardsResult = await processSteamCards();
   if (cardsResult.errors.length > 0) {
     console.error('Error processing Steam Cards:', cardsResult.errors);
-  } else {
-    await updateLastCheck('app_cards_check', now);
   }
 
   console.log('6. Processing Steam Removals');
