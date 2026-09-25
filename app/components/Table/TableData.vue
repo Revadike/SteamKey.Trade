@@ -247,10 +247,15 @@
   };
 
   onMounted(() => loadSortFromUrl());
-  watch(() => route.query, () => {
-    loadSortFromUrl();
+  // Only react to the specific query params this table actually consumes, so
+  // unrelated URL changes (e.g. selecting an app in the vault) don't trigger a
+  // reload that resets the table.
+  watch(() => route.query.filters, () => {
     waitingForUrlFilters.value = !!(filtersSyncedWithUrl.value && route.query.filters);
     loadFiltersFromUrl();
+  }, { immediate: true });
+  watch([() => route.query.sort, () => route.query.order], () => {
+    loadSortFromUrl();
   }, { immediate: true });
   watch(filtersSyncedWithUrl, (enabled) => {
     if (!enabled) {

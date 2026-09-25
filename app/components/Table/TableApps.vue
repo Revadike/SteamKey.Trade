@@ -65,6 +65,10 @@
       type: Array,
       default: () => []
     },
+    defaultSortBy: {
+      type: Array,
+      default: () => []
+    },
     // Requires v-model to be set on this component to work properly!
     showSelect: {
       type: Boolean,
@@ -469,7 +473,8 @@
           .select(`*,
             ${VaultEntry.table}!inner(
               ${VaultEntry.fields.userId},
-              ${VaultEntry.fields.tradeId}
+              ${VaultEntry.fields.tradeId},
+              ${VaultEntry.fields.revealedAt}
             ),
             ${Trade.apps.table}!inner(
               ${Trade.apps.fields.appId},
@@ -637,6 +642,7 @@
         ...baseProps,
         queryGetter,
         quickFilters: props.quickFilters,
+        defaultSortBy: props.defaultSortBy,
         filtersInUrl: props.quickFilters.length > 0,
         // mapItem: (item) => item.apps || item,
         // mapKey: (key) => `apps(${key})`,

@@ -5,7 +5,7 @@
   const snackbarStore = useSnackbarStore();
   const { user, password } = storeToRefs(useAuthStore());
   const { decrypt } = useVaultSecurity();
-  const { VaultEntry, Trade } = useORM();
+  const { App, VaultEntry, Trade } = useORM();
 
   const route = useRoute();
   const supabase = useSupabaseClient();
@@ -67,6 +67,23 @@
   const mapItem = async item => ({
     ...item,
     [VaultEntry.values.fields.value]: password.value ? await decrypt(item[VaultEntry.values.fields.value], password.value) : '********'
+  });
+
+  const vaultQuickFilters = computed(() => {
+    if (activeTab.value !== 'received') {
+      return [];
+    }
+
+    return [{
+      title: 'Unrevealed',
+      value: {
+        fields: [{
+          field: `${VaultEntry.table}.${VaultEntry.fields.revealedAt}`,
+          operation: 'is',
+          value: 'null'
+        }]
+      }
+    }];
   });
 
   const loadEntries = async (appid) => {
@@ -303,9 +320,11 @@
               <v-window-item class="h-100">
                 <table-apps
                   class="h-100"
+                  :default-sort-by="[{ key: App.fields.title, order: 'asc' }]"
                   :only-vault-received="activeTab === 'received'"
                   :only-vault-sent="activeTab === 'sent'"
                   :only-vault-unsent="activeTab === 'unsent'"
+                  :quick-filters="vaultQuickFilters"
                   readonly
                   @click:row="({ id }) => loadEntries(id)"
                 />
