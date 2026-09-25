@@ -2,10 +2,34 @@
   import { isSteamID64 } from '~/assets/js/validate';
   import countries from '@@/supabase/functions/_assets/countries.json';
 
-  const { user: authUser, preferences, setPhotoUrl, setPreferences } = useAuthStore();
+  const { user: authUser, preferences, setPhotoUrl, setPreferences, setPublicKey, setPassword } = useAuthStore();
   const { User } = useORM();
   const supabase = useSupabaseClient();
   const snackbarStore = useSnackbarStore();
+
+  const resettingVault = ref(false);
+
+  const resetVault = async () => {
+    resettingVault.value = true;
+    try {
+      const { error } = await supabase.rpc('reset_vault');
+      if (error) {
+        throw error;
+      }
+
+      setPublicKey(null);
+      setPassword(null);
+      clearNuxtData();
+
+      snackbarStore.set('success', 'Your vault has been reset.');
+      await navigateTo('/vault');
+    } catch (error) {
+      console.error(error);
+      snackbarStore.set('error', error.message || 'Failed to reset vault');
+    } finally {
+      resettingVault.value = false;
+    }
+  };
 
   const saving = ref(false);
   const valid = ref(false);
@@ -378,6 +402,40 @@
                 :label="User.labels.trackVaultCopies"
                 persistent-hint
               />
+              <dialog-confirm
+                v-if="authUser.publicKey"
+                color="error"
+                confirm-text="Reset vault"
+                :loading="resettingVault"
+                title="Reset your vault?"
+                @confirm="resetVault"
+              >
+                <template #activator="attrs">
+                  <v-btn
+                    v-bind="attrs.props"
+                    class="mt-4"
+                    color="red"
+                    prepend-icon="mdi-delete-forever-outline"
+                    variant="outlined"
+                  >
+                    Reset vault
+                  </v-btn>
+                </template>
+
+                <template #body>
+                  <v-alert
+                    icon="mdi-alert"
+                    type="error"
+                    variant="outlined"
+                  >
+                    <p>This will permanently destroy your entire vault.</p>
+                    <br>
+                    <p><b>This cannot be undone.</b> Your stored and received vault entries will be permanently deleted. There is no way to recover them.</p>
+                    <br>
+                    <p>Items you have already sent to other users in completed trades will remain in their vaults.</p>
+                  </v-alert>
+                </template>
+              </dialog-confirm>
             </v-col>
           </v-row>
         </v-card-text>

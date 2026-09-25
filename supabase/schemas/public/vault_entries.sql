@@ -53,7 +53,7 @@ begin
       values (new.user_id, 'new_vault_entry', '/vault?tab=received&appid=' || new.app_id);
     end if;
   end if;
-  
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -267,3 +267,44 @@ create policy vault_entries_delete on vault_entries
 for delete
 to authenticated
 using ((select auth.uid()) = user_id);
+
+-- Destroy the current user's vault: reset their public key, remove their
+-- stored credentials (encrypted private key), and delete every vault entry
+-- they own. This is a destructive operation so it runs with the privileges of
+-- the function owner (SECURITY DEFINER) to bypass RLS, and is locked down to
+-- the authenticated user's own account via auth.uid().
+create or replace function reset_vault()
+returns void
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  -- Destroy the user's stored credentials (encrypted private key).
+  delete from public.credentials
+  where user_id = v_user_id;
+
+  -- Destroy every vault entry owned by the user. This removes their unsent,
+  -- sent and received entries. Values already delivered to other vaults live
+  -- on vault entries owned by the receiving users (created when a trade is
+  -- completed), so they are left untouched.
+  delete from public.vault_entries
+  where user_id = v_user_id;
+
+  -- Reset the user's public key so the vault can be set up again from scratch.
+  update public.users
+  set public_key = null
+  where id = v_user_id;
+end;
+$$ language plpgsql security definer;
+
+-- Restrict execution to authenticated users only. Supabase grants EXECUTE to
+-- public, anon, authenticated and service_role by default, so revoke the broad
+-- grants before re-granting to authenticated.
+revoke execute on function public.reset_vault() from public;
+revoke execute on function public.reset_vault() from anon;
+grant execute on function public.reset_vault() to authenticated;

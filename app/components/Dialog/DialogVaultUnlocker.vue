@@ -35,7 +35,7 @@
     <v-dialog
       v-else-if="!validPassword"
       v-model="invalidPassword"
-      max-width="360"
+      max-width="500"
       persistent
     >
       <v-card>
@@ -61,6 +61,14 @@
           >
             Cancel
           </v-btn>
+          <v-spacer />
+          <nuxt-link
+            class="text-error text-decoration-underline"
+            to="/settings"
+          >
+            <small class="d-none d-sm-block">Forgot password? Reset vault here</small>
+            <small class="d-block d-sm-none">Reset vault</small>
+          </nuxt-link>
           <v-spacer />
           <v-btn
             :disabled="!passwordInput"

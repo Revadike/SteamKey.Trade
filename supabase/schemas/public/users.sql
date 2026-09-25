@@ -81,8 +81,14 @@ begin
     raise exception 'Cannot change id or steam_id';
   end if;
 
-  -- Prevent changing public_key if already set
-  if old.public_key is not null and new.public_key != old.public_key then
+  -- Prevent changing public_key once set. Clearing the key is only allowed
+  -- when the user's credentials have already been removed (vault reset).
+  if old.public_key is not null
+    and new.public_key != old.public_key
+    and (
+      new.public_key is not null
+      or exists (select 1 from public.credentials where user_id = new.id)
+    ) then
     raise exception 'Cannot change public_key once set';
   end if;
 
