@@ -23,4 +23,15 @@ jobs:
           node-version: '20'
 
       - name: Apply migrations
-        run: npx supabase@latest db push --db-url "${{ secrets.SUPABASE_DB_URL }}" --debug
+        run: |
+          db_url="${{ secrets.SUPABASE_DB_URL }}"
+
+          if [[ "$db_url" == *"sslmode="* ]]; then
+            final_db_url="$db_url"
+          elif [[ "$db_url" == *"?"* ]]; then
+            final_db_url="${db_url}&sslmode=disable"
+          else
+            final_db_url="${db_url}?sslmode=disable"
+          fi
+
+          npx supabase@latest db push --db-url "$final_db_url" --debug
