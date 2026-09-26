@@ -35,7 +35,10 @@ class SteamNotifyBot {
         return;
       }
 
-      this.steamClient = new SteamUser();
+      this.steamClient = new SteamUser({
+        // WebSocket transport (port 443) is more reliable in Deno than raw TCP.
+        webCompatibilityMode: true
+      });
 
       // Set up timeout to prevent hanging
       const timeout = setTimeout(() => {
@@ -43,7 +46,7 @@ class SteamNotifyBot {
           this.steamClient.logOff();
           reject(new Error('Steam login timeout'));
         }
-      }, 30000); // 30 second timeout
+      }, 90000); // 90 seconds: account login can be slow on a constrained VPS
 
       // Handle successful login and reconnection
       this.steamClient.on('loggedOn', () => {

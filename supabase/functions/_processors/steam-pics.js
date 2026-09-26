@@ -121,12 +121,17 @@ export const getTags = async (fresh = false) => {
 };
 
 /**
- * Sets up a Steam client and logs in anonymously.
+ * Creates a Steam client and logs in anonymously (single attempt).
  * @returns {Promise<import('npm:steam-user').Steam>} A promise that resolves to the logged-in Steam client.
  * @throws {Error} - Throws an error if the login process fails or times out.
  */
-export const setupSteamClient = () => {
-  const client = new Steam();
+const connectSteamClient = () => {
+  const client = new Steam({
+    // WebSocket transport (port 443) is more reliable in Deno than raw TCP.
+    webCompatibilityMode: true,
+    // Short-lived anonymous connection; no need to persist to disk.
+    dataDirectory: null
+  });
 
   // Wait for login
   return new Promise((resolve, reject) => {
@@ -148,7 +153,7 @@ export const setupSteamClient = () => {
       client.removeListener('error', handleError);
       client.logOff();
       reject(new Error('Steam client login timed out'));
-    }, 60000);
+    }, 120000); // 2 minutes: login can exceed 60s on a constrained VPS
 
     client.once('loggedOn', handleLoggedOn);
     client.once('error', handleError);
@@ -156,6 +161,21 @@ export const setupSteamClient = () => {
     // Log in anonymously
     client.logOn({ anonymous: true });
   });
+};
+
+/**
+ * Sets up a Steam client and logs in anonymously, retrying once on failure.
+ * @returns {Promise<import('npm:steam-user').Steam>} A promise that resolves to the logged-in Steam client.
+ * @throws {Error} - Throws an error if the login process fails or times out after all attempts.
+ */
+export const setupSteamClient = async () => {
+  try {
+    return await connectSteamClient();
+  } catch {
+    // Retry once after a short backoff.
+    await new Promise(resolve => setTimeout(resolve, 15000));
+    return await connectSteamClient();
+  }
 };
 
 /**
