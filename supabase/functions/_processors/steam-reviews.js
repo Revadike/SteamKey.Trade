@@ -1,3 +1,4 @@
+import EResult from 'npm:steam-user/enums/EResult.js';
 import { App } from '../_entities/index.js';
 import { saveToDatabase } from '../_helpers/updater.js';
 import { steamApiRequest } from '../_helpers/steamAPI.js';
@@ -17,11 +18,13 @@ export const processSteamReviews = async (appids) => {
   const records = [];
 
   await Promise.all(appids.map(async (appid) => {
+    let summary = {};
+
     try {
       // Only the totals are needed, so request the smallest page. The score fields are only sent
       // when review_type is All, and the totals are scoped by the query: languages must be 'all'
       // (else English only) and purchase_type must be All (else Steam purchases only).
-      const { query_summary: summary } = await steamApiRequest('IUserReviewsService', 'GetAppReviews', 'v1', {
+      ({ query_summary: summary = {} } = await steamApiRequest('IUserReviewsService', 'GetAppReviews', 'v1', {
         params: {
           appid,
           input_json: JSON.stringify({
@@ -32,20 +35,21 @@ export const processSteamReviews = async (appids) => {
             filter_offtopic_activity: false
           })
         }
-      });
-
-      if (!summary) {
-        throw new Error(`No review totals returned for app ${appid}`);
-      }
-
-      records.push({
-        [App.fields.id]: appid,
-        [App.fields.positiveReviews]: summary.total_positive,
-        [App.fields.negativeReviews]: summary.total_negative
-      });
+      }));
     } catch (error) {
-      errors.push(error);
+      // The API answers with EResult.NoMatch (and an empty response) for app IDs that have no
+      // review data at all, e.g. delisted, unreleased or non-existent apps. Treat those as zero.
+      if (error.eresult !== EResult.NoMatch) {
+        errors.push(error);
+        return;
+      }
     }
+
+    records.push({
+      [App.fields.id]: appid,
+      [App.fields.positiveReviews]: summary.total_positive ?? 0,
+      [App.fields.negativeReviews]: summary.total_negative ?? 0
+    });
   }));
 
   // Save app records to database
