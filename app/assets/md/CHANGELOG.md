@@ -1,3 +1,7 @@
+## October 31, 2026
+
+* Fixed processing of app reviews
+
 ## September 26, 2026
 
 * Added a new quick filter for unrevealed vault entries
