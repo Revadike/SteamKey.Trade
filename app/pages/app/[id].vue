@@ -101,7 +101,7 @@
       const subcollections = await instance.getSubcollections(true);
       await Promise.all([instance, ...subcollections].map(collection => collection.removeApps([appid])));
       await updateUserCollections();
-      snackbarStore.set('success', `Removed from your ${type}`);
+      snackbarStore.set('success', `Removed from your ${type}${subcollections.length ? ` and its ${subcollections.length} subcollections` : ''}`);
     } catch (error) {
       console.error(error);
       snackbarStore.set('error', error.message);
