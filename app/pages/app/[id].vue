@@ -97,7 +97,9 @@
   const removeFromMasterCollection = async (type) => {
     try {
       const instance = await Collection.getMasterCollection(supabase, authUser.id, type);
-      await instance.removeApps([appid]);
+      // Master membership includes apps in (nested) subcollections, so remove from those too
+      const subcollections = await instance.getSubcollections(true);
+      await Promise.all([instance, ...subcollections].map(collection => collection.removeApps([appid])));
       await updateUserCollections();
       snackbarStore.set('success', `Removed from your ${type}`);
     } catch (error) {
