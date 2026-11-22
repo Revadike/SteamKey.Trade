@@ -17,6 +17,12 @@ export default {
 
   ssr: false,
 
+  experimental: {
+    // Avoid Nuxt's inline `#entry` import map: extensions or edge injections can start modules before Firefox accepts the map.
+    // @see https://github.com/nuxt/nuxt/pull/33075
+    entryImportMap: false
+  },
+
   app: {
     head: {
       title: siteName,

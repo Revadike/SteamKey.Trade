@@ -38,33 +38,33 @@
 </template>
 
 <style lang="scss" scoped>
-.changelog-content {
-  :deep(h2),
-  :deep(h2 + ul),
-  :deep(h2 + ol) {
-    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-    margin: 0 0 1rem;
-  }
+  .changelog-content {
+    :deep(h2),
+    :deep(h2 + ul),
+    :deep(h2 + ol) {
+      border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+      margin: 0 0 1rem;
+    }
 
-  :deep(h2) {
-    margin-bottom: 0;                // merge with list
-    padding: 0.75rem 1rem;
-    border-radius: 4px 4px 0 0;    // only top corners
-    background: rgba(var(--v-theme-on-surface), 0.04);
-    font-size: 1.05rem;
-  }
+    :deep(h2) {
+      margin-bottom: 0;                // merge with list
+      padding: 0.75rem 1rem;
+      border-radius: 4px 4px 0 0;    // only top corners
+      background: rgba(var(--v-theme-on-surface), 0.04);
+      font-size: 1.05rem;
+    }
 
-  :deep(h2 + ul),
-  :deep(h2 + ol) {
-    margin-top: 0;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    padding: 0.5rem 1.5rem;
-    position: relative;
-  }
+    :deep(h2 + ul),
+    :deep(h2 + ol) {
+      margin-top: 0;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      padding: 0.5rem 1.5rem;
+      position: relative;
+    }
 
-  :deep(li) {
-    margin: 0.35rem 0;
+    :deep(li) {
+      margin: 0.35rem 0;
+    }
   }
-}
 </style>
